@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content=""><meta name="author" content=""><meta name="twitter:card" content="app"><meta name="twitter:site" content="@whispersystems"><meta name="twitter:app:name:iphone" content="Signal"><meta name="twitter:app:id:iphone" content="874139669"><meta name="twitter:app:name:googleplay" content="TextSecure"><meta name="twitter:app:id:googleplay" content="org.thoughtcrime.securesms"><title>Signal &gt;&gt; Specifications &gt;&gt; The Double Ratchet Algorithm</title><link rel="apple-touch-icon" sizes="57x57" href="https://signal.org/assets/favicon/apple-icon-57x57-00feed768a563157c8fc6fed4e3fa0b805711f97d8d6a8f0f92c4d969c8b7c81.png"><link rel="apple-touch-icon" sizes="60x60" href="https://signal.org/assets/favicon/apple-icon-60x60-e5fe791fca3521d5845d02f310113cce415c79700d394d9074a973d885001f6c.png"><link rel="apple-touch-icon" sizes="72x72" href="https://signal.org/assets/favicon/apple-icon-72x72-3d5078eb670baea079173c32f067978a706996945f03ef3b5383eb44fc4d611f.png"><link rel="apple-touch-icon" sizes="76x76" href="https://signal.org/assets/favicon/apple-icon-76x76-0dbbb0f8b44f2d80329100aa9f0dba07297fedd878cd1158fa59a9c01167c77b.png"><link rel="apple-touch-icon" sizes="114x114" href="https://signal.org/assets/favicon/apple-icon-114x114-25b9c9173bfa29b166a619da2ca59f86e48d1eab1d3370f1264b822421d120fb.png"><link rel="apple-touch-icon" sizes="120x120" href="https://signal.org/assets/favicon/apple-icon-120x120-7f74e6f2d3cab9b3c160ff0f27261f83f52c9df6067100c350c561b4f0377fda.png"><link rel="apple-touch-icon" sizes="144x144" href="https://signal.org/assets/favicon/apple-icon-144x144-5dc9b2a79b41714f67a10dd60ab3b2238358c9cb508e35c0133ca8dc4df7e086.png"><link rel="apple-touch-icon" sizes="152x152" href="https://signal.org/assets/favicon/apple-icon-152x152-dc7b16329390721a64801665848b451fb865633efdfe033ffc440837a0369882.png"><link rel="apple-touch-icon" sizes="180x180" href="https://signal.org/assets/favicon/apple-icon-180x180-795ae24a0e9174cba80947c2d2c9087e0dffbb89a7001e14434223d36fa98933.png"><link rel="icon" type="image/png" sizes="192x192" href="https://signal.org/assets/favicon/android-icon-192x192-1d508a6d63f514f7199ce3e677c55dbd30f30809961c645ac526a278a9c9449d.png"><link rel="icon" type="image/png" sizes="32x32" href="https://signal.org/assets/favicon/favicon-32x32-5bab16438a8e298a1731e3c393f1f61d7e2ed1cb9de3f8a6b0e49c4bd7c776e6.png"><link rel="icon" type="image/png" sizes="96x96" href="https://signal.org/assets/favicon/favicon-96x96-e6590f79393a4c2bbd5e8dcc27a42aa2e58f1e2f35a7e22a071b8cd023fa4f3f.png"><link rel="icon" type="image/png" sizes="16x16" href="https://signal.org/assets/favicon/favicon-16x16-04440ded6f2156fe146523a0cbfa066bfa08bdf557f2f49e3689eb79794f3bd6.png"><link rel="manifest" href="https://signal.org/assets/favicon/manifest-27eca3e8297eb7ff340deb3849b210185a459b3845456aa4d0036f6d966b3518.json"><meta name="msapplication-TileColor" content="#ffffff"><meta name="msapplication-TileImage" content="/assets/favicon/ms-icon-144x144-5dc9b2a79b41714f67a10dd60ab3b2238358c9cb508e35c0133ca8dc4df7e086.png"><meta name="theme-color" content="#ffffff"><link rel="stylesheet" href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/bootstrap.css"><link rel="stylesheet" href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/bootstrap-theme.css"><link type="text/css" rel="stylesheet" href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/theme-11b39073e609de4fa81bd8592e38802abfc10fe6114f2b80ee6882.css"><link type="text/css" rel="stylesheet" href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/syntax-881bc4f9ec9a8040c6348007919d38b71a25b475c10aba237498d.css"><link href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/font-awesome.css" rel="stylesheet"><link href="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/css.css" rel="stylesheet" type="text/css"></head><body id="page-top" class="index"><nav class="navbar navbar-default navbar-fixed-top navbar-shrink "><div class="container"><div class="navbar-header page-scroll"> <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button> <img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/logo-70556391d9e0f1642cf4ac8bafb3911db909aa3ca820e6d2dc412fa.png"> <a class="navbar-brand page-scroll" href="https://signal.org/#page-top">Signal</a></div><div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1"><ul class="nav navbar-nav navbar-right"><li class="hidden"> <a href="#page-top"></a></li><li> <a href="http://support.signal.org/">Support</a></li><li> <a class="page-scroll" href="https://signal.org/blog/">Blog</a></li><li> <a class="page-scroll" href="https://signal.org/docs/">Developers</a></li><li> <a class="page-scroll" href="https://signal.org/workworkwork/">Jobs</a></li><li> <a href="https://twitter.com/whispersystems"><i class="fa fa-twitter"></i></a></li></ul></div></div></nav><section id="specification"><article><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"> <img class="author img-responsive img-circle" src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/spaceship-e722e5c700acd0e0ac8b003fb8269174a00e6190021f47ea23.png"><h1 class="post-title"> The Double Ratchet Algorithm</h1><h3 class="post-subtitle"><p>Revision 1, 2016-11-20 [<a href="https://signal.org/docs/specifications/doubleratchet/doubleratchet.pdf">PDF</a>]</p><p>Trevor Perrin (editor), Moxie Marlinspike</p></h3></div></div><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div id="TOC"><h2 class="toc">Table of Contents</h2><ul><li><a href="#introduction">1. Introduction</a></li><li><a href="#overview">2. Overview</a><ul><li><a href="#kdf-chains">2.1. KDF chains</a></li><li><a href="#symmetric-key-ratchet">2.2. Symmetric-key ratchet</a></li><li><a href="#diffie-hellman-ratchet">2.3. Diffie-Hellman ratchet</a></li><li><a href="#double-ratchet">2.4. Double Ratchet</a></li><li><a href="#out-of-order-messages">2.6. Out-of-order messages</a></li></ul></li><li><a href="#double-ratchet-1">3. Double Ratchet</a><ul><li><a href="#external-functions">3.1. External functions</a></li><li><a href="#state-variables">3.2. State variables</a></li><li><a href="#initialization">3.3. Initialization</a></li><li><a href="#encrypting-messages">3.4. Encrypting messages</a></li><li><a href="#decrypting-messages">3.5. Decrypting messages</a></li></ul></li><li><a href="#double-ratchet-with-header-encryption">4. Double Ratchet with header encryption</a><ul><li><a href="#overview-1">4.1. Overview</a></li><li><a href="#external-functions-1">4.2. External functions</a></li><li><a href="#state-variables-1">4.3. State variables</a></li><li><a href="#initialization-1">4.4. Initialization</a></li><li><a href="#encrypting-messages-1">4.5. Encrypting messages</a></li><li><a href="#decrypting-messages-1">4.6. Decrypting messages</a></li></ul></li><li><a href="#implementation-considerations">5. Implementation considerations</a><ul><li><a href="#integration-with-x3dh">5.1. Integration with X3DH</a></li><li><a href="#recommended-cryptographic-algorithms">5.2. Recommended cryptographic algorithms</a></li></ul></li><li><a href="#security-considerations">6. Security considerations</a><ul><li><a href="#secure-deletion">6.1. Secure deletion</a></li><li><a href="#recovery-from-compromise">6.2. Recovery from compromise</a></li><li><a href="#cryptanalysis-and-ratchet-public-keys">6.3. Cryptanalysis and ratchet public keys</a></li><li><a href="#deletion-of-skipped-message-keys">6.4. Deletion of skipped message keys</a></li><li><a href="#deferring-new-ratchet-key-generation">6.5. Deferring new ratchet key generation</a></li><li><a href="#truncating-authentication-tags">6.6. Truncating authentication tags</a></li><li><a href="#implementation-fingerprinting">6.7. Implementation fingerprinting</a></li></ul></li><li><a href="#ipr">7. IPR</a></li><li><a href="#acknowledgements">8. Acknowledgements</a></li><li><a href="#references">9. References</a></li></ul></div><p></p><h1 id="introduction">1. Introduction</h1><p>The
+ Double Ratchet algorithm is used by two parties to exchange encrypted 
+messages based on a shared secret key. Typically the parties will use 
+some key agreement protocol (such as X3DH <span class="citation">[<a href="#ref-x3dh">1</a>]</span>)
+ to agree on the shared secret key. Following this, the parties will use
+ the Double Ratchet to send and receive encrypted messages.</p><p>The 
+parties derive new keys for every Double Ratchet message so that earlier
+ keys cannot be calculated from later ones. The parties also send 
+Diffie-Hellman public values attached to their messages. The results of 
+Diffie-Hellman calculations are mixed into the derived keys so that 
+later keys cannot be calculated from earlier ones. These properties 
+gives some protection to earlier or later encrypted messages in case of a
+ compromise of a party's keys.</p><p>The Double Ratchet and its header encryption variant are presented below, and their security properties are discussed.</p><h1 id="overview">2. Overview</h1><h2 id="kdf-chains">2.1. KDF chains</h2><p>A <strong>KDF chain</strong> is a core concept in the Double Ratchet algorithm.</p><p>We define a <strong>KDF</strong> as a cryptographic function that takes a secret and random <strong>KDF key</strong>
+ and some input data and returns output data. The output data is 
+indistinguishable from random provided the key isn't known (i.e. a KDF 
+satisfies the requirements of a cryptographic "PRF"). If the key is not 
+secret and random, the KDF should still provide a secure cryptographic 
+hash of its key and input data. The HMAC and HKDF constructions, when 
+instantiated with a secure hash algorithm, meet the KDF definition <span class="citation">[<a href="#ref-rfc2104">2</a>], [<a href="#ref-rfc5869">3</a>]</span>.</p><p>We use the term <strong>KDF chain</strong> when some of the output from a KDF is used as an <strong>output key</strong>
+ and some is used to replace the KDF key, which can then be used with 
+another input. The below diagram represents a KDF chain processing three
+ inputs and producing three output keys:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set0_0.png" alt="text">&nbsp;</p><p>A KDF chain has the following properties (using terminology adapted from <span class="citation">[<a href="#ref-barakhalevi">4</a>]</span>):</p><ul><li><p><strong>Resilience:</strong>
+ The output keys appear random to an adversary without knowledge of the 
+KDF keys. This is true even if the adversary can control the KDF inputs.</p></li><li><p><strong>Forward security:</strong> Output keys from the past appear random to an adversary who learns the KDF key at some point in time.</p></li><li><p><strong>Break-in recovery:</strong>
+ Future output keys appear random to an adversary who learns the KDF key
+ at some point in time, provided that future inputs have added 
+sufficient entropy.</p></li></ul><p>In a <strong>Double Ratchet session</strong> between Alice and Bob each party stores a KDF key for three chains: a <strong>root chain</strong>, a <strong>sending chain</strong>, and a <strong>receiving chain</strong> (Alice's sending chain matches Bob's receiving chain, and vice versa).</p><p>As
+ Alice and Bob exchange messages they also exchange new Diffie-Hellman 
+public keys, and the Diffie-Hellman output secrets become the inputs to 
+the root chain. The output keys from the root chain become new KDF keys 
+for the sending and receiving chains. This is called the <strong>Diffie-Hellman ratchet</strong>.</p><p>The
+ sending and receiving chains advance as each message is sent and 
+received. Their output keys are used to encrypt and decrypt messages. 
+This is called the <strong>symmetric-key ratchet</strong></p><p>The next
+ sections explain the symmetric-key and Diffie-Hellman ratchets in more 
+detail, then show how they are combined into the Double Ratchet.</p><h2 id="symmetric-key-ratchet">2.2. Symmetric-key ratchet</h2><p>Every message sent or received is encrypted with a unique <strong>message key</strong>. The message keys are output keys from the sending and receiving KDF chains. The KDF keys for these chains will be called <strong>chain keys</strong>.</p><p>The
+ KDF inputs for the sending and receiving chains are constant, so these 
+chains don't provide break-in recovery. The sending and receiving chains
+ just ensure that each message is encrypted with a unique key that can 
+be deleted after encryption or decryption. Calculating the next chain 
+key and message key from a given chain key is a single <strong>ratchet step</strong> in the <strong>symmetric-key ratchet</strong>. The below diagram shows two steps:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set0_1.png" alt="text">&nbsp;</p><p>Because
+ message keys aren't used to derive any other keys, message keys may be 
+stored without affecting the security of other message keys. This is 
+useful for handling lost or out-of-order messages (see <a href="#out-of-order-messages">Section 2.6</a>).</p><h2 id="diffie-hellman-ratchet">2.3. Diffie-Hellman ratchet</h2><p>If
+ an attacker steals one party's sending and receiving chain keys, the 
+attacker can compute all future message keys and decrypt all future 
+messages. To prevent this, the Double Ratchet combines the symmetric-key
+ ratchet with a <strong>DH ratchet</strong> which updates chain keys based on Diffie-Hellman outputs.</p><p>To
+ implement the DH ratchet, each party generates a DH key pair (a 
+Diffie-Hellman public key and private key) which becomes their current <strong>ratchet key pair</strong>.
+ Every message from either party begins with a header which contains the
+ sender's current ratchet public key. When a new ratchet public key is 
+received from the remote party, a <strong>DH ratchet step</strong> is performed which replaces the local party's current ratchet key pair with a new key pair.</p><p>This
+ results in a "ping-pong" behavior as the parties take turns replacing 
+ratchet key pairs. An eavesdropper who briefly compromises one of the 
+parties might learn the value of a current ratchet private key, but that
+ private key will eventually be replaced with an uncompromised one. At 
+that point, the Diffie-Hellman calculation between ratchet key pairs 
+will define a DH output unknown to the attacker.</p><p>The following diagrams show how the DH ratchet derives a shared sequence of DH outputs.</p><p>Alice
+ is initialized with Bob's ratchet public key. Alice's ratchet public 
+key isn't yet known to Bob. As part of initialization Alice performs a 
+DH calculation between her ratchet private key and Bob's ratchet public 
+key:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set1_0.png" alt="text">&nbsp;</p><p>Alice's
+ initial messages advertise her ratchet public key. Once Bob receives 
+one of these messages, Bob performs a DH ratchet step: He calculates the
+ DH output between Alice's ratchet public key and his ratchet private 
+key, which equals Alice's initial DH output. Bob then replaces his 
+ratchet key pair and calculates a new DH output:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set1_1.png" alt="text">&nbsp;</p><p>Messages
+ sent by Bob advertise his new public key. Eventually, Alice will 
+receive one of Bob's messages and perform a DH ratchet step, replacing 
+her ratchet key pair and deriving two DH outputs, one that matches Bob's
+ latest and a new one:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set1_2.png" alt="text">&nbsp;</p><p>Messages
+ sent by Alice advertise her new public key. Eventually, Bob will 
+receive one of these messages and perform a second DH ratchet step, and 
+so on:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set1_3.png" alt="text">&nbsp;</p><p>The
+ DH outputs generated during each DH ratchet step are used to derive new
+ sending and receiving chain keys. The below diagram revisits Bob's 
+first ratchet step. Bob uses his first DH output to derive a receiving 
+chain that matches Alice's sending chain. Bob uses the second DH output 
+to derive a new sending chain:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set2_0.png" alt="text">&nbsp;</p><p>As the parties take turns performing DH ratchet steps, they take turns introducing new sending chains:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set2_1.png" alt="text">&nbsp;</p><p>However,
+ the above picture is a simplification. Instead of taking the chain keys
+ directly from DH outputs, the DH outputs are used as KDF inputs to a 
+root chain, and the KDF outputs from the root chain are used as sending 
+and receiving chain keys. Using a KDF chain here improves resilience and
+ break-in recovery.</p><p>So a full DH ratchet step consists of updating
+ the root KDF chain twice, and using the KDF output keys as new 
+receiving and sending chain keys:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set2_2.png" alt="text">&nbsp;</p><h2 id="double-ratchet">2.4. Double Ratchet</h2><p>Combining the symmetric-key and DH ratchets gives the Double Ratchet:</p><ul><li><p>When
+ a message is sent or received, a symmetric-key ratchet step is applied 
+to the sending or receiving chain to derive the message key.</p></li><li><p>When
+ a new ratchet public key is received, a DH ratchet step is performed 
+prior to the symmetric-key ratchet to replace the chain keys.</p></li></ul><p>In
+ the below diagram Alice has been initialized with Bob's ratchet public 
+key and a shared secret which is the initial root key. As part of 
+initialization Alice generates a new ratchet key pair, and feeds the DH 
+output to the root KDF to calculate a new root key (<em>RK</em>) and sending chain key (<em>CK</em>):</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_0.png" alt="text">&nbsp;</p><p>When Alice sends her first message <em>A1</em>,
+ she applies a symmetric-key ratchet step to her sending chain key, 
+resulting in a new message key (message keys will be labelled with the 
+message they encrypt or decrypt). The new chain key is stored, but the 
+message key and old chain key can be deleted:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_1.png" alt="text">&nbsp;</p><p>If Alice next receives a response <em>B1</em>
+ from Bob, it will contain a new ratchet public key (Bob's public keys 
+are labelled with the message when they were first received). Alice 
+applies a DH ratchet step to derive new receiving and sending chain 
+keys. Then she applies a symmetric-key ratchet step to the receiving 
+chain to get the message key for the received message:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_2.png" alt="text">&nbsp;</p><p>Suppose Alice next sends a message <em>A2</em>, receives a message <em>B2</em> with Bob's old ratchet public key, then sends messages <em>A3</em> and <em>A4</em>. Alice's sending chain will ratchet three steps, and her receiving chain will ratchet once:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_3.png" alt="text">&nbsp;</p><p>Suppose Alice then receives messages <em>B3</em> and <em>B4</em> with Bob's next ratchet key, then sends a message <em>A5</em>. Alice's final state will be as follows:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_4.png" alt="text">&nbsp;</p><h2 id="out-of-order-messages">2.6. Out-of-order messages</h2><p>The
+ Double Ratchet handles lost or out-of-order messages by including in 
+each message header the message's number in the sending chain (<em>N</em>=0,1,2,...) and the length (number of message keys) in the previous sending chain (<em>PN</em>).
+ This enables the recipient to advance to the relevant message key while
+ storing skipped message keys in case the skipped messages arrive later.</p><p>On receiving a message, if a DH ratchet step is triggered then the received <em>PN</em> minus the length of the current receiving chain is the number of skipped messages in that receiving chain. The received <em>N</em> is the number of skipped messages in the new receiving chain (i.e. the chain after the DH ratchet).</p><p>If a DH ratchet step isn't triggered, then the received <em>N</em> minus the length of the receiving chain is the number of skipped messages in that chain.</p><p>For example, consider the message sequence from the previous section when messages <em>B2</em> and <em>B3</em> are skipped. Message <em>B4</em> will trigger Alice's DH ratchet step (instead of <em>B3</em>). Message <em>B4</em> will have <em>PN</em>=2 and <em>N</em>=1. On receiving <em>B4</em> Alice will have a receiving chain of length 1 (<em>B1</em>), so Alice will store message keys for <em>B2</em> and <em>B3</em> so they can be decrypted if they arrive later:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set3_5.png" alt="text">&nbsp;</p><h1 id="double-ratchet-1">3. Double Ratchet</h1><h2 id="external-functions">3.1. External functions</h2><p>To instantiate the Double Ratchet requires defining the following functions. For recommendations, see <a href="#recommended-cryptographic-algorithms">Section 5.2</a>.</p><ul><li><p><strong><em>GENERATE_DH()</em></strong>: Returns a new Diffie-Hellman key pair.</p></li><li><p><strong><em>DH(dh_pair, dh_pub)</em></strong>: Returns the output from the Diffie-Hellman calculation between the private key from the DH key pair <em>dh_pair</em> and the DH public key <em>dh_pub</em>. If the DH function rejects invalid public keys, then this function may raise an exception which terminates processing.</p></li><li><p><strong><em>KDF_RK(rk, dh_out)</em></strong>: Returns a pair (32-byte root key, 32-byte chain key) as the output of applying a KDF keyed by a 32-byte root key <em>rk</em> to a Diffie-Hellman output <em>dh_out</em>.</p></li><li><p><strong><em>KDF_CK(ck)</em></strong>: Returns a pair (32-byte chain key, 32-byte message key) as the output of applying a KDF keyed by a 32-byte chain key <em>ck</em> to some constant.</p></li><li><p><strong><em>ENCRYPT(mk, plaintext, associated_data)</em></strong>: Returns an AEAD encryption of <em>plaintext</em> with message key <em>mk</em> <span class="citation">[<a href="#ref-aead">5</a>]</span>. The <em>associated_data</em>
+ is authenticated but is not included in the ciphertext. Because each 
+message key is only used once, the AEAD nonce may handled in several 
+ways: fixed to a constant; derived from <em>mk</em> alongside an independent AEAD encryption key; derived as an additional output from <em>KDF_CK()</em>; or chosen randomly and transmitted.</p></li><li><p><strong><em>DECRYPT(mk, ciphertext, associated_data)</em></strong>: Returns the AEAD decryption of <em>ciphertext</em> with message key <em>mk</em>. If authentication fails, an exception will be raised that terminates processing.</p></li><li><p><strong><em>HEADER(dh_pair, pn, n)</em></strong>: Creates a new message header containing the DH ratchet public key from the key pair in <em>dh_pair</em>, the previous chain length <em>pn</em>, and the message number <em>n</em>. The returned header object contains ratchet public key <em>dh</em> and integers <em>pn</em> and <em>n</em>.</p></li><li><p><strong><em>CONCAT(ad, header)</em></strong>: Encodes a message header into a parseable byte sequence, prepends the <em>ad</em> byte sequence, and returns the result. If <em>ad</em>
+ is not guaranteed to be a parseable byte sequence, a length value 
+should be prepended to the output to ensure that the output is parseable
+ as a unique pair (<em>ad</em>, <em>header</em>).</p></li></ul><p>A <strong><em>MAX_SKIP</em></strong>
+ constant also needs to be defined. This specifies the maximum number of
+ message keys that can be skipped in a single chain. It should be set 
+high enough to tolerate routine lost or delayed messages, but low enough
+ that a malicious sender can't trigger excessive recipient computation.</p><h2 id="state-variables">3.2. State variables</h2><p>The following state variables are tracked by each party:</p><ul><li><p><strong><em>DHs</em></strong>: DH Ratchet key pair (the "sending" or "self" ratchet key)</p></li><li><p><strong><em>DHr</em></strong>: DH Ratchet public key (the "received" or "remote" key)</p></li><li><p><strong><em>RK</em></strong>: 32-byte Root Key</p></li><li><p><strong><em>CKs, CKr</em></strong>: 32-byte Chain Keys for sending and receiving</p></li><li><p><strong><em>Ns, Nr</em></strong>: Message numbers for sending and receiving</p></li><li><p><strong><em>PN</em></strong>: Number of messages in previous sending chain</p></li><li><p><strong><em>MKSKIPPED</em></strong>:
+ Dictionary of skipped-over message keys, indexed by ratchet public key 
+and message number. Raises an exception if too many elements are stored.</p></li></ul><p>In the Python code that follows, the state variables are accessed as members of a <strong><em>state</em></strong> object.</p><h2 id="initialization">3.3. Initialization</h2><p>Prior to initialization both parties must use some key agreement protocol to agree on a 32-byte shared secret key <em>SK</em>
+ and Bob's ratchet public key. These values will be used to populate 
+Alice's sending chain key and Bob's root key. Bob's chain keys and 
+Alice's receiving chain key will be left empty, since they are populated
+ by each party's first DH ratchet step.</p><p>(This assumes Alice begins
+ sending messages first, and Bob doesn't send messages until he has 
+received one of Alice's messages. To allow Bob to send messages 
+immediately after initialization Bob's sending chain key and Alice's 
+receiving chain key could be initialized to a shared secret. For the 
+sake of simplicity we won't consider this further.)</p><p>Once Alice and Bob have agreed on <em>SK</em> and Bob's ratchet public key, Alice calls <em>RatchetInitAlice()</em> and Bob calls <em>RatchetInitBob()</em>:</p><pre><code>def RatchetInitAlice(state, SK, bob_dh_public_key):
+    state.DHs = GENERATE_DH()
+    state.DHr = bob_dh_public_key
+    state.RK, state.CKs = KDF_RK(SK, DH(state.DHs, state.DHr)) 
+    state.CKr = None
+    state.Ns = 0
+    state.Nr = 0
+    state.PN = 0
+    state.MKSKIPPED = {}
+
+def RatchetInitBob(state, SK, bob_dh_key_pair):
+    state.DHs = bob_dh_key_pair
+    state.DHr = None
+    state.RK = SK
+    state.CKs = None
+    state.CKr = None
+    state.Ns = 0
+    state.Nr = 0
+    state.PN = 0
+    state.MKSKIPPED = {}</code></pre><h2 id="encrypting-messages">3.4. Encrypting messages</h2><p><em>RatchetEncrypt()</em>
+ is called to encrypt messages. This function performs a symmetric-key 
+ratchet step, then encrypts the message with the resulting message key. 
+In addition to the message's <em>plaintext</em> it takes an <em>AD</em> byte sequence which is prepended to the header to form the associated data for the underlying AEAD encryption:</p><pre><code>def RatchetEncrypt(state, plaintext, AD):
+    state.CKs, mk = KDF_CK(state.CKs)
+    header = HEADER(state.DHs, state.PN, state.Ns)
+    state.Ns += 1
+    return header, ENCRYPT(mk, plaintext, CONCAT(AD, header))</code></pre><h2 id="decrypting-messages">3.5. Decrypting messages</h2><p><em>RatchetDecrypt()</em> is called to decrypt messages. This function does the following:</p><ul><li><p>If the message corresponds to a skipped message key this function decrypts the message, deletes the message key, and returns.</p></li><li><p>Otherwise,
+ if a new ratchet key has been received this function stores any skipped
+ message keys from the receiving chain and performs a DH ratchet step to
+ replace the sending and receiving chains.</p></li><li><p>This function 
+then stores any skipped message keys from the current receiving chain, 
+performs a symmetric-key ratchet step to derive the relevant message key
+ and next chain key, and decrypts the message.</p></li></ul><p>If an 
+exception is raised (e.g. message authentication failure) then the 
+message is discarded and changes to the state object are discarded. 
+Otherwise, the decrypted plaintext is accepted and changes to the state 
+object are stored:</p><p>&nbsp;</p><pre><code>def RatchetDecrypt(state, header, ciphertext, AD):
+    plaintext = TrySkippedMessageKeys(state, header, ciphertext, AD)
+    if plaintext != None:
+        return plaintext
+    if header.dh != state.DHr:                 
+        SkipMessageKeys(state, header.pn)
+        DHRatchet(state, header)
+    SkipMessageKeys(state, header.n)             
+    state.CKr, mk = KDF_CK(state.CKr)
+    state.Nr += 1
+    return DECRYPT(mk, ciphertext, CONCAT(AD, header))
+
+def TrySkippedMessageKeys(state, header, ciphertext, AD):
+    if (header.dh, header.n) in state.MKSKIPPED:
+        mk = state.MKSKIPPED[header.dh, header.n]
+        del state.MKSKIPPED[header.dh, header.n]
+        return DECRYPT(mk, ciphertext, CONCAT(AD, header))
+    else:
+        return None
+
+def SkipMessageKeys(state, until):
+    if state.Nr + MAX_SKIP &lt; until:
+        raise Error()
+    if state.CKr != None:
+        while state.Nr &lt; until:
+            state.CKr, mk = KDF_CK(state.CKr)
+            state.MKSKIPPED[state.DHr, state.Nr] = mk
+            state.Nr += 1
+
+def DHRatchet(state, header):
+    state.PN = state.Ns                          
+    state.Ns = 0
+    state.Nr = 0
+    state.DHr = header.dh
+    state.RK, state.CKr = KDF_RK(state.RK, DH(state.DHs, state.DHr))
+    state.DHs = GENERATE_DH()
+    state.RK, state.CKs = KDF_RK(state.RK, DH(state.DHs, state.DHr))</code></pre><h1 id="double-ratchet-with-header-encryption">4. Double Ratchet with header encryption</h1><h2 id="overview-1">4.1. Overview</h2><p>This section describes the <strong>header encryption</strong> variant of the Double Ratchet.</p><p>Message headers contain ratchet public keys and (<em>PN</em>, <em>N</em>)
+ values. In some cases it may be desirable to encrypt the headers so 
+that an eavesdropper can't tell which messages belong to which sessions,
+ or the ordering of messages within a session.</p><p>With header encryption each party stores a symmetric <strong>header key</strong> and <strong>next header key</strong>
+ for both the sending and receiving directions. The sending header key 
+is used for encrypting headers for the current sending chain.</p><p>When
+ a recipient receives a message she must first associate the message 
+with its relevant Double Ratchet session (assuming she has different 
+sessions with different parties). How this is done is outside of the 
+scope of this document, although the Pond protocol offers some ideas <span class="citation">[<a href="#ref-pond2">6</a>]</span>.</p><p>After
+ associating the message with a session, the recipient attempts to 
+decrypt the header with that session's receiving header key, next header
+ key, and any header keys corresponding to skipped messages. Successful 
+decryption with the next header key indicates the recipient must perform
+ a DH ratchet step. During a DH ratchet step the next header keys 
+replace the current header keys, and new next header keys are taken as 
+additional output from the root KDF.</p><p>In the below diagram Alice 
+has been initialized with Bob's ratchet public key and shared secrets 
+for the initial root key, the sending header key (<em>HK</em>), and the receiving next header key (<em>NHK</em>).
+ As part of initialization Alice generates her ratchet key pair and 
+updates the root chain to derive a new root key, sending chain key, and 
+sending next header key (<em>NHK</em>):</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set4_0.png" alt="text">&nbsp;</p><p>When Alice sends her first message <em>A1</em>, she encrypts its header with the sending header key she was initialized with:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set4_1.png" alt="text">&nbsp;</p><p>If
+ Alice next receives a response B1 from Bob, its header will be 
+encrypted with the receiving next header key that she was initialized 
+with. Alice applies a DH ratchet step which shifts the next header keys 
+into the current header keys, and generates new next header keys:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set4_2.png" alt="text">&nbsp;</p><p>Alice next sends a message <em>A2</em>, then receives a message <em>B2</em> using the current receiving header key and containing the same ratchet public key she received in message <em>B1</em>. Alice then sends messages <em>A3</em> and <em>A4</em>. The current header keys are used for all sent and received messages:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set4_3.png" alt="text">&nbsp;</p><p>Alice then receives message <em>B3</em>
+ containing Bob's next ratchet key and with its header encrypted by the 
+next receiving header key. Successful header decryption with the next 
+header key will trigger a DH ratchet step. Alice then receives <em>B4</em> with the same ratchet key and header key, then sends a message <em>A5</em>. Alice's final state will be as follows:</p><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/Set4_4.png" alt="text">&nbsp;</p><h2 id="external-functions-1">4.2. External functions</h2><p>Additional functions are required for header encryption:</p><ul><li><p><strong><em>HENCRYPT(hk, plaintext)</em></strong>: Returns the AEAD encryption of <em>plaintext</em> with header key <em>hk</em>. Because the same <em>hk</em>
+ will be used repeatedly, the AEAD nonce must either be a stateful 
+non-repeating value, or must be a random non-repeating value chosen with
+ at least 128 bits of entropy.</p></li><li><p><strong><em>HDECRYPT(hk, ciphertext)</em></strong>: Returns the authenticated decryption of <em>ciphertext</em> with header key <em>hk</em>. If authentication fails, or if the header key <em>hk</em> is empty (<em>None</em>), returns <em>None</em>.</p></li><li><p><strong><em>KDF_RK_HE(rk, dh_out)</em></strong>: Returns a new root key, chain key, and next header key as the output of applying a KDF keyed by root key <em>rk</em> to a Diffie-Hellman output <em>dh_out</em>.</p></li></ul><h2 id="state-variables-1">4.3. State variables</h2><p>Additional state variables are required:</p><ul><li><strong><em>HKs, HKr</em></strong>: 32-byte Header Keys for sending and receiving</li><li><strong><em>NHKs, NHKr</em></strong>: 32-byte Next Header Keys for sending and receiving</li></ul><p>The following variable's definition is changed:</p><ul><li><strong><em>MKSKIPPED</em></strong>:
+ Dictionary of skipped-over message keys, indexed by header key and 
+message number. Raises an exception if too many elements are stored.</li></ul><h2 id="initialization-1">4.4. Initialization</h2><p>Some additional shared secrets must be used to initialize the header keys:</p><ul><li><p>Alice's
+ sending header key and Bob's next receiving header key must be set to 
+the same value, so that Alice's first message triggers a DH ratchet step
+ for Bob.</p></li><li><p>Alice's next receiving header key and Bob's 
+next sending header key must be set to the same value, so that after 
+Bob's first DH ratchet step, Bob's next message triggers a DH ratchet 
+step for Alice.</p></li></ul><p>Once Alice and Bob have agreed on <em>SK</em>, Bob's ratchet public key, and these additional values, Alice calls <em>RatchetInitAliceHE()</em> and Bob calls <em>RatchetInitBobHE()</em>:</p><p>&nbsp;</p><pre><code>def RatchetInitAliceHE(state, SK, bob_dh_public_key, shared_hka, shared_nhkb):
+    state.DHRs = GENERATE_DH()
+    state.DHRr = bob_dh_public_key
+    state.RK, state.CKs, state.NHKs = KDF_RK_HE(SK, DH(state.DHRs, state.DHRr)) 
+    state.CKr = None
+    state.Ns = 0
+    state.Nr = 0
+    state.PN = 0
+    state.MKSKIPPED = {}
+    state.HKs = shared_hka
+    state.HKr = None
+    state.NHKr = shared_nhkb
+
+def RatchetInitBobHE(state, SK, bob_dh_key_pair, shared_hka, shared_nhkb):
+    state.DHRs = bob_dh_key_pair
+    state.DHRr = None
+    state.RK = SK 
+    state.CKs = None
+    state.CKr = None
+    state.Ns = 0
+    state.Nr = 0
+    state.PN = 0
+    state.MKSKIPPED = {}
+    state.HKs = None
+    state.NHKs = shared_nhkb
+    state.HKr = None
+    state.NHKr = shared_hka</code></pre><h2 id="encrypting-messages-1">4.5. Encrypting messages</h2><p>The <em>RatchetEncryptHE()</em> function is called to encrypt messages with header encryption:</p><pre><code>def RatchetEncryptHE(state, plaintext, AD):
+    state.CKs, mk = KDF_CK(state.CKs)
+    header = HEADER(state.DHRs, state.PN, state.Ns)
+    enc_header = HENCRYPT(state.HKs, header)
+    state.Ns += 1
+    return enc_header, ENCRYPT(mk, plaintext, CONCAT(AD, enc_header))</code></pre><h2 id="decrypting-messages-1">4.6. Decrypting messages</h2><p><em>RatchetDecryptHE()</em> is called to decrypt messages with header encryption:</p><pre><code>def RatchetDecryptHE(state, enc_header, ciphertext, AD):
+    plaintext = TrySkippedMessageKeysHE(state, enc_header, ciphertext, AD)
+    if plaintext != None:
+        return plaintext
+    header, dh_ratchet = DecryptHeader(state, enc_header)
+    if dh_ratchet:
+        SkipMessageKeysHE(state, header.pn)
+        DHRatchetHE(state, header)
+    SkipMessageKeysHE(state, header.n)
+    state.CKr, mk = KDF_CK(state.CKr)
+    state.Nr += 1
+    return DECRYPT(mk, ciphertext, CONCAT(AD, enc_header))
+
+def TrySkippedMessageKeysHE(state, enc_header, ciphertext, AD):
+    for ((hk, n), mk) in state.MKSKIPPED.items():
+        header = HDECRYPT(hk, enc_header)
+        if header != None and header.n == n:
+            del state.MKSKIPPED[hk, n]
+            return DECRYPT(mk, ciphertext, CONCAT(AD, enc_header))
+    return None
+  
+def DecryptHeader(state, enc_header):
+    header = HDECRYPT(state.HKr, enc_header)
+    if header != None:
+        return header, False
+    header = HDECRYPT(state.NHKr, enc_header)
+    if header != None:
+        return header, True
+    raise Error()
+
+def SkipMessageKeysHE(state, until):
+    if state.Nr + MAX_SKIP &lt; until:
+        raise Error()
+    if state.CKr != None:
+        while state.Nr &lt; until:
+            state.CKr, mk = KDF_CK(state.CKr)
+            state.MKSKIPPED[state.HKr, state.Nr] = mk
+            state.Nr += 1</code></pre><p>&nbsp;</p><pre><code>def DHRatchetHE(state, header):
+    state.PN = state.Ns
+    state.Ns = 0
+    state.Nr = 0
+    state.HKs = state.NHKs
+    state.HKr = state.NHKr
+    state.DHRr = header.dh
+    state.RK, state.CKr, state.NHKr = KDF_RK_HE(state.RK, DH(state.DHRs, state.DHRr))
+    state.DHRs = GENERATE_DH()
+    state.RK, state.CKs, state.NHKs = KDF_RK_HE(state.RK, DH(state.DHRs, state.DHRr))</code></pre><h1 id="implementation-considerations">5. Implementation considerations</h1><h2 id="integration-with-x3dh">5.1. Integration with X3DH</h2><p>The Double Ratchet algorithm can be used in combination with the X3DH key agreement protocol <span class="citation">[<a href="#ref-x3dh">1</a>]</span>. The Double Ratchet plays the role of a "post-X3DH" protocol which takes the session key <em>SK</em> negotiated by X3DH and uses it as the Double Ratchet's initial root key.</p><p>The following outputs from X3DH are used by the Double Ratchet:</p><ul><li><p>The <em>SK</em> output from X3DH becomes the <em>SK</em> input to Double Ratchet initialization (see <a href="#initialization">Section 3.3</a>).</p></li><li><p>The <em>AD</em> output from X3DH becomes the <em>AD</em> input to Double Ratchet encryption and decryption (see <a href="#encrypting-messages">Section 3.4</a> and <a href="#decrypting-messages">Section 3.5</a>).</p></li><li><p>Bob's signed prekey from X3DH (<em>SPK<sub>B</sub></em>) becomes Bob's initial ratchet public key (and corresponding key pair) for Double Ratchet initialization.</p></li></ul><p>Any
+ Double Ratchet message encrypted using Alice's initial sending chain 
+can serve as an "initial ciphertext" for X3DH. To deal with the 
+possibility of lost or out-of-order messages, a recommended pattern is 
+for Alice to repeatedly send the same X3DH initial message prepended to 
+all of her Double Ratchet messages until she receives Bob's first Double
+ Ratchet response message.</p><h2 id="recommended-cryptographic-algorithms">5.2. Recommended cryptographic algorithms</h2><p>The following choices are recommended for instantiating the cryptographic functions from <a href="#external-functions">Section 3.1</a>:</p><ul><li><p><strong><em>GENERATE_DH()</em></strong>: This function is recommended to generate a key pair based on the Curve25519 or Curve448 elliptic curves <span class="citation">[<a href="#ref-rfc7748">7</a>]</span>.</p></li><li><p><strong><em>DH(dh_pair, dh_pub)</em></strong>: This function is recommended to return the output from the X25519 or X448 function as defined in <span class="citation">[<a href="#ref-rfc7748">7</a>]</span>. There is no need to check for invalid public keys.</p></li><li><p><strong><em>KDF_RK(rk, dh_out)</em></strong>: This function is recommended to be implemented using HKDF <span class="citation">[<a href="#ref-rfc5869">3</a>]</span> with SHA-256 or SHA-512 <span class="citation">[<a href="#ref-nistsha2">8</a>]</span>, using <em>rk</em> as HKDF <em>salt</em>, <em>dh_out</em> as HKDF <em>input key material</em>, and an application-specific byte sequence as HKDF <em>info</em>. The <em>info</em> value should be chosen to be distinct from other uses of HKDF in the application.</p></li><li><p><strong><em>KDF_CK(ck)</em></strong>: HMAC <span class="citation">[<a href="#ref-rfc2104">2</a>]</span> with SHA-256 or SHA-512 <span class="citation">[<a href="#ref-nistsha2">8</a>]</span> is recommended, using <em>ck</em>
+ as the HMAC key and using separate constants as input (e.g. a single 
+byte 0x01 as input to produce the message key, and a single byte 0x02 as
+ input to produce the next chain key).</p></li><li><p><strong><em>ENCRYPT(mk, plaintext, associated_data)</em></strong>:
+ This function is recommended to be implemented with an AEAD encryption 
+scheme based on either SIV or a composition of CBC with HMAC <span class="citation">[<a href="#ref-aead">5</a>], [<a href="#ref-siv">9</a>]</span>.
+ These schemes provide some misuse-resistance in case a key is 
+mistakenly used multiple times. A concrete recommendation based on CBC 
+and HMAC is as follows:</p><ul><li><p>HKDF is used with SHA-256 or SHA-512 to generate 80 bytes of output. The HKDF <em>salt</em> is set to a zero-filled byte sequence equal to the hash's output length. HKDF <em>input key material</em> is set to <em>mk</em>. HKDF <em>info</em> is set to an application-specific byte sequence distinct from other uses of HKDF in the application.</p></li><li><p>The HKDF output is divided into a 32-byte encryption key, a 32-byte authentication key, and a 16-byte IV.</p></li><li><p>The
+ plaintext is encrypted using AES-256 in CBC mode with PKCS#7 padding, 
+using the encryption key and IV from the previous step <span class="citation">[<a href="#ref-nistaes">10</a>], [<a href="#ref-rfc2315">11</a>]</span>.</p></li><li><p>HMAC is calculated using the authentication key and the same hash function as above <span class="citation">[<a href="#ref-rfc2104">2</a>]</span>. The HMAC input is the <em>associated_data</em> prepended to the ciphertext. The HMAC output is appended to the ciphertext.</p></li></ul></li></ul><h1 id="security-considerations">6. Security considerations</h1><h2 id="secure-deletion">6.1. Secure deletion</h2><p>The
+ Double Ratchet algorithm is designed to provide security against an 
+attacker who records encrypted messages and then compromises the sender 
+or receiver at a later time. This security could be defeated if deleted 
+plaintext or keys could be recovered by an attacker with low-level 
+access to the compromised device. Recovering deleted data from storage 
+media is a complicated topic which is outside the scope of this 
+document.</p><h2 id="recovery-from-compromise">6.2. Recovery from compromise</h2><p>The
+ DH ratchet is designed to recover security against a passive 
+eavesdropper who observes encrypted messages after compromising one (or 
+both) of the parties to a session. Despite this mitigation, a compromise
+ of secret keys or of device integrity will have a devastating effect on
+ the security of future communications. For example:</p><ul><li><p>The 
+attacker could use the compromised keys to impersonate the compromised 
+party (e.g. using the compromised party's identity private key with X3DH
+ to create new sessions).</p></li><li><p>The attacker could substitute 
+her own ratchet keys via continuous active man-in-the-middle attack, to 
+maintain eavesdropping on the compromised session.</p></li><li><p>The attacker could modify a compromised party's RNG so that future ratchet private keys are predictable.</p></li></ul><p>If a party suspects its keys or devices have been compromised, it must replace them immediately.</p><h2 id="cryptanalysis-and-ratchet-public-keys">6.3. Cryptanalysis and ratchet public keys</h2><p>Because
+ all DH ratchet computations are mixed into the root key, an attacker 
+who can decrypt a session with passive cryptanalysis might lose this 
+ability if she fails to observe some ratchet public key.</p><p>This is 
+not a reliable countermeasure against cryptanalysis, of course. If 
+weaknesses are discovered in any of the cryptographic algorithms a 
+session relies upon, the session should be discarded and replaced with a
+ new session using strong cryptography.</p><h2 id="deletion-of-skipped-message-keys">6.4. Deletion of skipped message keys</h2><p>Storing skipped message keys introduces some risks:</p><ul><li><p>A
+ malicious sender could induce recipients to store large numbers of 
+skipped message keys, possibly causing denial-of-service due to 
+consuming storage space.</p></li><li><p>The lost messages may have been 
+seen (and recorded) by an attacker, even though they didn't reach the 
+recipient. The attacker can compromise the intended recipient at a later
+ time to retrieve the skipped message keys.</p></li></ul><p>To mitigate 
+the first risk parties should set reasonable per-session limits on the 
+number of skipped message keys that will be stored (e.g. 1000). To 
+mitigate the second risk parties should delete skipped message keys 
+after an appropriate interval. Deletion could be triggered by a timer, 
+or by counting a number of events (messages received, DH ratchet steps, 
+etc.).</p><h2 id="deferring-new-ratchet-key-generation">6.5. Deferring new ratchet key generation</h2><p>During
+ each DH ratchet step a new ratchet key pair and sending chain are 
+generated. As the sending chain is not needed right away, these steps 
+could be deferred until the party is about to send a new message. This 
+would slightly increase security by shortening the lifetime of ratchet 
+keys, at the cost of some complexity.</p><h2 id="truncating-authentication-tags">6.6. Truncating authentication tags</h2><p>If the <em>ENCRYPT()</em> function is implemented using CBC and HMAC as described in <a href="#recommended-cryptographic-algorithms">Section 5.2</a>,
+ then truncating the final HMAC output to 128 bits to reduce message 
+size is acceptable. Truncating it further might be acceptable, though 
+requires careful analysis. In no case should the final HMAC be truncated
+ to less than 64 bits.</p><p>If the <em>ENCRYPT()</em> function is implemented differently, then truncation might require a more complicated analysis and is not recommended.</p><h2 id="implementation-fingerprinting">6.7. Implementation fingerprinting</h2><p>If
+ this protocol is used in settings with anonymous parties, care should 
+be taken that implementations behave identically in all cases.</p><p>In 
+an anonymous context, implementations are advised to follow the 
+algorithms from Sections 3 and 4 precisely. Such implementations are 
+also advised to use identical limits for the number of skipped message 
+keys stored, and identical deletion policies for skipped message keys. 
+Deletion policies should be based on deterministic events (e.g. messages
+ received), rather than time.</p><h1 id="ipr">7. IPR</h1><p>This document is hereby placed in the public domain.</p><h1 id="acknowledgements">8. Acknowledgements</h1><p>This algorithm was designed by Trevor Perrin and Moxie Marlinspike.</p><p>The concept of a Diffie-Hellman ratchet was taken from the OTR protocol by Nikita Borisov, Ian Goldberg, and Eric Brewer <span class="citation">[<a href="#ref-otr">12</a>]</span>.</p><p>Symmetric-key ratcheting is an old idea <span class="citation">[<a href="#ref-abdallah">13</a>], [<a href="#ref-scicrypt">14</a>]</span>. It's been used in recent protocols like SCIMP and MinimaLT <span class="citation">[<a href="#ref-scimp1">15</a>]–[<a href="#ref-minimalt">17</a>]</span>.</p><p>The term "ratchet" for forward-secure key updating was introduced by Adam Langley in Pond <span class="citation">[<a href="#ref-pond">18</a>]</span>.</p><p>Thanks to Michael Rogers and Adam Back for mailing list discussions <span class="citation">[<a href="#ref-randombit">19</a>]</span>.</p><p>Thanks to Adam Langley for discussion on improving the receiving algorithm.</p><p>The
+ security of this protocol and similar protocols has been analyzed by 
+Katriel Cohn-Gordon, Cas Cremers, Benjamin Dowling, Luke Garratt, and 
+Douglas Stebila <span class="citation">[<a href="#ref-cas2">20</a>], [<a href="#ref-cas1">21</a>]</span>.</p><p>Thanks to Tom Ritter, Joseph Bonneau, Ximin Luo, Yan Zhu, Samuel Neves, Raphael Arias, and David J. Wu for editorial feedback.</p><h1 id="references" class="unnumbered">9. References</h1><div id="refs" class="references"><div id="ref-x3dh"><p>[1] T. Perrin and M. Marlinspike, “The X3DH Key Agreement Protocol,” 2016. <a href="https://whispersystems.org/docs/specifications/x3dh/" class="uri">https://whispersystems.org/docs/specifications/x3dh/</a></p></div><div id="ref-rfc2104"><p>[2]
+ H. Krawczyk, M. Bellare, and R. Canetti, “HMAC: Keyed-Hashing for 
+Message Authentication.” Internet Engineering Task Force; RFC 2104 
+(Informational); IETF, Feb-1997. <a href="http://www.ietf.org/rfc/rfc2104.txt" class="uri">http://www.ietf.org/rfc/rfc2104.txt</a></p></div><div id="ref-rfc5869"><p>[3]
+ H. Krawczyk and P. Eronen, “HMAC-based Extract-and-Expand Key 
+Derivation Function (HKDF).” Internet Engineering Task Force; RFC 5869 
+(Informational); IETF, May-2010. <a href="http://www.ietf.org/rfc/rfc5869.txt" class="uri">http://www.ietf.org/rfc/rfc5869.txt</a></p></div><div id="ref-barakhalevi"><p>[4]
+ B. Barak and S. Halevi, “A model and architecture for pseudo-random 
+generation with applications to /dev/random.” Cryptology ePrint Archive,
+ Report 2005/029, 2005. <a href="http://eprint.iacr.org/2005/029" class="uri">http://eprint.iacr.org/2005/029</a></p></div><div id="ref-aead"><p>[5]
+ P. Rogaway, “Authenticated-encryption with Associated-data,” in 
+Proceedings of the 9th ACM Conference on Computer and Communications 
+Security, 2002. <a href="http://web.cs.ucdavis.edu/%7Erogaway/papers/ad.pdf" class="uri">http://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a></p></div><div id="ref-pond2"><p>[6] A. Langley, “Pond,” 2012. <a href="https://github.com/agl/pond" class="uri">https://github.com/agl/pond</a></p></div><div id="ref-rfc7748"><p>[7]
+ A. Langley, M. Hamburg, and S. Turner, “Elliptic Curves for Security.” 
+Internet Engineering Task Force; RFC 7748 (Informational); IETF, 
+Jan-2016. <a href="http://www.ietf.org/rfc/rfc7748.txt" class="uri">http://www.ietf.org/rfc/rfc7748.txt</a></p></div><div id="ref-nistsha2"><p>[8]
+ NIST, “FIPS 180-4. Secure Hash Standard (SHS),” National Institute of 
+Standards &amp; Technology, Gaithersburg, MD, United States, 2012. <a href="http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf" class="uri">http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf</a></p></div><div id="ref-siv"><p>[9]
+ P. Rogaway and T. Shrimpton, “A Provable-security Treatment of the 
+Key-wrap Problem,” in Proceedings of the 24th Annual International 
+Conference on The Theory and Applications of Cryptographic Techniques, 
+2006. <a href="http://web.cs.ucdavis.edu/%7Erogaway/papers/keywrap.html" class="uri">http://web.cs.ucdavis.edu/~rogaway/papers/keywrap.html</a></p></div><div id="ref-nistaes"><p>[10]
+ NIST, “FIPS 197. Advanced Encryption Standard,” National Institute of 
+Standards &amp; Technology, Gaithersburg, MD, United States, 2001. <a href="http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf" class="uri">http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf</a></p></div><div id="ref-rfc2315"><p>[11]
+ B. Kaliski, “PKCS #7: Cryptographic Message Syntax Version 1.5.” 
+Internet Engineering Task Force; RFC 2315 (Informational); IETF, 
+Mar-1998. <a href="http://www.ietf.org/rfc/rfc2315.txt" class="uri">http://www.ietf.org/rfc/rfc2315.txt</a></p></div><div id="ref-otr"><p>[12]
+ N. Borisov, I. Goldberg, and E. Brewer, “Off-the-record Communication, 
+or, Why Not to Use PGP,” in Proceedings of the 2004 aCM workshop on 
+privacy in the electronic society, 2004. <a href="http://doi.acm.org/10.1145/1029179.1029200" class="uri">http://doi.acm.org/10.1145/1029179.1029200</a></p></div><div id="ref-abdallah"><p>[13]
+ M. Abdalla and M. Bellare, “Increasing the Lifetime of a Key: A 
+Comparative Analysis of the Security of Re-keying Techniques,” in 
+Advances in Cryptology - ASIACRYPT 2000, 6th International Conference on
+ the Theory and Application of Cryptology and Information Security, 
+2000. <a href="https://cseweb.ucsd.edu/%7Emihir/papers/rekey.html" class="uri">https://cseweb.ucsd.edu/~mihir/papers/rekey.html</a></p></div><div id="ref-scicrypt"><p>[14] B. Olson, “Key Coercion after encrypted message transmission.” sci.crypt, 1994. <a href="https://groups.google.com/d/topic/sci.crypt/3MJzGwiTZ10/discussion" class="uri">https://groups.google.com/d/topic/sci.crypt/3MJzGwiTZ10/discussion</a></p></div><div id="ref-scimp1"><p>[15] Wikipedia, “Silent Circle Instant Messaging Protocol — Wikipedia, The Free Encyclopedia.” 2016. <a href="https://en.wikipedia.org/w/index.php?title=Silent_Circle_Instant_Messaging_Protocol" class="uri">https://en.wikipedia.org/w/index.php?title=Silent_Circle_Instant_Messaging_Protocol</a></p></div><div id="ref-scimp2"><p>[16] G. Belvin, “A Secure Text Messaging Protocol.” Cryptology ePrint Archive, Report 2014/036, 2014. <a href="http://eprint.iacr.org/2014/036" class="uri">http://eprint.iacr.org/2014/036</a></p></div><div id="ref-minimalt"><p>[17]
+ W. M. Petullo, X. Zhang, J. A. Solworth, D. J. Bernstein, and T. Lange,
+ “MinimaLT: Minimal-latency Networking Through Better Security,” in 
+Proceedings of the 2013 ACM SIGSAC Conference on Computer &amp; 
+Communications Security, 2013. <a href="http://doi.acm.org/10.1145/2508859.2516737" class="uri">http://doi.acm.org/10.1145/2508859.2516737</a></p></div><div id="ref-pond"><p>[18] A. Langley, “Pond/README.md,” 2012. <a href="https://github.com/agl/pond/commit/7bb06244b9aa121d367a6d556867992d1481f0c8" class="uri">https://github.com/agl/pond/commit/7bb06244b9aa121d367a6d556867992d1481f0c8</a></p></div><div id="ref-randombit"><p>[19] M. Rogers and A. Back, “Asynchronous forward secrecy encryption.” Cryptography mailing list, 2013. <a href="http://lists.randombit.net/pipermail/cryptography/2013-September/005327.html" class="uri">http://lists.randombit.net/pipermail/cryptography/2013-September/005327.html</a></p></div><div id="ref-cas2"><p>[20]
+ K. Cohn-Gordon, C. Cremers, B. Dowling, L. Garratt, and D. Stebila, “A 
+Formal Security Analysis of the Signal Messaging Protocol.” Cryptology 
+ePrint Archive, Report 2016/1013, 2016. <a href="http://eprint.iacr.org/2016/1013" class="uri">http://eprint.iacr.org/2016/1013</a></p></div><div id="ref-cas1"><p>[21]
+ K. Cohn-Gordon, C. Cremers, and L. Garratt, “On Post-Compromise 
+Security.” Cryptology ePrint Archive, Report 2016/221, 2016. <a href="http://eprint.iacr.org/2016/221" class="uri">http://eprint.iacr.org/2016/221</a></p></div></div></div></div><div class="row row-centered"><div class="col-md-3"></div><div class="col-md-6"><h3>Want to get involved with Open Whisper Systems? <a href="https://signal.org/workworkwork/">We're hiring!</a></h3></div><div class="col-md-3"></div></div></div></article></section><footer><div class="container"><div class="row"><div class="col-md-8"> <span class="copyright">Copyright © Open Whisper Systems 2013-2017</span></div><div class="col-md-4"><ul class="list-inline social-buttons"><li> <a href="https://twitter.com/whispersystems"><i class="fa fa-twitter"></i></a></li><li> <a href="https://github.com/whispersystems"><i class="fa fa-github"></i></a></li></ul></div></div></div></footer><script src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/jquery.js"></script> <script src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/bootstrap.js"></script> <script type="text/javascript"> var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101071404); (function() { var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = '//static.getclicky.com/js'; ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s ); })(); </script> <noscript><p><img src="Signal%20%3E%3E%20Specifications%20%3E%3E%20The%20Double%20Ratchet%20Algorithm_files/101071404ns.gif" style="display: none !important;" width="1" hidden="" height="1">
+</p></noscript></body></html>
