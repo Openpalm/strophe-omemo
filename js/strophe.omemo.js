@@ -1,4 +1,5 @@
 import { $iq, Strophe } from 'strophejs/strophe.js';
+import * as libsignal from 'libsignaljs/libsignal.js';
 
 Strophe.addNamespace('OMEMO', 'eu.siacs.conversations.axolotl');
 
