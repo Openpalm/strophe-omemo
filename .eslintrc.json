@@ -11,16 +11,9 @@
         "linebreak-style": [
             2,
             "unix"
-        ],
-        "semi": [
-            2,
-            "always"
         ]
     },
     "parser": "babel-eslint",
-    "rules": {
-        "semi": "error"
-    },
     "env": {
         "es6": true,
         "browser": true

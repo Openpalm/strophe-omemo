@@ -1,5 +1,7 @@
 /* eslint-disable no-undef,no-unused-vars */
 
+import * as x from 'js/strophe.omemo.js'
+
 var assert = require("assert"); // node.js core module
 
 describe('test skeleton', function(){

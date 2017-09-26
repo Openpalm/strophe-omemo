@@ -3,44 +3,38 @@ import * as libsignal from 'libsignaljs/libsignal.js';
 import debug from 'debug';
 const log = debug('app:log');
 
-if (ENV !== 'production') {
-
-  // Enable the logger.
-  debug.enable('*');
-  log('Logging is enabled!');
-} else {
-  debug.disable();
-}
+debug.enable('*');
+log('Logging is enabled!');
 
 Strophe.addNamespace('OMEMO', 'eu.siacs.conversations.axolotl');
 
 var omemo = {
-   _connection: null,
-   _storage = window.localStorage
+  _connection: null,
+  _storage: window.localStorage
 };
 
 omemo.init = function(conn) {
-   this._connection = conn;
+  this._connection = conn;
 
-   //@TODO maybe setup
+  //@TODO maybe setup
 
-   conn.addHandler(this._onMessage.bind(this), null, 'message');
+  conn.addHandler(this._onMessage.bind(this), null, 'message');
 }
 
 omemo.createEncryptedStanza = function(to, plaintext) {
-   var encryptedStanza = new Strophe.Builder('encrypted', {
-      xmlns: Strophe.NS.OMEMO
-   });
+  var encryptedStanza = new Strophe.Builder('encrypted', {
+    xmlns: Strophe.NS.OMEMO
+  });
 
-   //@TODO
+  //@TODO
 
-   return encryptedStanza;
+  return encryptedStanza;
 }
 
 omemo._onMessage = function(stanza) {
-   //@TODO
+  //@TODO
 
-   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
 
 Strophe.addConnectionPlugin('omemo', omemo);
