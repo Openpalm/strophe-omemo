@@ -1,11 +1,14 @@
-import { $iq, Strophe } from 'strophejs/strophe.js';
-import * as libsignal from 'libsignaljs/libsignal.js';
-import debug from 'debug';
-const log = debug('app:log');
+import { $iq, Strophe } from './strophejs/strophe.js';
+import * as libsignal from './libsignaljs/libsignal.js';
+import store from './InMemorySignalProtocolStore.js'
+import $ from 'jquery'
 
-debug.enable('*');
-log('Logging is enabled!');
+//import debug from 'debug';
+//const log = debug('app:log');
 
+//debug.enable('*');
+//log('Logging is enabled!');
+//
 Strophe.addNamespace('OMEMO', 'eu.siacs.conversations.axolotl');
 
 var omemo = {
