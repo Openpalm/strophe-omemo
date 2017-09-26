@@ -1,0 +1,6 @@
+[submodule "js/libsignaljs"]
+	path = js/libsignaljs
+	url = https://github.com/WhisperSystems/libsignal-protocol-javascript
+[submodule "js/strophejs"]
+	path = js/strophejs
+	url = https://github.com/strophe/strophejs
