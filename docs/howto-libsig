@@ -1,0 +1,9 @@
+get emscripten
+compile, make sure more than 8GB are available - otherwise process breaks multiple times.
+activate emscripten
+fix path varaibles using provided script
+
+import libsignal-protoco.js using <script> tag into the browser
+make sure the debugger is closed, it blocks asm.js emscripten code from being loaded.
+
+that's it for libsignal, it's now ready.
