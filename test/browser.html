@@ -1,14 +1,48 @@
 <!DOCTYPE html>
 <html>
   <head> 
-     <meta charset="UTF-8">  
+    <meta charset="UTF-8">  
+    <script type="text/javascript" src="../js/libs/strophejs/strophe.js"></script>
+    <script async type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script>
+    <script type="text/javascript" src="../js/compiled-omemo.js"></script>
+    <style> 
+.pass:before { 
+  content: 'PASS: '; 
+  color:  blue; 
+  font-weight: bold; 
+} 
+
+    .fail:before { 
+      content: 'FAIL: '; 
+      color: red; 
+      font-weight: bold; 
+
+    } 
+    </style> 
   </head>
-<body>
+  <body>
 
-<h1>My First Heading</h1>
+    <ul id="output"></ul> 
+    <script> 
+      var output = document.getElementById('output'); 
+      
+      function assert( outcome, description ) { 
+        var li = document.createElement('li'); 
+        li.className = outcome ? 'pass' : 'fail'; 
+        li.appendChild( document.createTextNode( description ) ); 
+      
+        output.appendChild(li); 
+      }; 
+    </script>
+  </body>
+  <script> 
+//tests start here.
+    function add(num1, num2) { 
+    	return num1 + num2; 
+    } 
+    var result = add(5, 20); 
 
-<p>My first paragraph.</p>
-
-</body>
+    assert( result == 24, 'Checking the add function'); 
+  </script>
 </html>
-<script type="text/javascript" src="../js/strophe.omemo.js"></script>
+

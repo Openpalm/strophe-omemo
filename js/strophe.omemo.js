@@ -1,6 +1,6 @@
 //import { $iq, Strophe } from './strophe.js';
 import * as libsignal from './libsignal-protocol.js';
-import SignalProtocolStore from './InMemorySignalProtocolStore.js'
+import SignalProtocolStore from './libs/libsignaljs/test/InMemorySignalProtocolStore.js'
 import $ from 'jquery'
 
 //import debug from 'debug';
