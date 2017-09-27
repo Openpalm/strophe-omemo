@@ -3,8 +3,9 @@
   <head> 
     <meta charset="UTF-8">  
     <script type="text/javascript" src="../js/libs/strophejs/strophe.js"></script>
-    <script async type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script>
-    <script type="text/javascript" src="../js/compiled-omemo.js"></script>
+    <script type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> 
+    <!--  <script async type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> -->
+    <!-- <script type="text/javascript" src="../js/compiled-omemo.js"></script> -->
     <style> 
 .pass:before { 
   content: 'PASS: '; 
@@ -36,13 +37,33 @@
     </script>
   </body>
   <script> 
-//tests start here.
+    //tests start here.
     function add(num1, num2) { 
     	return num1 + num2; 
     } 
-    var result = add(5, 20); 
 
-    assert( result == 24, 'Checking the add function'); 
+    var result = add(2, 2); 
+
+    assert( result == 4, 'Checking the add function'); 
+    assert( result == 8, 'Checking the add function'); 
+
+    var KeyHelper = libsignal.KeyHelper;
+    var registrationId = KeyHelper.generateRegistrationId();
+    console.log(registrationId)
+    // Store registrationId somewhere durable and safe.
+    
+    KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
+        // keyPair -> { pubKey: ArrayBuffer, privKey: ArrayBuffer }
+        // Store identityKeyPair somewhere durable and safe.
+    });
+    
+    KeyHelper.generatePreKey(keyId).then(function(preKey) {
+        store.storePreKey(preKey.keyId, preKey.keyPair);
+    });
+    
+    KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
+        store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
+    });
   </script>
 </html>
 
