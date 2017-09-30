@@ -1,0 +1,1 @@
+rollup js/strophe.omemo.js --o dist/co-rolleup.js --f iife

@@ -4,8 +4,11 @@
     <meta charset="UTF-8">  
     <script type="text/javascript" src="../js/libs/strophejs/strophe.js"></script>
     <script type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> 
-    <!--  <script async type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> -->
-    <!-- <script type="text/javascript" src="../js/compiled-omemo.js"></script> -->
+    <script type="text/javascript" src="../dist/co-webpack.js"></script> 
+    <!-- <script type="text/javascript" src="../js/template.js"></script>  -->
+    <script type="text/javascript" src="../js/buffers.js"></script>  
+    <script type="text/javascript" src="../js/gcm.js"></script>  
+    <!-- <script type="text/javascript" src="../dist/co-rolleup.js"></script>  -->
     <style> 
 .pass:before { 
   content: 'PASS: '; 
@@ -25,45 +28,45 @@
 
     <ul id="output"></ul> 
     <script> 
-      var output = document.getElementById('output'); 
-      
-      function assert( outcome, description ) { 
-        var li = document.createElement('li'); 
-        li.className = outcome ? 'pass' : 'fail'; 
-        li.appendChild( document.createTextNode( description ) ); 
-      
-        output.appendChild(li); 
-      }; 
+var output = document.getElementById('output'); 
+
+function assert( outcome, description ) { 
+  var li = document.createElement('li'); 
+  li.className = outcome ? 'pass' : 'fail'; 
+  li.appendChild( document.createTextNode( description ) ); 
+
+  output.appendChild(li); 
+}; 
     </script>
   </body>
   <script> 
-    //tests start here.
-    function add(num1, num2) { 
-    	return num1 + num2; 
-    } 
+//tests start here.
+function add(num1, num2) { 
+  return num1 + num2; 
+} 
 
-    var result = add(2, 2); 
+var result = add(2, 2); 
 
-    assert( result == 4, 'Checking the add function'); 
-    assert( result == 8, 'Checking the add function'); 
+assert( result == 4, 'Checking the add function'); 
+assert( result == 8, 'Checking the add function'); 
 
-    var KeyHelper = libsignal.KeyHelper;
-    var registrationId = KeyHelper.generateRegistrationId();
-    console.log(registrationId)
-    // Store registrationId somewhere durable and safe.
-    
-    KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
-        // keyPair -> { pubKey: ArrayBuffer, privKey: ArrayBuffer }
-        // Store identityKeyPair somewhere durable and safe.
-    });
-    
-    KeyHelper.generatePreKey(keyId).then(function(preKey) {
-        store.storePreKey(preKey.keyId, preKey.keyPair);
-    });
-    
-    KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
-        store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
-    });
+var KeyHelper = libsignal.KeyHelper;
+var registrationId = KeyHelper.generateRegistrationId();
+console.log(registrationId)
+// Store registrationId somewhere durable and safe.
+
+KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
+  // keyPair -> { pubKey: ArrayBuffer, privKey: ArrayBuffer }
+  // Store identityKeyPair somewhere durable and safe.
+});
+
+KeyHelper.generatePreKey(keyId).then(function(preKey) {
+  store.storePreKey(preKey.keyId, preKey.keyPair);
+});
+
+//KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
+//  store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
+//});
   </script>
 </html>
 

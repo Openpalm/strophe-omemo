@@ -1,22 +1,57 @@
-//import { $iq, Strophe } from './strophe.js';
-import SignalProtocolStore from './libs/libsignaljs/test/InMemorySignalProtocolStore.js' //probably init in browser.html and pass it on.
-import $ from 'jquery'
-import 'crypto' from 'crypto'
+"use strict";
 
-Strophe.addNamespace('OMEMO', 'eu.siacs.conversations.axolotl');
+var $ = require('jquery');
+var encoder = require('buffers.js')
+var gcm = require('gcm.js')
+
+function pprint(t) { 
+  console.log("strophe.omemo.js: " + t)
+}
+
+var ns = 'eu.siacs.conversations.axolotl'
+var protocol = 'OMEMO'
+
+pprint("initiating")
+
+//there's no need to import Strophe or $iq, taken from browser <script> tag.
+//not including it here reduces import strain.
+Strophe.addNamespace(protocol, ns);
+pprint("namespace successfully loaded")
+
+//testing iq and its output
+var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http://jabber.org/protocol/pubsub#retrieve-subscriptions'});
+
+pprint(iq)
 
 var omemo = {
   _connection: null,
-  _storage: window.localStorage
-  _bundle: null // safe here?
-  _cipher: null // pass in gcm function. (window.crypto or window.msCrypto)
-};
+  _storage: window.localStorage,
+  _bundle: null, // safe here?
+  _cipher: null, // pass in gcm function. (window.crypto or window.msCrypto)
+  _gcm: null, //window.crypto.subtle.encrypt()
+  _libsignal: null,
+  _AD: null, //association data
+  _deviceid: null
+}
 
+var omemo  = {
 
+}
 omemo.init = function(conn) {
-  this._connection = conn;
+  this._connection = conn; //strophe conn
   //@TODO maybe setup
+  //restore session?
+  //create new session?
+  //generates or retrieves bundle.
+  //publishes or adds device to bundle
   conn.addHandler(this._onMessage.bind(this), null, 'message');
+}
+omemo.setUpMessageElements = function(type, text) {
+  //set the message elements
+  //handles type of message 
+  //1. preKeySignalMessage
+  //2. signalMessage
+  //3. presense of <payload>
 }
 omemo.restore = function(file) {
   //  takes in an encrypted file that contains session information
@@ -25,18 +60,6 @@ omemo.restore = function(file) {
 omemo.serialize = function(file) {
   // serialize the current session into a restorable format 
 }
-omemo.IV = function(IV) {
-  //set the IV
-}
-omemo.messageKey = function(messageKey) {
-  //set the messageKey
-}
-omemo.setUpMessageElements = function(text) {
-  //set the message elements
-}
-
-
-
 omemo.createEncryptedStanza = function(to, plaintext) {
   var encryptedStanza = new Strophe.Builder('encrypted', {
     xmlns: Strophe.NS.OMEMO
@@ -46,7 +69,6 @@ omemo.createEncryptedStanza = function(to, plaintext) {
 
   return encryptedStanza;
 }
-
 omemo._onMessage = function(stanza) {
   //@TODO 
   //@preKeySignalMessage
@@ -55,5 +77,11 @@ omemo._onMessage = function(stanza) {
   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
 
+var test = {
+  pprint: "helloooo",
+  out: console.log("helllooo")
+}
+export {  test }
+pprint("registering with Strophe")
 Strophe.addConnectionPlugin('omemo', omemo);
-
+pprint("done")
