@@ -69,29 +69,27 @@
 
 "use strict";
 
-var codec = {};
 
-codec = {
-  StringToUnit8: function (string) {
-    var enc = new TextEncoder("utf-8");
-    return enc.encode(string);
+//omemo's bundle. parts of which passed into libsig
+var bundle = {}
+
+bundle = {
+  deviceId: "to be generated on first instantiation, or restored.",
+  identityKey: null,
+  signedPreKey: { 
+    theKey: null, 
+    signature: null, 
+    keyId: null
   },
-  Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer);
-  },
-  Uint8ToHexString: function (buffer) {
-    var res = ''
-    for (var i = 0; i <  buffer.length; i++) {
-      res = res + buffer[i].toString(8)
-    }
-    return res
-  },
-  StringToBase64: "TODO",
-  Base64ToString: "TODO"
+  oneTimeKeys: ["one hundred of them, each is a record, generate one with LS and look at it."],
+  serialize: "serialization",
+  storeToDisk: "store serialized form here",
+  restoreFromDisk: "restore and deserialize function here",
+  initialize: "calls libsig's functions to populate the bundle"
 }
 
-module.exports = codec
-window.codec = codec
+module.exports  = bundle
+window.bundle = bundle
 
 
 /***/ })

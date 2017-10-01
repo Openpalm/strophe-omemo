@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery');
-var codec = require('./codec.js')
+//var codec = require('./codec.js')
 var gcm = require('./gcm.js')
 var store = require('./store.js')
 

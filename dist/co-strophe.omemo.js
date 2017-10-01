@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,31 +69,10 @@
 
 "use strict";
 
-var encoder = {};
 
-encoder = {
-  StringtoUint8: function (string) {
-    var enc = new TextEncoder("utf-8");
-    return enc.encode(string);
-  },
-  Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer);
-  },
-  StringToBase64: "implementation error: TODO",
-  Base64ToString: "implementation error: TODO"
-}
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var $ = __webpack_require__(2);
-var codec = __webpack_require__(0)
-var gcm = __webpack_require__(3)
+var $ = __webpack_require__(1);
+//var codec = require('./codec.js')
+var gcm = __webpack_require__(2)
 var store = __webpack_require__(4)
 
 function pprint(t) { 
@@ -175,7 +154,7 @@ pprint("done")
 
 
 /***/ }),
-/* 2 */
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10435,27 +10414,26 @@ return jQuery;
 
 
 /***/ }),
-/* 3 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var codec= __webpack_require__(0)
+var codec= __webpack_require__(3)
 var gcm = {};
 
 gcm =  {
-  encrypt: function (text, iv, key, assData) {
-    var gcmMaterial = omemo.prepareGcm()
+  encrypt: function (text, miv, mkey, mad) {
     window.crypto.subtle.encrypt(
       {
         name: "AES-GCM",
-        iv: iv,
-        additionalData: omemo.stringToBuffer(gcmMaterial[1]),
-        tagLength: 128,
+        iv: miv,
+        additionalData: mad,
+        tagLength: 128
       },
-      key = gcmMaterial[2],
-      codec.StringToUin8(text)
+      key = mkey,
+      codec.s(text)
     )
       .then(function(encrypted){
         //see if ley generation works instead of using the in built function.
@@ -10465,15 +10443,15 @@ gcm =  {
         console.error(err);
       });
   },
-  decrypt: function(key, iv, aad, ciphertext) {
+  decrypt: function(ciphertext, miv, mkey, mad) {
     window.crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv, //uint8 buffer
-        additionalData: aad, //uint8 buffer
-        tagLength: 128, 
+        iv: miv, //uint8 buffer
+        additionalData: mad, //uint8 buffer
+        tagLength: 128
       },
-      key,
+      mkey,
       ciphertext //ArrayBuffer of the data
     )
       .then(function(decrypted){
@@ -10488,13 +10466,74 @@ gcm =  {
   iv:  function () {
     return window.crypto.getRandomValues(new Uint8Array(12))
   },
-  key: function () { 
-    return window.crypto.getRandomValues(new Uint8Array(32))
+  key: 
+  function () {
+
+    var keyingMaterial = window.crypto.getRandomValues(new Uint8Array(32))
+    var hexForm = codec.Uint8ToHexString(keyingMaterial)
+    console.log(hexForm)
+
+    window.crypto.subtle.importKey(
+      "raw", //can be "jwk" or "raw"
+      {   
+        kty: "oct",
+       // k: "Y0zt37HgOx-BY7SQjYVmrqhPkO44Ii2Jcb9yydUDPfE", 
+        k: keyingMaterial, 
+        alg: "A256GCM",
+        ext: true,
+      },
+      {   name: "AES-GCM", },
+      false,
+      ["encrypt", "decrypt"])
+      .then(function(key){ console.log(key);})
+      .catch(function(err){ console.error(err);})
   },
-  assData: function(jid1, jid2) {
+  aad: function(jid1, jid2) {
     return "two concatinated identity key encodes here"
   }
 }
+
+module.exports = gcm
+window.gcm = gcm
+
+
+//var key = gcm.key()
+//var iv = gcm.iv()
+//var text = "some text"
+//var res = gcm.encrypt(text, iv, key, gcm.assData)
+//window.res = res
+
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var codec = {};
+
+codec = {
+  StringToUnit8: function (string) {
+    var enc = new TextEncoder("utf-8");
+    return enc.encode(string);
+  },
+  Uint8ToString: function (buffer) {
+    return String.fromCharCode.apply(null, buffer);
+  },
+  Uint8ToHexString: function (buffer) {
+    var res = ''
+    for (var i = 0; i <  buffer.length; i++) {
+      res = res + buffer[i].toString(8)
+    }
+    return res
+  },
+  StringToBase64: "TODO",
+  Base64ToString: "TODO"
+}
+
+module.exports = codec
+window.codec = codec
 
 
 /***/ }),

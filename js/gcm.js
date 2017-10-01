@@ -4,17 +4,16 @@ var codec= require('./codec.js')
 var gcm = {};
 
 gcm =  {
-  encrypt: function (text, iv, key, assData) {
-    var gcmMaterial = omemo.prepareGcm()
+  encrypt: function (text, miv, mkey, mad) {
     window.crypto.subtle.encrypt(
       {
         name: "AES-GCM",
-        iv: iv,
-        additionalData: omemo.stringToBuffer(gcmMaterial[1]),
-        tagLength: 128,
+        iv: miv,
+        additionalData: mad,
+        tagLength: 128
       },
-      key = gcmMaterial[2],
-      codec.StringToUin8(text)
+      key = mkey,
+      codec.s(text)
     )
       .then(function(encrypted){
         //see if ley generation works instead of using the in built function.
@@ -24,15 +23,15 @@ gcm =  {
         console.error(err);
       });
   },
-  decrypt: function(key, iv, aad, ciphertext) {
+  decrypt: function(ciphertext, miv, mkey, mad) {
     window.crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv, //uint8 buffer
-        additionalData: aad, //uint8 buffer
-        tagLength: 128, 
+        iv: miv, //uint8 buffer
+        additionalData: mad, //uint8 buffer
+        tagLength: 128
       },
-      key,
+      mkey,
       ciphertext //ArrayBuffer of the data
     )
       .then(function(decrypted){
@@ -47,10 +46,40 @@ gcm =  {
   iv:  function () {
     return window.crypto.getRandomValues(new Uint8Array(12))
   },
-  key: function () { 
-    return window.crypto.getRandomValues(new Uint8Array(32))
+  key: 
+  function () {
+
+    var keyingMaterial = window.crypto.getRandomValues(new Uint8Array(32))
+    var hexForm = codec.Uint8ToHexString(keyingMaterial)
+    console.log(hexForm)
+
+    window.crypto.subtle.importKey(
+      "jwk", //can be "jwk" or "raw"
+      {   
+        kty: "oct",
+       // k: "Y0zt37HgOx-BY7SQjYVmrqhPkO44Ii2Jcb9yydUDPfE", 
+        k: "Y0zt37HgOx-BY7SQjYVmrqhPkO44Ii2Jcb9yydUDPfE", 
+        alg: "A256GCM",
+        ext: true,
+      },
+      {   name: "AES-GCM", },
+      false,
+      ["encrypt", "decrypt"])
+      .then(function(key){ console.log(key);})
+      .catch(function(err){ console.error(err);})
   },
-  assData: function(jid1, jid2) {
+  aad: function(jid1, jid2) {
     return "two concatinated identity key encodes here"
   }
 }
+
+module.exports = gcm
+window.gcm = gcm
+
+
+//var key = gcm.key()
+//var iv = gcm.iv()
+//var text = "some text"
+//var res = gcm.encrypt(text, iv, key, gcm.assData)
+//window.res = res
+
