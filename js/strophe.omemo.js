@@ -1,8 +1,9 @@
 "use strict";
 
 var $ = require('jquery');
-var encoder = require('buffers.js')
-var gcm = require('gcm.js')
+var codec = require('./codec.js')
+var gcm = require('./gcm.js')
+var store = require('./store.js')
 
 function pprint(t) { 
   console.log("strophe.omemo.js: " + t)
@@ -77,11 +78,6 @@ omemo._onMessage = function(stanza) {
   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
 
-var test = {
-  pprint: "helloooo",
-  out: console.log("helllooo")
-}
-export {  test }
 pprint("registering with Strophe")
 Strophe.addConnectionPlugin('omemo', omemo);
 pprint("done")

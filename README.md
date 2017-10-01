@@ -11,5 +11,6 @@ week 2
 week 3
 6. storage considerations, and restoration of previous sessions
 
+7. multiparty.
 ** tests written at end of each day 
  

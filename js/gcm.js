@@ -1,6 +1,6 @@
 "use strict";
-var buffers = require('.buffers.js')
 
+var codec= require('./codec.js')
 var gcm = {};
 
 gcm =  {
@@ -14,7 +14,7 @@ gcm =  {
         tagLength: 128,
       },
       key = gcmMaterial[2],
-      buffers.StringToUin8(text)
+      codec.StringToUin8(text)
     )
       .then(function(encrypted){
         //see if ley generation works instead of using the in built function.

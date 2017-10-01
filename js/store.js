@@ -1,3 +1,5 @@
+//mv InMemorySignalProtocolStore.js store.js
+
 function SignalProtocolStore() {
 	this.store = {};
 }
