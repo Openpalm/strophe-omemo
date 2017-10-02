@@ -72,7 +72,7 @@
 var codec = {};
 
 codec = {
-  StringToUnit8: function (string) {
+  StringToUint8: function (string) {
     var enc = new TextEncoder("utf-8");
     return enc.encode(string);
   },
