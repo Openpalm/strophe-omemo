@@ -38,7 +38,7 @@ gcm =  {
       .then(function(decrypted){
         //if success, destroy receive key before returning
         //returns an ArrayBuffer containing the decrypted data
-        window.decrypted = decrypted
+        //window.decrypted = decrypted
         return new Uint8Array(decrypted);
       })
       //.catch(function(err){ // err ironically hides the real error.
