@@ -117,7 +117,6 @@ gcm =  {
     return window.crypto.getRandomValues(new Uint8Array(12))
   },
   key: function () {
-
     window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
@@ -134,9 +133,11 @@ gcm =  {
         )
           .then(function(keydata){
             //returns the exported key data
-            console.log(keydata)
-            console.log(keydata.k)
-            return keydata
+            //console.log(keydata)
+            //console.log(keydata.k)
+            
+            window.boo = keydata
+
           })
           .catch(function(err){
             console.error(err);
