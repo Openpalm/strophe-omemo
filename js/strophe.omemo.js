@@ -1,9 +1,8 @@
 "use strict";
 
 var $ = require('jquery');
-//var codec = require('./codec.js')
+var codec = require('./codec.js')
 var gcm = require('./gcm.js')
-var store = require('./store.js')
 
 function pprint(t) { 
   console.log("strophe.omemo.js: " + t)
@@ -22,30 +21,27 @@ pprint("namespace successfully loaded")
 //testing iq and its output
 var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http://jabber.org/protocol/pubsub#retrieve-subscriptions'});
 
-pprint(iq)
+//pprint(iq) // yep it works.
 
 var omemo = {
   _connection: null,
-  _storage: window.localStorage,
-  _bundle: null, // safe here?
-  _cipher: null, // pass in gcm function. (window.crypto or window.msCrypto)
-  _gcm: null, //window.crypto.subtle.encrypt()
-  _libsignal: null,
-  _AD: null, //association data
+  _storage: null,
+  _bundle: null, // safe here? yes. needs to be populated.
+  _libsignal: null, //probably not needed.
+  _keyHelper: null,
   _deviceid: null
 }
 
-var omemo  = {
-
-}
 omemo.init = function(conn) {
   this._connection = conn; //strophe conn
+  console.log("to be implemented")
+  omemo._deviceid = 1 //
   //@TODO maybe setup
   //restore session?
   //create new session?
   //generates or retrieves bundle.
   //publishes or adds device to bundle
-  conn.addHandler(this._onMessage.bind(this), null, 'message');
+  //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
 omemo.setUpMessageElements = function(type, text) {
   //set the message elements
@@ -77,6 +73,9 @@ omemo._onMessage = function(stanza) {
 
   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
+
+module.exports = omemo
+window.omemo = omemo
 
 pprint("registering with Strophe")
 Strophe.addConnectionPlugin('omemo', omemo);

@@ -103,3 +103,5 @@ SignalProtocolStore.prototype = {
     return Promise.resolve();
   }
 };
+
+//module.exports = SignalProtocolStore

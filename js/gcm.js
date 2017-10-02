@@ -9,18 +9,19 @@ gcm =  {
       {
         name: "AES-GCM",
         iv: miv,
-        additionalData: aad,
+        additionalData: codec.StringToUint8(aad),
         tagLength: 128
       },
       mkey,
       codec.StringToUint8(text)
     )
       .then(function(encrypted){
-        //see if ley generation works instead of using the in built function.
-        return new Uint8Array(encrypted);
+        console.log(encrypted)
+        window.encrypted8 = new Uint8Array(encrypted); // works
+        window.encrypted = encrypted; //actually not empty
       })
       .catch(function(err){
-        console.error(err);
+        console.error(err.message);
       });
   },
   decrypt: function(ciphertext, miv, mkey, aad) {
@@ -31,17 +32,18 @@ gcm =  {
         additionalData: aad, //uint8 buffer
         tagLength: 128
       },
-      mkey,
-      ciphertext //ArrayBuffer of the data
+      mkey, //CryptoKey
+      ciphertext //Uint8 of the data
     )
       .then(function(decrypted){
         //if success, destroy receive key before returning
         //returns an ArrayBuffer containing the decrypted data
+        window.decrypted = decrypted
         return new Uint8Array(decrypted);
       })
-      .catch(function(err){
-        console.error(err);
-      });
+      //.catch(function(err){ // err ironically hides the real error.
+      //  console.error(err); // good for err handeling, not debugging.
+      //});
   },
   iv:  function () {
     return window.crypto.getRandomValues(new Uint8Array(12))
@@ -50,64 +52,39 @@ gcm =  {
     window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        length: 256, //can be  128, 192, or 256
+        length: 256, //max key length, min is 128
       },
       true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
     )
       .then(function(key){
         //key must be extracted here 
-        window.key = key
         window.crypto.subtle.exportKey(
           "jwk", //can be "jwk" or "raw"
           key //extractable must be true
         )
           .then(function(keydata){
             //returns the exported key data
-            //console.log(keydata)
-            //console.log(keydata.k)
-            
+            window.key = key
             window.keydata = keydata
+            [key, keydata]
 
           })
           .catch(function(err){
-            console.error(err);
+            console.error(err.message);
           });
       })
       .catch(function(err){
-        console.error(err);
+        console.error(err.message);
       })
   } ,
-  //function () {
-
-  //  var km  = window.crypto.getRandomValues(new Uint8Array(32))
-  //  window.km = km
-  //  var bufferForm = km.buffer // this is empty.
-  //  console.log(bufferForm)
-  //  var hexForm = codec.Uint8ToHexString(km)
-
-  //  window.crypto.subtle.importKey(
-  //    "raw", //can be "jwk" or "raw"
-  //    bufferForm 
-  //    ,
-  //    { name: "AES-GCM", },
-  //    true,
-  //    ["encrypt", "decrypt"])
-  //    .then(function(key){ console.log(key);})
-  //    .catch(function(err){ console.error(err);})
-  //},
-  aad: function(jid1, jid2) {
-    return "two concatinated identity key encodes here"
+    aad: function(jid1, jid2) {
+    return codec.StringToUint8("two concatinated identity key encodes here")
   }
 }
 
 module.exports = gcm
 window.gcm = gcm
 
-
-//var key = gcm.key()
-//var iv = gcm.iv()
-//var text = "some text"
-//var res = gcm.encrypt(text, iv, key, gcm.mad)
-//window.res = res
-
+//gcm.key()
+//gcm.encrypt("hello", gcm.iv(), key, gcm.aad())

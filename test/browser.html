@@ -3,6 +3,7 @@
   <head> 
     <meta charset="UTF-8">  
     <script type="text/javascript" src="../js/libs/strophejs/strophe.js"></script>
+    <script type="text/javascript" src="../js/store.js"></script>
     <script type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> 
     <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script> 
     <script type="text/javascript" src="../dist/co-strophe.omemo.js"></script> 
@@ -52,9 +53,10 @@ var result = add(2, 2);
 assert( result == 4, 'Checking the add function'); 
 assert( result == 8, 'Checking the add function'); 
 
+var store =  new SignalProtocolStore();
 var KeyHelper = libsignal.KeyHelper;
 var registrationId = KeyHelper.generateRegistrationId();
-console.log(registrationId)
+console.log("libsig regId: " + registrationId)
 // Store registrationId somewhere durable and safe.
 
 KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
@@ -62,10 +64,15 @@ KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
   // Store identityKeyPair somewhere durable and safe.
 });
 
-KeyHelper.generatePreKey(keyId).then(function(preKey) {
-  store.storePreKey(preKey.keyId, preKey.keyPair);
-});
-
+//var key = gcm.key() does not get defined. still an issue with returning the value from the promise.
+var iv = gcm.iv()
+var aad = gcm.aad()
+var msg = "hello"
+//gcm.encrypt(msg, iv, key, aad) wont trigger on its own due tot he issue with gcm.key()
+//KeyHelper.generatePreKey(keyId).then(function(preKey) {
+//  store.storePreKey(preKey.keyId, preKey.keyPair);
+//});
+//
 //KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
 //  store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
 //});

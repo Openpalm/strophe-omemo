@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,11 +69,41 @@
 
 "use strict";
 
+var codec = {};
 
-var $ = __webpack_require__(1);
-//var codec = require('./codec.js')
-var gcm = __webpack_require__(2)
-var store = __webpack_require__(4)
+codec = {
+  StringToUint8: function (string) {
+    var enc = new TextEncoder("utf-8");
+    return enc.encode(string);
+  },
+  Uint8ToString: function (buffer) {
+    return String.fromCharCode.apply(null, buffer);
+  },
+  Uint8ToHexString: function (buffer) {
+    var res = ''
+    for (var i = 0; i <  buffer.length; i++) {
+      res = res + buffer[i].toString(8)
+    }
+    return res
+  },
+  StringToBase64: "TODO",
+  Base64ToString: "TODO"
+}
+
+module.exports = codec
+window.codec = codec
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var $ = __webpack_require__(2);
+var codec = __webpack_require__(0)
+var gcm = __webpack_require__(3)
 
 function pprint(t) { 
   console.log("strophe.omemo.js: " + t)
@@ -92,11 +122,11 @@ pprint("namespace successfully loaded")
 //testing iq and its output
 var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http://jabber.org/protocol/pubsub#retrieve-subscriptions'});
 
-pprint(iq)
+//pprint(iq) // yep it works.
 
 var omemo = {
   _connection: null,
-  _storage: window.localStorage,
+  _storage: null,
   _bundle: null, // safe here?
   _cipher: null, // pass in gcm function. (window.crypto or window.msCrypto)
   _gcm: null, //window.crypto.subtle.encrypt()
@@ -148,13 +178,16 @@ omemo._onMessage = function(stanza) {
   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
 
+module.exports = omemo
+window.omemo = omemo
+
 pprint("registering with Strophe")
 Strophe.addConnectionPlugin('omemo', omemo);
 pprint("done")
 
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10414,13 +10447,13 @@ return jQuery;
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var codec= __webpack_require__(3)
+var codec= __webpack_require__(0)
 var gcm = {};
 
 gcm =  {
@@ -10429,18 +10462,19 @@ gcm =  {
       {
         name: "AES-GCM",
         iv: miv,
-        additionalData: aad,
+        additionalData: codec.StringToUint8(aad),
         tagLength: 128
       },
       mkey,
       codec.StringToUint8(text)
     )
       .then(function(encrypted){
-        //see if ley generation works instead of using the in built function.
-        return new Uint8Array(encrypted);
+        console.log(encrypted)
+        window.encrypted8 = new Uint8Array(encrypted); // works
+        window.encrypted = encrypted; //actually not empty
       })
       .catch(function(err){
-        console.error(err);
+        console.error(err.message);
       });
   },
   decrypt: function(ciphertext, miv, mkey, aad) {
@@ -10451,17 +10485,18 @@ gcm =  {
         additionalData: aad, //uint8 buffer
         tagLength: 128
       },
-      mkey,
-      ciphertext //ArrayBuffer of the data
+      mkey, //CryptoKey
+      ciphertext //Uint8 of the data
     )
       .then(function(decrypted){
         //if success, destroy receive key before returning
         //returns an ArrayBuffer containing the decrypted data
+        window.decrypted = decrypted
         return new Uint8Array(decrypted);
       })
-      .catch(function(err){
-        console.error(err);
-      });
+      //.catch(function(err){ // err ironically hides the real error.
+      //  console.error(err); // good for err handeling, not debugging.
+      //});
   },
   iv:  function () {
     return window.crypto.getRandomValues(new Uint8Array(12))
@@ -10470,10 +10505,10 @@ gcm =  {
     window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        length: 256, //can be  128, 192, or 256
+        length: 256, //max key length, min is 128
       },
       true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
     )
       .then(function(key){
         //key must be extracted here 
@@ -10483,195 +10518,29 @@ gcm =  {
         )
           .then(function(keydata){
             //returns the exported key data
-            //console.log(keydata)
-            //console.log(keydata.k)
-            
-            window.boo = keydata
+            window.key = key
+            window.keydata = keydata
+            [key, keydata]
 
           })
           .catch(function(err){
-            console.error(err);
+            console.error(err.message);
           });
       })
       .catch(function(err){
-        console.error(err);
+        console.error(err.message);
       })
   } ,
-  //function () {
-
-  //  var km  = window.crypto.getRandomValues(new Uint8Array(32))
-  //  window.km = km
-  //  var bufferForm = km.buffer // this is empty.
-  //  console.log(bufferForm)
-  //  var hexForm = codec.Uint8ToHexString(km)
-
-  //  window.crypto.subtle.importKey(
-  //    "raw", //can be "jwk" or "raw"
-  //    bufferForm 
-  //    ,
-  //    { name: "AES-GCM", },
-  //    true,
-  //    ["encrypt", "decrypt"])
-  //    .then(function(key){ console.log(key);})
-  //    .catch(function(err){ console.error(err);})
-  //},
-  aad: function(jid1, jid2) {
-    return "two concatinated identity key encodes here"
+    aad: function(jid1, jid2) {
+    return codec.StringToUint8("two concatinated identity key encodes here")
   }
 }
 
 module.exports = gcm
 window.gcm = gcm
 
-
-//var key = gcm.key()
-//var iv = gcm.iv()
-//var text = "some text"
-//var res = gcm.encrypt(text, iv, key, gcm.mad)
-//window.res = res
-
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var codec = {};
-
-codec = {
-  StringToUint8: function (string) {
-    var enc = new TextEncoder("utf-8");
-    return enc.encode(string);
-  },
-  Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer);
-  },
-  Uint8ToHexString: function (buffer) {
-    var res = ''
-    for (var i = 0; i <  buffer.length; i++) {
-      res = res + buffer[i].toString(8)
-    }
-    return res
-  },
-  StringToBase64: "TODO",
-  Base64ToString: "TODO"
-}
-
-module.exports = codec
-window.codec = codec
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-//mv InMemorySignalProtocolStore.js store.js
-
-function SignalProtocolStore() {
-	this.store = {};
-}
-
-SignalProtocolStore.prototype = {
-	getIdentityKeyPair: function() {
-		return Promise.resolve(this.get('identityKey'));
-	},
-	getLocalRegistrationId: function() {
-		return Promise.resolve(this.get('registrationId'));
-	},
-	put: function(key, value) {
-		if (key === undefined || value === undefined || key === null || value === null)
-			throw new Error("Tried to store undefined/null");
-		this.store[key] = value;
-	},
-	get: function(key, defaultValue) {
-		if (key === null || key === undefined)
-			throw new Error("Tried to get value for undefined/null key");
-		if (key in this.store) {
-			return this.store[key];
-		} else {
-			return defaultValue;
-		}
-	},
-	remove: function(key) {
-		if (key === null || key === undefined)
-			throw new Error("Tried to remove value for undefined/null key");
-		delete this.store[key];
-	},
-
-	isTrustedIdentity: function(identifier, identityKey) {
-		if (identifier === null || identifier === undefined) {
-			throw new Error("tried to check identity key for undefined/null key");
-    }
-		if (!(identityKey instanceof ArrayBuffer)) {
-			throw new Error("Expected identityKey to be an ArrayBuffer");
-    }
-		var trusted = this.get('identityKey' + identifier);
-    if (trusted === undefined) {
-      return Promise.resolve(true);
-    }
-    return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
-	},
-	loadIdentityKey: function(identifier) {
-		if (identifier === null || identifier === undefined)
-			throw new Error("Tried to get identity key for undefined/null key");
-		return Promise.resolve(this.get('identityKey' + identifier));
-	},
-	saveIdentity: function(identifier, identityKey) {
-		if (identifier === null || identifier === undefined)
-			throw new Error("Tried to put identity key for undefined/null key");
-		return Promise.resolve(this.put('identityKey' + identifier, identityKey));
-	},
-
-	/* Returns a prekeypair object or undefined */
-	loadPreKey: function(keyId) {
-    var res = this.get('25519KeypreKey' + keyId);
-    if (res !== undefined) {
-      res = { pubKey: res.pubKey, privKey: res.privKey };
-    }
-    return Promise.resolve(res);
-	},
-	storePreKey: function(keyId, keyPair) {
-		return Promise.resolve(this.put('25519KeypreKey' + keyId, keyPair));
-	},
-	removePreKey: function(keyId) {
-		return Promise.resolve(this.remove('25519KeypreKey' + keyId));
-	},
-
-	/* Returns a signed keypair object or undefined */
-	loadSignedPreKey: function(keyId) {
-    var res = this.get('25519KeysignedKey' + keyId);
-    if (res !== undefined) {
-      res = { pubKey: res.pubKey, privKey: res.privKey };
-    }
-    return Promise.resolve(res);
-	},
-	storeSignedPreKey: function(keyId, keyPair) {
-		return Promise.resolve(this.put('25519KeysignedKey' + keyId, keyPair));
-	},
-	removeSignedPreKey: function(keyId) {
-		return Promise.resolve(this.remove('25519KeysignedKey' + keyId));
-	},
-
-	loadSession: function(identifier) {
-		return Promise.resolve(this.get('session' + identifier));
-	},
-	storeSession: function(identifier, record) {
-		return Promise.resolve(this.put('session' + identifier, record));
-	},
-  removeSession: function(identifier) {
-		return Promise.resolve(this.remove('session' + identifier));
-  },
-  removeAllSessions: function(identifier) {
-    for (var id in this.store) {
-      if (id.startsWith('session' + identifier)) {
-        delete this.store[id];
-      }
-    }
-    return Promise.resolve();
-  }
-};
+//gcm.key()
+//gcm.encrypt("hello", gcm.iv(), key, gcm.aad())
 
 
 /***/ })
