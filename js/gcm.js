@@ -64,8 +64,8 @@ gcm =  {
         )
           .then(function(keydata){
             //returns the exported key data
-            console.log(keydata)
-            console.log(keydata.k)
+            //console.log(keydata)
+            //console.log(keydata.k)
             return keydata
           })
           .catch(function(err){
