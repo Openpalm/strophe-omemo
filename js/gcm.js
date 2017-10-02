@@ -57,6 +57,7 @@ gcm =  {
     )
       .then(function(key){
         //key must be extracted here 
+        window.key = key
         window.crypto.subtle.exportKey(
           "jwk", //can be "jwk" or "raw"
           key //extractable must be true
@@ -66,7 +67,7 @@ gcm =  {
             //console.log(keydata)
             //console.log(keydata.k)
             
-            window.boo = keydata
+            window.keydata = keydata
 
           })
           .catch(function(err){
