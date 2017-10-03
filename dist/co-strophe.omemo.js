@@ -105,7 +105,7 @@ var $ = __webpack_require__(2);
 var codec = __webpack_require__(0)
 var gcm = __webpack_require__(3)
 
-function pprint(t) { 
+function pprint(t) {
   console.log("strophe.omemo.js: " + t)
 }
 
@@ -129,46 +129,107 @@ var maxDeviceId = 2147483647
 
 var omemo = {
   _connection: null,
-  _storage: null,
-  _bundle: null, // safe here? yes. needs to be populated.
-  _libsignal: null, //probably not needed.
-  _keyHelper: null,
+  _store: null,
+  _bundle: null, // safe here? yes. needs to be populated. // handle in store
+  _libsignal: null,
+  _keyhelper: null,
   _deviceid: null
 }
 
-omemo.init = function(conn) {
+omemo.init = function(libsignal, store, conn) {
   this._connection = conn; //strophe conn
   console.log("to be implemented")
+  //attempt to restore from a database on disk using JSON.parse.
+  //store using JSON.stringify(omemo._store)
+
   //@TODO maybe setup
-  //restore session?
-  //create new session?
-  //generates or retrieves bundle.
-  //publishes or adds device to bundle
   //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
 
 omemo.addNewDevice = function () {
-  return Math.random() * (maxDeviceId - minDeviceId)  + minDeviceId
+  let diff = (maxDeviceId - minDeviceId)
+  return Math.floor (
+  Math.random() * diff  + minDeviceId)
+  //attempt to publish here. or handle in a omemo.publish function.
+  //that publishes to pep and handles collisions.
 }
 omemo.setStore = function (store) {
+  //test on membership of put/get to determine if it's a store?
   omemo._store = store
 }
-omemo.initLibSignal = function() {
-if (omemo._store == null) { 
+omemo.setLibsignal = function(ep) {
+  if (typeof ep.KeyHelper == "undefined") {
+    throw new Error("Illegal input or corrupted libsignal. \nInput parameters are libsignal-protocl.js and an appropriate store.\nTerminating.")
+  }
+  consolo.log("setting route to libsignal-protocol.js ...")
+  omemo._libsignal  = ep
+  consolo.log("setting KeyHelper ... ")
+  omemo._keyhelper  = ep.KeyHelper
+  console.log("library loaded, store set.")
+}
+
+omemo.armLibsignal = function() {
+  console.log("arming libsignal ... ")
+if (omemo._store == null) {
+  //attempt to restore from a database on disk using JSON.parse.
+  //store using JSON.stringify(omemo._store) before throwing the Error
   throw new Error("no store set, terminating.")
-  } 
-  var keyHelper = omemo._libsignal.KeyHelper
+  }
+
+  var KeyHelper = omemo._keyhelper
+
   Promise.all([
     KeyHelper.generateIdentityKeyPair(),
     KeyHelper.generateRegistrationId(),
   ]).then(function(result) {
+    var identity = result[0];
+    var registrationId = result[1];
+
     store.put('identityKey', result[0]);
     store.put('registrationId', result[1]);
+    console.log("registration id: "+ result[1] +
+      "\nidentity Key generated and stored.\n ")
   })
+
+
+}
+omemo.generatePreKeys = function() {
+    return Promise.all([
+        store.getIdentityKeyPair(),
+        store.getLocalRegistrationId()
+    ]).then(function(result) {
+        var identity = result[0];
+        var registrationId = result[1];
+
+        return Promise.all([
+            KeyHelper.generatePreKey(preKeyId),
+            KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
+        ]).then(function(keys) {
+            var preKey = keys[0]
+            var signedPreKey = keys[1];
+
+            store.storePreKey(preKeyId, preKey.keyPair);
+            store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
+
+            return {
+                identityKey: identity.pubKey,
+                registrationId : registrationId,
+                preKey:  {
+                    keyId     : preKeyId,
+                    publicKey : preKey.keyPair.pubKey
+                },
+                signedPreKey: {
+                    keyId     : signedPreKeyId,
+                    publicKey : signedPreKey.keyPair.pubKey,
+                    signature : signedPreKey.signature
+                }
+            };
+        });
+    });
 }
 omemo.setUpMessageElements = function(type, text) {
   //set the message elements
-  //handles type of message 
+  //handles type of message
   //1. preKeySignalMessage
   //2. signalMessage
   //3. presense of <payload>
@@ -178,7 +239,7 @@ omemo.restore = function(file) {
   //  restores a session for a user
 }
 omemo.serialize = function(file) {
-  // serialize the current session into a restorable format 
+  // serialize the current session into a restorable format
 }
 omemo.createEncryptedStanza = function(to, plaintext) {
   var encryptedStanza = new Strophe.Builder('encrypted', {
@@ -190,7 +251,7 @@ omemo.createEncryptedStanza = function(to, plaintext) {
   return encryptedStanza;
 }
 omemo._onMessage = function(stanza) {
-  //@TODO 
+  //@TODO
   //@preKeySignalMessage
   //@
 

@@ -4,6 +4,7 @@
 //imports store and key_helper
 var bundle = {}
 
+//dont need this. use the store.
 bundle = {
   deviceId: "to be generated on first instantiation, or restored.",
   identityKey: null,
@@ -21,7 +22,6 @@ bundle = {
 
 //stack exchange example code
 
-var KeyHelper = libsignal.KeyHelper;
 
 function generateIdentity(store) {
     return Promise.all([

@@ -43,7 +43,11 @@ function assert( outcome, description ) {
     </script>
   </body>
   <script> 
+
+//**
 //tests start here.
+//**
+
 function add(num1, num2) { 
   return num1 + num2; 
 } 
@@ -53,29 +57,11 @@ var result = add(2, 2);
 assert( result == 4, 'Checking the add function'); 
 assert( result == 8, 'Checking the add function'); 
 
-var store =  new SignalProtocolStore();
-var KeyHelper = libsignal.KeyHelper;
-var registrationId = KeyHelper.generateRegistrationId();
-console.log("libsig regId: " + registrationId)
-// Store registrationId somewhere durable and safe.
 
-KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
-  // keyPair -> { pubKey: ArrayBuffer, privKey: ArrayBuffer }
-  // Store identityKeyPair somewhere durable and safe.
-});
+let store =  new SignalProtocolStore();
+omemo.init(libsignal, store, "123")
 
-//var key = gcm.key() does not get defined. still an issue with returning the value from the promise.
-var iv = gcm.iv()
-var aad = gcm.aad()
-var msg = "hello"
-//gcm.encrypt(msg, iv, key, aad) wont trigger on its own due tot he issue with gcm.key()
-//KeyHelper.generatePreKey(keyId).then(function(preKey) {
-//  store.storePreKey(preKey.keyId, preKey.keyPair);
-//});
-//
-//KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
-//  store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
-//});
+
   </script>
 </html>
 
