@@ -4,7 +4,7 @@ var $ = require('jquery');
 var codec = require('./codec.js')
 var gcm = require('./gcm.js')
 
-function pprint(t) { 
+function pprint(t) {
   console.log("strophe.omemo.js: " + t)
 }
 
@@ -53,21 +53,64 @@ omemo.setStore = function (store) {
   omemo._store = store
 }
 omemo.initLibSignal = function() {
-if (omemo._store == null) { 
+  console.log("initializing libsignal")
+if (omemo._store == null) {
   throw new Error("no store set, terminating.")
-  } 
+  }
+
   var keyHelper = omemo._libsignal.KeyHelper
   Promise.all([
     KeyHelper.generateIdentityKeyPair(),
     KeyHelper.generateRegistrationId(),
   ]).then(function(result) {
+    var identity = result[0];
+    var registrationId = result[1];
+
     store.put('identityKey', result[0]);
     store.put('registrationId', result[1]);
+    console.log("registration id: "+ result[1]
+      "\nidentity Key generated and stored.\n ")
   })
+
+
+}
+omemo.generatePreKeys = function() {
+    return Promise.all([
+        store.getIdentityKeyPair(),
+        store.getLocalRegistrationId()
+    ]).then(function(result) {
+        var identity = result[0];
+        var registrationId = result[1];
+
+        return Promise.all([
+            KeyHelper.generatePreKey(preKeyId),
+            KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
+        ]).then(function(keys) {
+            var preKey = keys[0]
+            var signedPreKey = keys[1];
+
+            store.storePreKey(preKeyId, preKey.keyPair);
+            store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
+
+            return {
+                identityKey: identity.pubKey,
+                registrationId : registrationId,
+                preKey:  {
+                    keyId     : preKeyId,
+                    publicKey : preKey.keyPair.pubKey
+                },
+                signedPreKey: {
+                    keyId     : signedPreKeyId,
+                    publicKey : signedPreKey.keyPair.pubKey,
+                    signature : signedPreKey.signature
+                }
+            };
+        });
+    });
 }
 omemo.setUpMessageElements = function(type, text) {
   //set the message elements
-  //handles type of message 
+  //handles type of message
   //1. preKeySignalMessage
   //2. signalMessage
   //3. presense of <payload>
@@ -77,7 +120,7 @@ omemo.restore = function(file) {
   //  restores a session for a user
 }
 omemo.serialize = function(file) {
-  // serialize the current session into a restorable format 
+  // serialize the current session into a restorable format
 }
 omemo.createEncryptedStanza = function(to, plaintext) {
   var encryptedStanza = new Strophe.Builder('encrypted', {
@@ -89,7 +132,7 @@ omemo.createEncryptedStanza = function(to, plaintext) {
   return encryptedStanza;
 }
 omemo._onMessage = function(stanza) {
-  //@TODO 
+  //@TODO
   //@preKeySignalMessage
   //@
 
