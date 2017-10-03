@@ -124,28 +124,47 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 //pprint(iq) // yep it works.
 
+var minDeviceId = 1
+var maxDeviceId = 2147483647
+
 var omemo = {
   _connection: null,
   _storage: null,
-  _bundle: null, // safe here?
-  _cipher: null, // pass in gcm function. (window.crypto or window.msCrypto)
-  _gcm: null, //window.crypto.subtle.encrypt()
-  _libsignal: null,
-  _AD: null, //association data
+  _bundle: null, // safe here? yes. needs to be populated.
+  _libsignal: null, //probably not needed.
+  _keyHelper: null,
   _deviceid: null
 }
 
-var omemo  = {
-
-}
 omemo.init = function(conn) {
   this._connection = conn; //strophe conn
+  console.log("to be implemented")
   //@TODO maybe setup
   //restore session?
   //create new session?
   //generates or retrieves bundle.
   //publishes or adds device to bundle
-  conn.addHandler(this._onMessage.bind(this), null, 'message');
+  //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+}
+
+omemo.addNewDevice = function () {
+  return Math.random() * (maxDeviceId - minDeviceId)  + minDeviceId
+}
+omemo.setStore = function (store) {
+  omemo._store = store
+}
+omemo.initLibSignal = function() {
+if (omemo._store == null) { 
+  throw new Error("no store set, terminating.")
+  } 
+  var keyHelper = omemo._libsignal.KeyHelper
+  Promise.all([
+    KeyHelper.generateIdentityKeyPair(),
+    KeyHelper.generateRegistrationId(),
+  ]).then(function(result) {
+    store.put('identityKey', result[0]);
+    store.put('registrationId', result[1]);
+  })
 }
 omemo.setUpMessageElements = function(type, text) {
   //set the message elements
@@ -10491,7 +10510,7 @@ gcm =  {
       .then(function(decrypted){
         //if success, destroy receive key before returning
         //returns an ArrayBuffer containing the decrypted data
-        window.decrypted = decrypted
+        //window.decrypted = decrypted
         return new Uint8Array(decrypted);
       })
       //.catch(function(err){ // err ironically hides the real error.

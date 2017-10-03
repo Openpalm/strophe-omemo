@@ -23,6 +23,9 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 //pprint(iq) // yep it works.
 
+var minDeviceId = 1
+var maxDeviceId = 2147483647
+
 var omemo = {
   _connection: null,
   _storage: null,
@@ -35,13 +38,32 @@ var omemo = {
 omemo.init = function(conn) {
   this._connection = conn; //strophe conn
   console.log("to be implemented")
-  omemo._deviceid = 1 //
   //@TODO maybe setup
   //restore session?
   //create new session?
   //generates or retrieves bundle.
   //publishes or adds device to bundle
   //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+}
+
+omemo.addNewDevice = function () {
+  return Math.random() * (maxDeviceId - minDeviceId)  + minDeviceId
+}
+omemo.setStore = function (store) {
+  omemo._store = store
+}
+omemo.initLibSignal = function() {
+if (omemo._store == null) { 
+  throw new Error("no store set, terminating.")
+  } 
+  var keyHelper = omemo._libsignal.KeyHelper
+  Promise.all([
+    KeyHelper.generateIdentityKeyPair(),
+    KeyHelper.generateRegistrationId(),
+  ]).then(function(result) {
+    store.put('identityKey', result[0]);
+    store.put('registrationId', result[1]);
+  })
 }
 omemo.setUpMessageElements = function(type, text) {
   //set the message elements
