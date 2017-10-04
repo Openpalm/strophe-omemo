@@ -1,6 +1,5 @@
 webpack js/strophe.omemo.js dist/co-strophe.omemo.js
 webpack js/gcm.js dist/co-gcm.js
-webpack js/bundle.js dist/co-bundle.js
 webpack js/codec.js dist/co-codec.js
 
 echo "bundle the whole thing with rollup once done?"
