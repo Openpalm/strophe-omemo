@@ -3,100 +3,69 @@
 var codec= require('./codec.js')
 var gcm = {};
 
+
 function pprint(s) {
   console.log("gcm.js: " + s)
 }
-gcm =  {
-  encrypt: 
-     function (text) {
-      let temp_iv = window.crypto.getRandomValues(new Uint8Array(12))
-      let aad =  codec.StringToUint8("fetch from libsignal rid store here")
+function encrypt(key, text) {
+  //the out of window.crypto is only the cipher text (i assume?)
+  //the tag is not mentioned. unless it concatinated inside. look at code?
+  //after ecnrypting, we dont need to keep the key
+  const data = codec.StringToUint8(text)
+  const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
+  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
+  const alg = {
+    name: "AES-GCM",
+    iv: temp_iv, //uint8 buffer
+    additionalData: aad, //uint8 buffer
+    tagLength: 128
+  }
+  window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => { 
+    let gcm_out = {
+      key: key,
+      ct: cipherText, 
+      iv: temp_iv,
+      aad: aad
+    } 
+    omemo._store.put("encrypted", gcm_out) 
+  })
+  return Promise.resolve(true)
+}
 
-      window.crypto.subtle.generateKey(
-      {
-        name: "AES-GCM",
-        length: 256, //max key length, min is 128
-      },
-      true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
-    )
-         .then((key){
+function decrypt(key, cipherText, iv, aad) {
+  let enc = new TextDecoder()
+  return window.crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: iv, 
+      additionalData: aad, 
+      tagLength: 128, 
+    },
+    key,
+    cipherText
+  )
+    .then((gcm_out) =>  {
+      omemo._store.put("decrypted", gcm_out)
+      console.log(enc.decode(store.get("decrypted")))
+    })
+  return Promise.resolve(true)
+}
 
-           window.crypto.subtle.encrypt(
-             {
-               name: "AES-GCM",
-               iv: temp_iv,
-               additionalData: aad,
-               tagLength: 128
-             },
-             key,
-             codec.StringToUint8(text)
-           )
-             .then((ctext, tag) => {  return [
-                 ctext,
-                 tag,
-                 iv,
-                 key
-               ] 
-             })
-         })
-     },
-
- 
-  decrypt: function(ciphertext, miv, mkey, aad) {
-    window.crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: miv, //uint8 buffer
-        additionalData: aad, //uint8 buffer
-        tagLength: 128
-      },
-      mkey, //CryptoKey
-      ciphertext //Uint8 of the data
-    )
-      .then(function(decrypted){
-        //if success, destroy receive key before returning
-        //returns an ArrayBuffer containing the decrypted data
-        //window.decrypted = decrypted
-        return new Uint8Array(decrypted);
-      })
-      //.catch(function(err){ // err ironically hides the real error.
-      //  console.error(err); // good for err handeling, not debugging.
-      //});
-  },
-  iv:  function () {
-    return window.crypto.getRandomValues(new Uint8Array(12))
-  },
-  key: function () {
+gcm = {
+  encrypt: function (text) {
     window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        length: 256, //max key length, min is 128
+        length: 256, //current max value
       },
-      true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
-    )
-      .then(function(key){
-        //key must be extracted here 
-        window.crypto.subtle.exportKey(
-          "jwk", //can be "jwk" or "raw"
-          key //extractable must be true
-        )
-          .then(function(keydata){
-            //returns the exported key data
-            window.key = key
-            window.keydata = keydata
-            [key, keydata]
-
-          })
-          .catch(function(err){
-            console.error(err.message);
-          });
-      })
-      .catch(function(err){
-        console.error(err.message);
-      })
-  } ,
+      true, //extractable yes
+      ["encrypt", "decrypt"] //can "encrypt", "decrypt",
+    ).then((key) => {encrypt(key, text)})
+  },
+  decrypt: function (key, cipherText, iv, aad) {
+    decrypt(key, cipherText,iv, aad)
+    //on success destroy key ? or set timer for key destruction?
+  }
 }
 
 module.exports = gcm

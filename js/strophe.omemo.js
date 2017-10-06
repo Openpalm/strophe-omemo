@@ -47,14 +47,16 @@ var omemo = {
  * @returns {true} on success, raises an Error otherwise.
  */
 omemo.init = function(libsignal, store, conn) {
-  this._connection = conn; //strophe conn
-  pprint("initializing omemo")
-  omemo.setStore(store)
-  omemo.setNewDeviceId()
-  omemo.setLibsignal(libsignal)
-  omemo.armLibsignal()
-  //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+    omemo._connection = conn;//strophe conn
+    omemo.setStore(store)
+    .then(omemo.setNewDeviceId())
+    .then(omemo.setLibsignal(libsignal))
+    .then(omemo.armLibsignal())
+
+  return Promise.resolve(true)
+    //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
+ 
 
 /**
  * addNewDevice
@@ -74,6 +76,7 @@ omemo.setNewDeviceId= function () {
   omemo._deviceid = res
   omemo._store.put('sid', res)
   pprint("generated new device id: " + res)
+  return Promise.resolve(true)
 }
 /**
  * setStore
@@ -86,6 +89,7 @@ omemo.setStore = function (store) {
   //test on membership of put/get to determine if it's a store?
   //store imported. now loaded with <script>. works.
   omemo._store = store 
+  return Promise.resolve(true)
 }
 /**
  * setLibsignal
@@ -102,6 +106,8 @@ omemo.setLibsignal = function(ep) {
   pprint("setting KeyHelper ... ")
   omemo._keyhelper  = ep.KeyHelper
   pprint("library loaded, KeyHelper set.")
+
+  return Promise.resolve(true)
 }
 
 omemo.extractRandomPreKey = function() {
@@ -129,7 +135,6 @@ if (omemo._store == null) {
   ]).then(function(result) {
     let identity = result[0];
     let registrationId = result[1];
-
     omemo._store.put('registrationId', result[1])
     pprint("registration id generated and stored.")
     omemo._store.put('identityKey', result[0])
@@ -142,16 +147,16 @@ if (omemo._store == null) {
   pprint("generating one time PreKeys")
   omemo.gen100PreKeys(1,100)
 
-
+  return Promise.resolve(true)
 }
 omemo.gen100PreKeys = function (start, finish) {
   if (start == finish+1)  { 
     pprint("100preKey genereration complete")
-    return 
+    return Promise.resolve(true)
   }
   omemo._keyhelper.generatePreKey(start).then((k) => omemo._store.storePreKey(start,k))
   start++
-  omemo.gen100Keys(start, finish)
+  omemo.gen100PreKeys(start, finish)
 }
 /**
  * generatePreKeys
@@ -221,6 +226,7 @@ omemo.refreshPreKeys = function() {
       .then((keyPair) => omemo._store.storePreKey(i, keyPair))
       .then("one time key generation done")
   }
+  return Promise.resolve(true)
 }
 /**
  * restore
@@ -237,6 +243,7 @@ omemo.refreshPreKeys = function() {
  */
 omemo.restore = function(file) {
 
+  return Promise.resolve(true)
 }
 /**
  * serialize
@@ -249,6 +256,7 @@ omemo.restore = function(file) {
  */
 omemo.serialize = function(file) {
   let serialized = JSON.stringify(omemo._store)
+  return Promise.resolve(true)
   //do something with it. sqlite?
 }
 

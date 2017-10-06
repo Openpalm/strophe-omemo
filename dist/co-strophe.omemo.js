@@ -76,10 +76,16 @@ codec = {
     var enc = new TextEncoder("utf-8");
     return enc.encode(string);
   },
+  BufferToString: function (buffer) {
+    var enc = new TextEncoder();
+    return enc.encode(buffer);
+  },
+
   Uint8ToString: function (buffer) {
     return String.fromCharCode.apply(null, buffer);
   },
   Uint8ToHexString: function (buffer) {
+    //use window.crypto.subtle.digest here (??) XEP spec. is 64 encode though. double check.
     var res = ''
     for (var i = 0; i <  buffer.length; i++) {
       res = res + buffer[i].toString(8)
@@ -148,14 +154,16 @@ var omemo = {
  * @returns {true} on success, raises an Error otherwise.
  */
 omemo.init = function(libsignal, store, conn) {
-  this._connection = conn; //strophe conn
-  pprint("initializing omemo")
-  omemo.setStore(store)
-  omemo.setNewDeviceId()
-  omemo.setLibsignal(libsignal)
-  omemo.armLibsignal()
-  //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+    omemo._connection = conn;//strophe conn
+    omemo.setStore(store)
+    .then(omemo.setNewDeviceId())
+    .then(omemo.setLibsignal(libsignal))
+    .then(omemo.armLibsignal())
+
+  return Promise.resolve(true)
+    //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
+ 
 
 /**
  * addNewDevice
@@ -175,6 +183,7 @@ omemo.setNewDeviceId= function () {
   omemo._deviceid = res
   omemo._store.put('sid', res)
   pprint("generated new device id: " + res)
+  return Promise.resolve(true)
 }
 /**
  * setStore
@@ -187,6 +196,7 @@ omemo.setStore = function (store) {
   //test on membership of put/get to determine if it's a store?
   //store imported. now loaded with <script>. works.
   omemo._store = store 
+  return Promise.resolve(true)
 }
 /**
  * setLibsignal
@@ -203,6 +213,8 @@ omemo.setLibsignal = function(ep) {
   pprint("setting KeyHelper ... ")
   omemo._keyhelper  = ep.KeyHelper
   pprint("library loaded, KeyHelper set.")
+
+  return Promise.resolve(true)
 }
 
 omemo.extractRandomPreKey = function() {
@@ -230,7 +242,6 @@ if (omemo._store == null) {
   ]).then(function(result) {
     let identity = result[0];
     let registrationId = result[1];
-
     omemo._store.put('registrationId', result[1])
     pprint("registration id generated and stored.")
     omemo._store.put('identityKey', result[0])
@@ -241,18 +252,18 @@ if (omemo._store == null) {
     })
   })
   pprint("generating one time PreKeys")
-  omemo.gen100Keys(1,100)
+  omemo.gen100PreKeys(1,100)
 
-
+  return Promise.resolve(true)
 }
-omemo.gen100Keys = function (start, finish) {
+omemo.gen100PreKeys = function (start, finish) {
   if (start == finish+1)  { 
     pprint("100preKey genereration complete")
-    return 
+    return Promise.resolve(true)
   }
-  start++
   omemo._keyhelper.generatePreKey(start).then((k) => omemo._store.storePreKey(start,k))
-  omemo.gen100Keys(start, finish)
+  start++
+  omemo.gen100PreKeys(start, finish)
 }
 /**
  * generatePreKeys
@@ -322,6 +333,7 @@ omemo.refreshPreKeys = function() {
       .then((keyPair) => omemo._store.storePreKey(i, keyPair))
       .then("one time key generation done")
   }
+  return Promise.resolve(true)
 }
 /**
  * restore
@@ -338,6 +350,7 @@ omemo.refreshPreKeys = function() {
  */
 omemo.restore = function(file) {
 
+  return Promise.resolve(true)
 }
 /**
  * serialize
@@ -350,6 +363,7 @@ omemo.restore = function(file) {
  */
 omemo.serialize = function(file) {
   let serialized = JSON.stringify(omemo._store)
+  return Promise.resolve(true)
   //do something with it. sqlite?
 }
 
@@ -10632,83 +10646,68 @@ return jQuery;
 var codec= __webpack_require__(0)
 var gcm = {};
 
-gcm =  {
-  encrypt: function (text, miv, mkey, aad) {
-    window.crypto.subtle.encrypt(
-      {
-        name: "AES-GCM",
-        iv: miv,
-        additionalData: codec.StringToUint8(aad),
-        tagLength: 128
-      },
-      mkey,
-      codec.StringToUint8(text)
-    )
-      .then(function(encrypted){
-        console.log(encrypted)
-        window.encrypted8 = new Uint8Array(encrypted); // works
-        window.encrypted = encrypted; //actually not empty
-      })
-      .catch(function(err){
-        console.error(err.message);
-      });
-  },
-  decrypt: function(ciphertext, miv, mkey, aad) {
-    window.crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: miv, //uint8 buffer
-        additionalData: aad, //uint8 buffer
-        tagLength: 128
-      },
-      mkey, //CryptoKey
-      ciphertext //Uint8 of the data
-    )
-      .then(function(decrypted){
-        //if success, destroy receive key before returning
-        //returns an ArrayBuffer containing the decrypted data
-        //window.decrypted = decrypted
-        return new Uint8Array(decrypted);
-      })
-      //.catch(function(err){ // err ironically hides the real error.
-      //  console.error(err); // good for err handeling, not debugging.
-      //});
-  },
-  iv:  function () {
-    return window.crypto.getRandomValues(new Uint8Array(12))
-  },
-  key: function () {
+
+function pprint(s) {
+  console.log("gcm.js: " + s)
+}
+function encrypt(key, text) {
+  //the out of window.crypto is only the cipher text (i assume?)
+  //the tag is not mentioned. unless it concatinated inside. look at code?
+  //after ecnrypting, we dont need to keep the key
+  const data = codec.StringToUint8(text)
+  const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
+  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
+  const alg = {
+    name: "AES-GCM",
+    iv: temp_iv, //uint8 buffer
+    additionalData: aad, //uint8 buffer
+    tagLength: 128
+  }
+  window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => { 
+    let gcm_out = {
+      key: key,
+      ct: cipherText, 
+      iv: temp_iv,
+      aad: aad
+    } 
+    omemo._store.put("encrypted", gcm_out) 
+  })
+  return Promise.resolve(true)
+}
+
+function decrypt(key, cipherText, iv, aad) {
+  let enc = new TextDecoder()
+  return window.crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: iv, 
+      additionalData: aad, 
+      tagLength: 128, 
+    },
+    key,
+    cipherText
+  )
+    .then((gcm_out) =>  {
+      omemo._store.put("decrypted", gcm_out)
+      console.log(enc.decode(store.get("decrypted")))
+    })
+  return Promise.resolve(true)
+}
+
+gcm = {
+  encrypt: function (text) {
     window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        length: 256, //max key length, min is 128
+        length: 256, //current max value
       },
-      true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
-    )
-      .then(function(key){
-        //key must be extracted here 
-        window.crypto.subtle.exportKey(
-          "jwk", //can be "jwk" or "raw"
-          key //extractable must be true
-        )
-          .then(function(keydata){
-            //returns the exported key data
-            window.key = key
-            window.keydata = keydata
-            [key, keydata]
-
-          })
-          .catch(function(err){
-            console.error(err.message);
-          });
-      })
-      .catch(function(err){
-        console.error(err.message);
-      })
-  } ,
-    aad: function(jid1, jid2) {
-    return codec.StringToUint8("two concatinated identity key encodes here")
+      true, //extractable yes
+      ["encrypt", "decrypt"] //can "encrypt", "decrypt",
+    ).then((key) => {encrypt(key, text)})
+  },
+  decrypt: function (key, cipherText, iv, aad) {
+    decrypt(key, cipherText,iv, aad)
+    //on success destroy key ? or set timer for key destruction?
   }
 }
 
