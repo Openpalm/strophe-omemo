@@ -49,9 +49,9 @@ var omemo = {
 omemo.init = function(libsignal, store, conn) {
   this._connection = conn; //strophe conn
   pprint("initializing omemo")
-  omemo.setLibsignal(libsignal)
   omemo.setStore(store)
   omemo.setNewDeviceId()
+  omemo.setLibsignal(libsignal)
   omemo.armLibsignal()
   //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
@@ -71,6 +71,7 @@ omemo.setNewDeviceId= function () {
 
   let diff = (maxDeviceId - minDeviceId)
   let res = Math.floor(Math.random() * diff  + minDeviceId) 
+  omemo._deviceid = res
   omemo._store.put('sid', res)
   pprint("generated new device id: " + res)
 }
@@ -101,6 +102,10 @@ omemo.setLibsignal = function(ep) {
   pprint("setting KeyHelper ... ")
   omemo._keyhelper  = ep.KeyHelper
   pprint("library loaded, KeyHelper set.")
+}
+
+omemo.extractRandomPreKey = function() {
+
 }
 
 /**
@@ -135,11 +140,18 @@ if (omemo._store == null) {
     })
   })
   pprint("generating one time PreKeys")
-  for (var i = 0; i < 100; i++) {
-    omemo._keyhelper.generatePreKey(i)
-      .then((keyPair) => omemo._store.storePreKey(i, keyPair))
-      .then("one time key generation done")
+  omemo.gen100PreKeys(1,100)
+
+
+}
+omemo.gen100PreKeys = function (start, finish) {
+  if (start == finish+1)  { 
+    pprint("100preKey genereration complete")
+    return 
   }
+  omemo._keyhelper.generatePreKey(start).then((k) => omemo._store.storePreKey(start,k))
+  start++
+  omemo.gen100Keys(start, finish)
 }
 /**
  * generatePreKeys
@@ -148,14 +160,6 @@ if (omemo._store == null) {
  *
  * @returns {true} on success, Error on failure
  */
-omemo.refreshPreKeys = function() {
-  pprint("refreshing one time PreKeys")
-  for (var i = 0; i < 100; i++) {
-    omemo._keyhelper.generatePreKey(i)
-      .then((keyPair) => omemo._store.storePreKey(i, keyPair))
-      .then("one time key generation done")
-  }
-}
 
 /**
  * setUpMessageElements
@@ -172,35 +176,6 @@ omemo.setUpMessageElements = function(type, text) {
   //1. preKeySignalMessage
   //2. signalMessage
   //3. presense of <payload>
-}
-/**
- * restore
- *
- * attempts to restore a session from a saved JSON object
- s populates a fresh libSignalStore with content. assumes
- * JSON fields will match those of the store interface.
- *
- * JSON object will be padded with a device ID and idkey.pub.
- * optional: take device ID from PEP ?
- *
- * @param file or database object
- * @returns {true} on success, Error on failure
- */
-omemo.restore = function(file) {
-
-}
-/**
- * serialize
- * uses JSON.stringify to turn a store object into a JSON string.
- * padded with device id and idkey.pub.
- *
- * @param file or database containing the object
- *
- * @returns {true} on success, Error on failure
- */
-omemo.serialize = function(file) {
-  let serialized = JSON.stringify(omemo._store)
-  //do something with it. sqlite?
 }
 /**
  * createEncryptedStanza
@@ -237,9 +212,46 @@ omemo._onMessage = function(stanza) {
   //@TODO
   //@preKeySignalMessage
   //@
-
   $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
 }
+omemo.refreshPreKeys = function() {
+  pprint("refreshing one time PreKeys")
+  for (var i = 0; i < 100; i++) {
+    omemo._keyhelper.generatePreKey(i)
+      .then((keyPair) => omemo._store.storePreKey(i, keyPair))
+      .then("one time key generation done")
+  }
+}
+/**
+ * restore
+ *
+ * attempts to restore a session from a saved JSON object
+ s populates a fresh libSignalStore with content. assumes
+ * JSON fields will match those of the store interface.
+ *
+ * JSON object will be padded with a device ID and idkey.pub.
+ * optional: take device ID from PEP ?
+ *
+ * @param file or database object
+ * @returns {true} on success, Error on failure
+ */
+omemo.restore = function(file) {
+
+}
+/**
+ * serialize
+ * uses JSON.stringify to turn a store object into a JSON string.
+ * padded with device id and idkey.pub.
+ *
+ * @param file or database containing the object
+ *
+ * @returns {true} on success, Error on failure
+ */
+omemo.serialize = function(file) {
+  let serialized = JSON.stringify(omemo._store)
+  //do something with it. sqlite?
+}
+
 
 module.exports = omemo
 window.omemo = omemo

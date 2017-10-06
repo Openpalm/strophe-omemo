@@ -6,7 +6,8 @@
     <script type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script> 
     <script type="text/javascript" src="../js/libs/jquery-3.2.1.min.js"></script> 
 
-    <script type="text/javascript" src="../js/store.js"></script>
+    <script type="text/javascript" src="../js/libsignalstore.js"></script>
+    <script type="text/javascript" src="../js/prekeystore.js"></script>
 
     <script type="text/javascript" src="../dist/co-strophe.omemo.js"></script> 
     <script type="text/javascript" src="../dist/co-codec.js"></script>  
@@ -59,7 +60,8 @@ assert( result == 8, 'Checking the add function');
 
 
 let store =  new SignalProtocolStore();
-omemo.init(libsignal, store, "123")
+omemo.init(libsignal, store, "alice@mjid.jiddy")
+
 
 
   </script>
