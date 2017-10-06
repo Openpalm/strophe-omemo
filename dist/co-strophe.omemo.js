@@ -252,7 +252,7 @@ if (omemo._store == null) {
     })
   })
   pprint("generating one time PreKeys")
-  omemo.gen100PreKeys(1,100)
+  omemo.gen100PreKeys(0,100)
 
   return Promise.resolve(true)
 }

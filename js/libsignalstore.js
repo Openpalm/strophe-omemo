@@ -87,6 +87,18 @@ SignalProtocolStore.prototype = {
     }
     return "undefined"
   },
+  countPreKeys: function() {
+    let count = 100 
+    let id = 100 
+    let key = this.get('25519KeypreKey' + keyId);
+    while (key == "unidentified") {
+      id = Math.floor(Math.random() * range) + 1 
+      key = omemo._store.getPreKey(id)
+      omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
+    }
+
+  }
+
 
 
 	/* Returns a signed keypair object or undefined */
