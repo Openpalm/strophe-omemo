@@ -3,27 +3,46 @@
 var codec= require('./codec.js')
 var gcm = {};
 
+function pprint(s) {
+  console.log("gcm.js: " + s)
+}
 gcm =  {
-  encrypt: function (text, miv, mkey, aad) {
-    window.crypto.subtle.encrypt(
+  encrypt: 
+     function (text) {
+      let temp_iv = window.crypto.getRandomValues(new Uint8Array(12))
+      let aad =  codec.StringToUint8("fetch from libsignal rid store here")
+
+      window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        iv: miv,
-        additionalData: codec.StringToUint8(aad),
-        tagLength: 128
+        length: 256, //max key length, min is 128
       },
-      mkey,
-      codec.StringToUint8(text)
+      true, //whether the key is extractable (i.e. can be used in exportKey)
+      ["encrypt", "decrypt"] //can "encrypt" and "decrypt"
     )
-      .then(function(encrypted){
-        console.log(encrypted)
-        window.encrypted8 = new Uint8Array(encrypted); // works
-        window.encrypted = encrypted; //actually not empty
-      })
-      .catch(function(err){
-        console.error(err.message);
-      });
-  },
+         .then((key){
+
+           window.crypto.subtle.encrypt(
+             {
+               name: "AES-GCM",
+               iv: temp_iv,
+               additionalData: aad,
+               tagLength: 128
+             },
+             key,
+             codec.StringToUint8(text)
+           )
+             .then((ctext, tag) => {  return [
+                 ctext,
+                 tag,
+                 iv,
+                 key
+               ] 
+             })
+         })
+     },
+
+ 
   decrypt: function(ciphertext, miv, mkey, aad) {
     window.crypto.subtle.decrypt(
       {
@@ -78,9 +97,6 @@ gcm =  {
         console.error(err.message);
       })
   } ,
-    aad: function(jid1, jid2) {
-    return codec.StringToUint8("two concatinated identity key encodes here")
-  }
 }
 
 module.exports = gcm
