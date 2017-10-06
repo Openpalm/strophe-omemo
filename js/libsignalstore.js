@@ -56,7 +56,7 @@ SignalProtocolStore.prototype = {
 	},
 
 	/* Returns a prekeypair object or undefined */
-	loadPreKey: function(keyId) {
+	loadPreKey: function(keyId) { //the array buffers for the keys are undefined for some reason.
     var res = this.get('25519KeypreKey' + keyId);
     if (res !== undefined) {
       res = { pubKey: res.pubKey, privKey: res.privKey };
@@ -69,6 +69,25 @@ SignalProtocolStore.prototype = {
 	removePreKey: function(keyId) {
 		return Promise.resolve(this.remove('25519KeypreKey' + keyId));
 	},
+  getPreKey: function(keyId) {
+    var res = this.get('25519KeypreKey' + keyId);
+    if (res !== undefined) {
+      return res
+    }
+    return "undefined"
+  },
+  getPreKeyPub: function(keyId) {
+    var res = this.get('25519KeypreKey' + keyId);
+    if (res !== undefined) {
+      let pubRecord =  { 
+        keyId: res.keyId, 
+        pubKey: res.keyPair.pubKey 
+      }
+      return  pubRecord
+    }
+    return "undefined"
+  },
+
 
 	/* Returns a signed keypair object or undefined */
 	loadSignedPreKey: function(keyId) {
