@@ -62,16 +62,12 @@ assert( result == 8, 'Checking the add function');
 console.log("before")
 let store =  new SignalProtocolStore();
 omemo.init(libsignal, store, "alice@mjid.jiddy").then(() => {
+  //there's an issue with the order of resolving promises. should make it 
+  //sequential. might become blocking? the arming is more or less sequential,
+  //making it proper seq. would block the tab though. 
+  //should introduce a ready flag somewhere.
   gcm.encrypt("hello world")
- // gcm.decrypt(ctp.key, ctp.ct, ctp.iv, ctp.aad)
-
-  //  while (typeof ctp == "undefined" && !(ctp.key instanceof CryptoKey)) {
-  //      console.log("fetching encrypted")
-  //      ctp =  store.get("encrypted")
-  //  }
 }).then(console.log("after"))
-
-var ctp = omemo._store.get("encrypted")
 
 
   </script>
