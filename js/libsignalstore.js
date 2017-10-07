@@ -91,8 +91,8 @@ SignalProtocolStore.prototype = {
   countPreKeysEfficient: function () {
     return   (100 - this.usedPreKeyCounter)
   },
-  
- getPreKeyBundle: function() {
+
+  getPreKeyBundle: function() {
     //track key # here
     let range = 101
     let id = 1 

@@ -107,7 +107,7 @@ window.codec = codec
 "use strict";
 
 
-var $ = __webpack_require__(2);
+var $ = __webpack_require__(2); //not used yet. candidate for deletion.
 var codec = __webpack_require__(0)
 var gcm = __webpack_require__(3)
 //errors. var libsignal = require('./libs/libsignaljs/dist/libsignal-protocol.js')
@@ -134,14 +134,16 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 
 var omemo = {
-  _jid: null,
+  _jid: null, // not needed? strophe? talk to klaus
   _address: null,
-  _session: null,
+  _sessionBuilder: null,
+  _sessions: null,
   _connection: null,
   _store: null,
   _libsignal: null,
   _keyhelper: null,
-  _deviceid: null
+  _deviceid: null,
+  _ready: false
 }
 
 /**
@@ -157,6 +159,8 @@ var omemo = {
  * @returns {true} on success, raises an Error otherwise.
  */
 omemo.init = function(libsignal, store, conn) {
+  //fix order using callbacks if necessary. session might have an issue with
+  //the store being given as input before preKey generation finishes.
     omemo._connection = conn;//strophe conn
     omemo.setStore(store)
     .then(omemo.setNewDeviceId())
@@ -177,7 +181,7 @@ omemo.init = function(libsignal, store, conn) {
  */
 omemo.setNewDeviceId= function () {
   //min/max ought to be global, but it'd be poor design to declare them
-  //somewhere vague.
+  //somewhere vague. maybe. klaus can give a tip here.
   var minDeviceId = 1
   var maxDeviceId = 2147483647
 
@@ -242,6 +246,8 @@ if (omemo._store == null) {
   ]).then(function(result) {
     let identity = result[0];
     let registrationId = result[1];
+    //introduce callbacks into functions to manage order of instantiation.
+    //introduce a ready flag.
     omemo._store.put('registrationId', result[1])
     pprint("registration id generated and stored.")
     omemo._store.put('identityKey', result[0])
@@ -253,9 +259,9 @@ if (omemo._store == null) {
   })
   pprint("generating one time PreKeys")
     omemo.gen100PreKeys(1,100)
-  pprint("initiating local libsignal Session")
+  pprint("initiating local libsignal SessionBuilder")
   omemo._address = omemo._sid
-  omemo._session = new  omemo._libsignal.SessionBuilder(omemo._store, omemo._address)
+  omemo._sessionBuilder = new  omemo._libsignal.SessionBuilder(omemo._store, omemo._address)
 
   return Promise.resolve(true)
 }
@@ -280,7 +286,8 @@ omemo.gen100PreKeys = function (start, finish) {
  * setUpMessageElements
  * handles XMPP syntax packing on query Omemo message types.
  * ==> better have a function for each of the tree types.
- *
+ * ==> PreKeySignalMessages. A client can receive a PreKeySignalMessage from 
+ * ==> a recipient and use it to establish a session.
  * @param type
  * @param text
  * @returns {true} on success, Error on failure
