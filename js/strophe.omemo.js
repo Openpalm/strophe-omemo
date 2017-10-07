@@ -28,12 +28,13 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 var omemo = {
   _jid: null,
+  _address: null,
+  _session: null,
   _connection: null,
   _store: null,
   _libsignal: null,
   _keyhelper: null,
-  _deviceid: null,
-  _session: null
+  _deviceid: null
 }
 
 /**
@@ -147,7 +148,7 @@ if (omemo._store == null) {
     omemo.gen100PreKeys(1,100)
   pprint("initiating local libsignal Session")
   omemo._address = omemo._sid
-  omemo._session = new  omemo._libsignal.
+  omemo._session = new  omemo._libsignal.SessionBuilder(omemo._store, omemo._address)
 
   return Promise.resolve(true)
 }
