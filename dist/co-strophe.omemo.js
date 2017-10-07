@@ -218,7 +218,16 @@ omemo.setLibsignal = function(ep) {
 }
 
 omemo.extractRandomPreKey = function() {
-
+  //track key # here
+    let range = 100
+    let id = 1 
+    let key = "unidentified"
+  while (key == "unidentified") {
+    id = Math.floor(Math.random() * range) + 1 
+    key = omemo._store.getPreKey(id)
+    omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
+  }
+  return key
 }
 
 /**
@@ -252,8 +261,7 @@ if (omemo._store == null) {
     })
   })
   pprint("generating one time PreKeys")
-  omemo.gen100PreKeys(0,100)
-
+    omemo.gen100PreKeys(1,100)
   return Promise.resolve(true)
 }
 omemo.gen100PreKeys = function (start, finish) {
