@@ -17,7 +17,7 @@ pprint("initiating")
 
 //there's no need to import Strophe or $iq, taken from browser <script> tag.
 //not including it here reduces import strain.
-Strophe.addNamespace(protocol, ns);
+Strophe.addNamespace(protocol, ns).then(pprint("namespace successfully loaded"));
 pprint("namespace successfully loaded")
 
 //testing iq and its output
