@@ -27,11 +27,13 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 
 var omemo = {
+  _jid: null,
   _connection: null,
   _store: null,
   _libsignal: null,
   _keyhelper: null,
-  _deviceid: null
+  _deviceid: null,
+  _session: null
 }
 
 /**
@@ -110,18 +112,6 @@ omemo.setLibsignal = function(ep) {
   return Promise.resolve(true)
 }
 
-omemo.extractRandomPreKey = function() {
-  //track key # here
-    let range = 100
-    let id = 1 
-    let key = "unidentified"
-  while (key == "unidentified") {
-    id = Math.floor(Math.random() * range) + 1 
-    key = omemo._store.getPreKey(id)
-    omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
-  }
-  return key
-}
 
 /**
  * armLibsignal
@@ -155,6 +145,10 @@ if (omemo._store == null) {
   })
   pprint("generating one time PreKeys")
     omemo.gen100PreKeys(1,100)
+  pprint("initiating local libsignal Session")
+  omemo._address = omemo._sid
+  omemo._session = new  omemo._libsignal.
+
   return Promise.resolve(true)
 }
 omemo.gen100PreKeys = function (start, finish) {
