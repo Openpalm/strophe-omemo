@@ -1,6 +1,6 @@
 "use strict";
 
-var $ = require('jquery');
+var $ = require('jquery'); //not used yet. candidate for deletion.
 var codec = require('./codec.js')
 var gcm = require('./gcm.js')
 //errors. var libsignal = require('./libs/libsignaljs/dist/libsignal-protocol.js')
@@ -27,7 +27,7 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 
 var omemo = {
-  _jid: null,
+  _jid: null, // not needed? strophe? talk to klaus
   _address: null,
   _session: null,
   _connection: null,
@@ -50,6 +50,8 @@ var omemo = {
  * @returns {true} on success, raises an Error otherwise.
  */
 omemo.init = function(libsignal, store, conn) {
+  //fix order using callbacks if necessary. session might have an issue with
+  //the store being given as input before preKey generation finishes.
     omemo._connection = conn;//strophe conn
     omemo.setStore(store)
     .then(omemo.setNewDeviceId())
@@ -70,7 +72,7 @@ omemo.init = function(libsignal, store, conn) {
  */
 omemo.setNewDeviceId= function () {
   //min/max ought to be global, but it'd be poor design to declare them
-  //somewhere vague.
+  //somewhere vague. maybe. klaus can give a tip here.
   var minDeviceId = 1
   var maxDeviceId = 2147483647
 
