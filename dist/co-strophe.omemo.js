@@ -124,7 +124,7 @@ pprint("initiating")
 
 //there's no need to import Strophe or $iq, taken from browser <script> tag.
 //not including it here reduces import strain.
-Strophe.addNamespace(protocol, ns);
+Strophe.addNamespace(protocol, ns).then(pprint("namespace successfully loaded"));
 pprint("namespace successfully loaded")
 
 //testing iq and its output
@@ -134,6 +134,9 @@ var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http
 
 
 var omemo = {
+  _jid: null,
+  _address: null,
+  _session: null,
   _connection: null,
   _store: null,
   _libsignal: null,
@@ -217,18 +220,6 @@ omemo.setLibsignal = function(ep) {
   return Promise.resolve(true)
 }
 
-omemo.extractRandomPreKey = function() {
-  //track key # here
-    let range = 100
-    let id = 1 
-    let key = "unidentified"
-  while (key == "unidentified") {
-    id = Math.floor(Math.random() * range) + 1 
-    key = omemo._store.getPreKey(id)
-    omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
-  }
-  return key
-}
 
 /**
  * armLibsignal
@@ -262,6 +253,10 @@ if (omemo._store == null) {
   })
   pprint("generating one time PreKeys")
     omemo.gen100PreKeys(1,100)
+  pprint("initiating local libsignal Session")
+  omemo._address = omemo._sid
+  omemo._session = new  omemo._libsignal.SessionBuilder(omemo._store, omemo._address)
+
   return Promise.resolve(true)
 }
 omemo.gen100PreKeys = function (start, finish) {

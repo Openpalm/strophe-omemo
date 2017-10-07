@@ -140,14 +140,14 @@ SignalProtocolStore.prototype = {
     return Promise.resolve(this.remove('25519KeypreKey' + keyId));
   },
   getPreKey: function(keyId) {
-    var res = this.get('25519KeypreKey' + keyId);
+    let res = this.get('25519KeypreKey' + keyId);
     if (res !== undefined) {
       return res
     }
     return "undefined"
   },
   getPreKeyPub: function(keyId) {
-    var res = this.get('25519KeypreKey' + keyId);
+    let res = this.get('25519KeypreKey' + keyId);
     if (res !== undefined) {
       let pubRecord =  { 
         keyId: res.keyId, 
@@ -155,10 +155,27 @@ SignalProtocolStore.prototype = {
       }
       return  pubRecord
     }
-    return "undefined"
+    return undefined
   },
   countPreKeysEfficient: function () {
     return   (100 - this.usedPreKeyCounter)
+  },
+  
+ getPreKeyBundle: function() {
+    //track key # here
+    let range = 101
+    let id = 1 
+    let key = undefined
+    let keys = []
+    while (range) {
+      key = omemo._store.getPreKeyPub(id)
+      if (key != undefined) {
+        keys.push(key)
+      }
+      id++
+      range--
+    }
+    return keys
   },
   extractAndRemoveRandomPreKey: function() {
     //track key # here
@@ -173,9 +190,6 @@ SignalProtocolStore.prototype = {
     this.usedPreKeyCounter++
     return key
   },
-
-
-
 
   /* Returns a signed keypair object or undefined */
   loadSignedPreKey: function(keyId) {
