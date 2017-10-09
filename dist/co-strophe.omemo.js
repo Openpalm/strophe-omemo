@@ -72,15 +72,32 @@
 var codec = {};
 
 codec = {
+  b64encode: function (buffer) {
+    let binary = ''
+    let bytes = new Uint8Array(buffer)
+    let len = bytes.byteLength
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return window.btoa(binary)
+  },
+  b64encodeToBuffer: function (base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length
+    var bytes = new Uint8Array( len )
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binary_string.charCodeAt(i)
+    }
+    return bytes.buffer
+  },
   StringToUint8: function (string) {
-    var enc = new TextEncoder("utf-8");
-    return enc.encode(string);
+    let enc = new TextEncoder("utf-8")
+    return enc.encode(string)
   },
   BufferToString: function (buffer) {
-    var enc = new TextEncoder();
-    return enc.encode(buffer);
+    let enc = new TextEncoder()
+    return enc.encode(buffer)
   },
-
   Uint8ToString: function (buffer) {
     return String.fromCharCode.apply(null, buffer);
   },
@@ -91,9 +108,7 @@ codec = {
       res = res + buffer[i].toString(8)
     }
     return res
-  },
-  StringToBase64: "TODO",
-  Base64ToString: "TODO"
+  }
 }
 
 module.exports = codec
@@ -117,20 +132,13 @@ function pprint(t) {
   console.log("strophe.omemo.js: " + t)
 }
 
-var ns = 'eu.siacs.conversations.axolotl'
+let ns = {}
 var protocol = 'OMEMO'
 
 pprint("initiating")
 
 //there's no need to import Strophe or $iq, taken from browser <script> tag.
 //not including it here reduces import strain.
-Strophe.addNamespace(protocol, ns);
-pprint("namespace successfully loaded")
-
-//testing iq and its output
-var iq = $iq({type: 'get', to: "jiddy@mcjiddijid.jid"}).c('query', {xmlns: 'http://jabber.org/protocol/pubsub#retrieve-subscriptions'});
-
-//pprint(iq) // yep it works.
 
 
 var omemo = {
@@ -143,8 +151,21 @@ var omemo = {
   _libsignal: null,
   _keyhelper: null,
   _deviceid: null,
+  _ns_main: 'eu.siacs.conversations.axolotl',
+  _ns_bundles: 'eu.siacs.conversations.axolotl.bundles',
+  _ns_devices: 'eu.siacs.conversations.axolotl.devices',
   _ready: false
 }
+
+Strophe.addNamespace(protocol, omemo._ns_main);
+pprint("namespace successfully loaded")
+
+//testing iq and its output
+var iq = $iq({type: 'set', from:'eddie@mcjiddy.jid', id: 'anounce2' })
+  .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+  .c('publish', {node: omemo._ns_main })
+
+pprint(iq) // yep it works.
 
 /**
  * init
@@ -158,19 +179,20 @@ var omemo = {
  * @param conn
  * @returns {true} on success, raises an Error otherwise.
  */
-omemo.init = function(libsignal, store, conn) {
+omemo.init = function(libsignal, store, jid, conn) {
   //fix order using callbacks if necessary. session might have an issue with
   //the store being given as input before preKey generation finishes.
-    omemo._connection = conn;//strophe conn
-    omemo.setStore(store)
-    .then(omemo.setNewDeviceId())
-    .then(omemo.setLibsignal(libsignal))
-    .then(omemo.armLibsignal())
+  //omemo._connection = conn;//strophe conn do we really need an omemo connection here ?
+  omemo._jid = jid 
+  omemo.setStore(store)
+    .then(omemo.setNewDeviceId()) //generates a fresh device id. 
+    .then(omemo.setLibsignal(libsignal)) // sets libsignal api-library entry point 
+    .then(omemo.armLibsignal()) //generates the keys and readies the store
 
-  return Promise.resolve(true)
-    //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+  return Promise.resolve(true) //comfort for .then()
+  //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
- 
+
 
 /**
  * addNewDevice
@@ -236,8 +258,8 @@ omemo.setLibsignal = function(ep) {
  */
 omemo.armLibsignal = function() {
   pprint("first use! arming libsignal with fresh keys... ")
-if (omemo._store == null) {
-  throw new Error("no store set, terminating.")
+  if (omemo._store == null) {
+    throw new Error("no store set, terminating.")
   }
   let KeyHelper = omemo._keyhelper
   Promise.all([
@@ -258,14 +280,25 @@ if (omemo._store == null) {
     })
   })
   pprint("generating one time PreKeys")
-    omemo.gen100PreKeys(1,100)
+  omemo.gen100PreKeys(1,100)
   pprint("initiating local libsignal SessionBuilder")
-  omemo._address = omemo._sid
-  omemo._sessionBuilder = new  omemo._libsignal.SessionBuilder(omemo._store, omemo._address)
-
+  omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo._deviceid);  //we store dev id in two place. hmmm.
+  //be consistent. fix soon.
   return Promise.resolve(true)
 }
-omemo.gen100PreKeys = function (start, finish) {
+omemo.establish = function (recepientStore) {
+  //establishes a libsignal session
+  //prepares the way for sending
+
+}
+
+omemo.handleBundle = function (receivedBundleMsg) {
+  //handles a received XMPP omemo bundle
+  //transforms it into a libsignal store
+  //should generate a store from the mock data
+
+}
+omemo.gen100PreKeys = function (start, finish) { 
   if (start == finish+1)  { 
     pprint("100preKey genereration complete")
     return Promise.resolve(true)
@@ -281,7 +314,6 @@ omemo.gen100PreKeys = function (start, finish) {
  *
  * @returns {true} on success, Error on failure
  */
-
 /**
  * setUpMessageElements
  * handles XMPP syntax packing on query Omemo message types.

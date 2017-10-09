@@ -127,6 +127,7 @@ SignalProtocolStore.prototype = {
 
   /* Returns a prekeypair object or undefined */
   loadPreKey: function(keyId) { //the array buffers for the keys are undefined for some reason.
+    //might work for libsig internally, but not working externally.
     var res = this.get('25519KeypreKey' + keyId);
     if (res !== undefined) {
       res = { pubKey: res.pubKey, privKey: res.privKey };
@@ -139,6 +140,7 @@ SignalProtocolStore.prototype = {
   removePreKey: function(keyId) {
     return Promise.resolve(this.remove('25519KeypreKey' + keyId));
   },
+  //custom start
   getPreKey: function(keyId) {
     let res = this.get('25519KeypreKey' + keyId);
     if (res !== undefined) {
@@ -160,7 +162,6 @@ SignalProtocolStore.prototype = {
   countPreKeysEfficient: function () {
     return   (100 - this.usedPreKeyCounter)
   },
-
   getPreKeyBundle: function() {
     //track key # here
     let range = 101
@@ -190,7 +191,19 @@ SignalProtocolStore.prototype = {
     this.usedPreKeyCounter++
     return key
   },
-
+  getOmemoBundle: function() {
+    return {
+      sid: this.get("sid"),
+      identityKey: this.get("identityKey").pubKey,
+      signedPreKey: {
+        keyId     : this.get("signedPreKey").keyId,
+        publicKey : this.get("signedPreKey").keyPair.pubKey,
+        signature : this.get("signedPreKey").signature
+      },
+      preKeys: this.getPreKeyBundle()
+    }
+  },
+  //custom end
   /* Returns a signed keypair object or undefined */
   loadSignedPreKey: function(keyId) {
     var res = this.get('25519KeysignedKey' + keyId);
