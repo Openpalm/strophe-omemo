@@ -30,14 +30,6 @@ codec = {
   },
   Uint8ToString: function (buffer) {
     return String.fromCharCode.apply(null, buffer);
-  },
-  Uint8ToHexString: function (buffer) {
-    //use window.crypto.subtle.digest here (??) XEP spec. is 64 encode though. double check.
-    var res = ''
-    for (var i = 0; i <  buffer.length; i++) {
-      res = res + buffer[i].toString(8)
-    }
-    return res
   }
 }
 

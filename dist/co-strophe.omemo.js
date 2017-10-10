@@ -100,14 +100,6 @@ codec = {
   },
   Uint8ToString: function (buffer) {
     return String.fromCharCode.apply(null, buffer);
-  },
-  Uint8ToHexString: function (buffer) {
-    //use window.crypto.subtle.digest here (??) XEP spec. is 64 encode though. double check.
-    var res = ''
-    for (var i = 0; i <  buffer.length; i++) {
-      res = res + buffer[i].toString(8)
-    }
-    return res
   }
 }
 
@@ -155,12 +147,21 @@ Strophe.addNamespace(protocol, omemo._ns_main);
 pprint("namespace successfully loaded")
 
 omemo.init = function(e) {
-  //omemo._connection = conn;//strophe conn do we really need an omemo connection here ?
-  omemo._jid = e.jid 
-  omemo.setStore(e.store)
-    .then(omemo.setNewDeviceId()) //generates a fresh device id. 
-    .then(omemo.setLibsignal(e.lib)) // sets libsignal api-library entry point 
-    .then(omemo.armLibsignal()) //generates the keys and readies the store
+  omemo._jid = e.jid
+  if(omemo._storage.getItem('OMEMO'+omemo._jid) != null) {
+    pprint("pre-existing store found. restoring ...")
+    omemo._store = omemo.restore(omemo._storage.getItem('OMEMO'+omemo._jid))
+    return 
+  }
+  Promise.all([
+    omemo.setStore(e.store),
+    omemo.setNewDeviceId(),
+    omemo.setLibsignal(e.lib),
+    omemo.armLibsignal()
+  ])
+  //  .then(omemo.setNewDeviceId()) //generates a fresh device id. 
+  //  .then(omemo.setLibsignal(e.lib)) // sets libsignal api-library entry point 
+  //  .then(omemo.armLibsignal()) //generates the keys and readies the store
 
   //session per tab
   omemo._storage.setItem(protocol+":"+omemo._jid, true)
@@ -217,7 +218,7 @@ omemo.armLibsignal = function() {
     })
   })
   pprint("generating one time PreKeys")
-  omemo.gen100PreKeys(0,100)
+  omemo.gen100PreKeys(1,100)
   pprint("initiating local libsignal SessionBuilder")
   omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo._deviceid);
   return Promise.resolve(true)
@@ -246,8 +247,12 @@ omemo.gen100PreKeys = function (start, finish) {
     pprint("100preKey genereration complete")
     return Promise.resolve(true)
   }
-  omemo._keyhelper.generatePreKey(start).then((k) => omemo._store.storePreKey(start,k))
+  let index = start  //cant use start. since storePreKey is a promise, and since start++ happens
+  //the value of start in relation to k is off by 1 by the time the promise resolves.
+  //settins index = start solves this.
+  omemo._keyhelper.generatePreKey(index).then((k) => omemo._store.storePreKey(index,k))
   start++
+
   omemo.gen100PreKeys(start, finish)
 }
 omemo.refreshPreKeys = function() {
@@ -308,7 +313,7 @@ omemo.restore = function (serialized) {
   }
   let prefix = '25519KeypreKey'
   let key = ''
-  for (let keyId = 0; keyId <= 100; keyId++) {
+  for (let keyId = 1; keyId <= 100; keyId++) {
     key = serialized[prefix + keyId]
     console.log(key)
     res.store[prefix + keyId] =  { 
@@ -337,7 +342,6 @@ omemo.OmemoBundleMsgToSTore = function (receivedBundleMsg) {
 omemo.establish = function (recepientStore) {
 
 }
-
 
 
 module.exports = omemo
