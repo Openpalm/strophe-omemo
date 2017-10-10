@@ -34,15 +34,19 @@ pprint("namespace successfully loaded")
 
 omemo.init = function(e) {
   omemo._jid = e.jid
-  if(omemo._storage.getItem('OMEMO'+omemo._jid) != null) {
+  if (omemo._storage.getItem('OMEMO'+omemo._jid) != null) {
     pprint("pre-existing store found. restoring ...")
     omemo._store = omemo.restore(omemo._storage.getItem('OMEMO'+omemo._jid))
-    return 
+    omemo._libsignal = e.libsignal
+    let address =  new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid"))
+//    omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid))
+    return Promise.resolve(true) 
   }
+  //omemo._address = new e.libsignal.SignalProtocolAddress(e.jid, omemo.store.get("sid))
   Promise.all([
     omemo.setStore(e.store),
     omemo.setNewDeviceId(),
-    omemo.setLibsignal(e.lib),
+    omemo.setLibsignal(e.libsignal), // can probably be replaced with a direct assignment
     omemo.armLibsignal()
   ])
   //  .then(omemo.setNewDeviceId()) //generates a fresh device id. 
