@@ -24,7 +24,8 @@
     "babel-register": "^6.26.0",
     "babelify": "^7.3.0",
     "jquery": "^3.2.1",
-    "tweetnacl": "^1.0.0"
+    "tweetnacl": "^1.0.0",
+    "xmpp-ftw-item-parser": "^1.5.1"
   },
   "devDependencies": {
     "babel-eslint": "^8.0.0",

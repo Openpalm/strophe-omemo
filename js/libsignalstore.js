@@ -77,7 +77,7 @@ SignalProtocolStore.prototype = {
     if (res !== undefined) {
       return res
     }
-    return "undefined"
+    return undefined
   },
   getPreKeyPub: function(keyId) {
     let res = this.get('25519KeypreKey' + keyId);
@@ -90,6 +90,7 @@ SignalProtocolStore.prototype = {
     }
     return undefined
   },
+
   countPreKeysEfficient: function () {
     return   (100 - this.usedPreKeyCounter)
   },
@@ -109,6 +110,23 @@ SignalProtocolStore.prototype = {
     }
     return keys
   },
+  getPreKeys: function() {
+    //track key # here
+    let range = 101
+    let id = 1 
+    let key = undefined
+    let keys = []
+    while (range) {
+      key = omemo._store.getPreKey(id)
+      if (key != undefined) {
+        keys.push(key)
+      }
+      id++
+      range--
+    }
+    return keys
+  },
+
   extractAndRemoveRandomPreKey: function() {
     //track key # here
     let range = 100

@@ -20,16 +20,16 @@ function encrypt(key, text) {
     additionalData: aad, //uint8 buffer
     tagLength: 128
   }
-  window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => { 
+  return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => { 
     let gcm_out = {
       key: key,
       ct: cipherText, 
       iv: temp_iv,
       aad: aad
     } 
-    omemo._store.put("encrypted", gcm_out) 
+   return  Promise.resolve(gcm_out)
+    //omemo._store.put("encrypted", gcm_out) 
   })
-  return Promise.resolve(true)
 }
 
 function decrypt(key, cipherText, iv, aad) {
@@ -46,21 +46,24 @@ function decrypt(key, cipherText, iv, aad) {
   )
     .then((gcm_out) =>  {
       omemo._store.put("decrypted", gcm_out)
-      console.log(enc.decode(store.get("decrypted")))
+      let res = enc.decode(store.get("decrypted"))
+      console.log(res)
     })
-  return Promise.resolve(true)
+  return res
 }
 
 gcm = {
   encrypt: function (text) {
-    window.crypto.subtle.generateKey(
+   return  window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
         length: 256, //current max value
       },
       true, //extractable yes
       ["encrypt", "decrypt"] //can "encrypt", "decrypt",
-    ).then((key) => {encrypt(key, text)})
+   ).then((key) => {
+      return encrypt(key, text)
+   })
   },
   decrypt: function (key, cipherText, iv, aad) {
     decrypt(key, cipherText,iv, aad)

@@ -7,7 +7,6 @@
     <script type="text/javascript" src="../js/libs/jquery-3.2.1.min.js"></script> 
 
     <script type="text/javascript" src="../js/libsignalstore.js"></script>
-    <!-- <script type="text/javascript" src="../js/prekeystore.js"></script> -->
 
     <script type="text/javascript" src="../dist/co-strophe.omemo.js"></script> 
     <script type="text/javascript" src="../dist/co-codec.js"></script>  
@@ -61,7 +60,15 @@ assert( result == 8, 'Checking the add function');
 
 console.log("before")
 let store =  new SignalProtocolStore();
-omemo.init(libsignal, store, "alice@mjid.jiddy").then(() => {
+let initRecord = {
+  lib: libsignal, 
+  store: store, 
+  jid: "alice@jiddy.jid", 
+  deviceid: 123, 
+  conn: "strophe connection",
+}
+
+omemo.init(initRecord).then(() => {
   //there's an issue with the order of resolving promises. should make it 
   //sequential. might become blocking? the arming is more or less sequential,
   //making it proper seq. would block the tab though. 
@@ -69,6 +76,7 @@ omemo.init(libsignal, store, "alice@mjid.jiddy").then(() => {
   gcm.encrypt("hello world")
 }).then(console.log("after"))
 
+var me = "OMEMOalice@jiddy.jid"
 
   </script>
 </html>
