@@ -1,3 +1,7 @@
+/*jslint browser: true, regexp: true */
+  /*global jQuery, $ */
+
+  /* vim: set ft=javascript: */
 "use strict";
 
 var $ = require('jquery')
@@ -38,8 +42,7 @@ omemo.init = function(e) {
     pprint("pre-existing store found. restoring ...")
     omemo._store = omemo.restore(omemo._storage.getItem('OMEMO'+omemo._jid))
     omemo._libsignal = e.libsignal
-    let address =  new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid"))
-//    omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid))
+    omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid"))
     return Promise.resolve(true) 
   }
   //omemo._address = new e.libsignal.SignalProtocolAddress(e.jid, omemo.store.get("sid))
@@ -205,7 +208,6 @@ omemo.restore = function (serialized) {
   let key = ''
   for (let keyId = 1; keyId <= 100; keyId++) {
     key = serialized[prefix + keyId]
-    console.log(key)
     res.store[prefix + keyId] =  { 
       keyId: keyId, 
       keyPair: {
@@ -214,6 +216,7 @@ omemo.restore = function (serialized) {
       }
     }
   }
+  pprint("libsignal store for " + omemo._jid + " recreated")
   return res
 }
 omemo.createEncryptedStanza = function(to, plaintext) {
