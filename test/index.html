@@ -84,7 +84,7 @@ let bobStore = omemo.getSerialized("bob@jiddy.jid")
 let bobLibStore = omemo.restore(bobStore)
 
 let aliceStore = omemo.getSerialized("alice@jiddy.jid")
-let aliceLibStore = omemo.restore(aliceStore)
+let aliceLibStore = omemo.restore(aliceStore) // inner bundle, but prepared for the decrypt stage since that'd be the input to bob's buildSession()
 
 let session = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
 let msg = "hello world"
