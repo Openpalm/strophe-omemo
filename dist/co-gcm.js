@@ -77,6 +77,10 @@ var gcm = {};
 function pprint(s) {
   console.log("gcm.js: " + s)
 }
+function gettag(encrypted, tagLength) {
+    if (tagLength === void 0) tagLength = 128;
+    return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
+}
 function encrypt(key, text) {
   //the out of window.crypto is only the cipher text (i assume?)
   //the tag is not mentioned. unless it concatinated inside. look at code?
@@ -95,7 +99,8 @@ function encrypt(key, text) {
       key: key,
       ct: cipherText, 
       iv: temp_iv,
-      aad: aad
+      aad: aad,
+      tag: gettag(cipherText, 128)
     } 
    return  Promise.resolve(gcm_out)
     //omemo._store.put("encrypted", gcm_out) 

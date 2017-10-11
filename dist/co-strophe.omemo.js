@@ -148,7 +148,7 @@ var omemo = {
 }
 
 Strophe.addNamespace(protocol, omemo._ns_main);
-pprint("namespace successfully loaded")
+pprint("namespace loaded")
 
 omemo.init = function(e) {
   omemo._jid = e.jid
@@ -157,22 +157,17 @@ omemo.init = function(e) {
     omemo._store = omemo.restore(omemo._storage.getItem('OMEMO'+omemo._jid))
     omemo._libsignal = e.libsignal
     omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid"))
-    return Promise.resolve(true) 
+    return
   }
   //omemo._address = new e.libsignal.SignalProtocolAddress(e.jid, omemo.store.get("sid))
-  Promise.all([
-    omemo.setStore(e.store),
-    omemo.setNewDeviceId(),
-    omemo.setLibsignal(e.libsignal), // can probably be replaced with a direct assignment
+    omemo.setStore(e.store)
+    omemo.setNewDeviceId()
+    omemo.setLibsignal(e.libsignal) // can probably be replaced with a direct assignment
     omemo.armLibsignal()
-  ])
-  //  .then(omemo.setNewDeviceId()) //generates a fresh device id. 
-  //  .then(omemo.setLibsignal(e.lib)) // sets libsignal api-library entry point 
-  //  .then(omemo.armLibsignal()) //generates the keys and readies the store
+    omemo.gen100PreKeys(1,100)
+    omemo._ready = true
 
   //session per tab
-  omemo._storage.setItem(protocol+":"+omemo._jid, true)
-  return Promise.resolve(true) 
   //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
 omemo.setNewDeviceId= function () {
@@ -183,11 +178,9 @@ omemo.setNewDeviceId= function () {
   omemo._deviceid = res
   omemo._store.put('sid', res)
   pprint("generated new device id: " + res)
-  return Promise.resolve(true)
 }
 omemo.setStore = function (store) {
   omemo._store = store 
-  return Promise.resolve(true)
 }
 omemo.setLibsignal = function(ep) {
   if (typeof ep.KeyHelper == "undefined") {
@@ -200,7 +193,6 @@ omemo.setLibsignal = function(ep) {
   pprint("setting KeyHelper ... ")
   omemo._keyhelper  = ep.KeyHelper
   pprint("library loaded, KeyHelper set.")
-  return Promise.resolve(true)
 }
 omemo.armLibsignal = function() {
   pprint("first use! arming libsignal with fresh keys... ")
@@ -224,11 +216,8 @@ omemo.armLibsignal = function() {
       pprint("signed PreKey generated and stored.")
     })
   })
-  pprint("generating one time PreKeys")
-  omemo.gen100PreKeys(1,100)
   pprint("initiating local libsignal SessionBuilder")
   omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo._deviceid);
-  return Promise.resolve(true)
 }
 omemo.constructOwnXMPPBundle= function (store) { 
   let res = $iq({type: 'set', from: omemo._jid, id: 'anounce2'})
@@ -252,7 +241,7 @@ omemo.constructOwnXMPPBundle= function (store) {
 omemo.gen100PreKeys = function (start, finish) { 
   if (start == finish+1)  { 
     pprint("100preKey genereration complete")
-    return Promise.resolve(true)
+    return
   }
   let index = start  //cant use start. since storePreKey is a promise, and since start++ happens
   //the value of start in relation to k is off by 1 by the time the promise resolves.
@@ -272,10 +261,10 @@ omemo.refreshPreKeys = function() {
       .then((keyPair) => omemo._store.storePreKey(i, keyPair))
       .then("one time key generation done")
   }
-  return Promise.resolve(true)
 }
 omemo.serialize = function() {
   let res = {}
+  res.jid = omemo._jid
   res.sid = omemo._deviceid
   res.registrationId = omemo._store.get("registrationId")
   res.signedPreKey = { 
@@ -304,6 +293,7 @@ omemo.serialize = function() {
 omemo.restore = function (serialized) {
   let res = new SignalProtocolStore()
   serialized = JSON.parse(serialized)
+  res.store.jid = serialized.jid
   res.store.sid = serialized.sid
   res.store.registrationId = serialized.registrationId
   res.store.signedPreKey = { 
@@ -330,7 +320,7 @@ omemo.restore = function (serialized) {
       }
     }
   }
-  pprint("libsignal store for " + omemo._jid + " recreated")
+  pprint("libsignal store for " + res.store.jid + " recreated")
   return res
 }
 omemo.createEncryptedStanza = function(to, plaintext) {
@@ -346,10 +336,24 @@ omemo._onMessage = function(stanza) {
 omemo.OmemoBundleMsgToSTore = function (receivedBundleMsg) {
 
 }
-omemo.establish = function (recepientStore) {
-
+omemo.buildSession = function (theirStore, theirJid) {
+  let myAddress =  omemo._address
+  let myStore = omemo._store
+  let theirAddress = new omemo._libsignal.SignalProtocolAddress(theirStore.store.jid, theirStore.store.sid)
+  let theirSessionBundle =  theirStore.getSessionBuilderBundle() //should be a /public/ keystore from a received bundle
+  let myBuilder = new omemo._libsignal.SessionBuilder(omemo._store, theirAddress)
+  let session =  myBuilder.processPreKey(theirSessionBundle)
+  let myCipher = new omemo._libsignal.SessionCipher(myStore, theirAddress)
+  return { LibSigCipher: myCipher, thierBundle: theirSessionBundle }
 }
 
+omemo.getSerialized = function(jid) {
+  let res = omemo._storage.getItem('OMEMO'+jid)
+  if (res != null) {
+    return  res
+  }
+  return "nothing found to return"
+}
 
 module.exports = omemo
 window.omemo = omemo
@@ -10633,6 +10637,10 @@ var gcm = {};
 function pprint(s) {
   console.log("gcm.js: " + s)
 }
+function gettag(encrypted, tagLength) {
+    if (tagLength === void 0) tagLength = 128;
+    return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
+}
 function encrypt(key, text) {
   //the out of window.crypto is only the cipher text (i assume?)
   //the tag is not mentioned. unless it concatinated inside. look at code?
@@ -10651,7 +10659,8 @@ function encrypt(key, text) {
       key: key,
       ct: cipherText, 
       iv: temp_iv,
-      aad: aad
+      aad: aad,
+      tag: gettag(cipherText, 128)
     } 
    return  Promise.resolve(gcm_out)
     //omemo._store.put("encrypted", gcm_out) 

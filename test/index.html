@@ -57,26 +57,39 @@ var result = add(2, 2);
 assert( result == 4, 'Checking the add function'); 
 assert( result == 8, 'Checking the add function'); 
 
-
-console.log("before")
 let store =  new SignalProtocolStore();
-let initRecord = {
+let AliceInitRecord = {
   libsignal: libsignal, 
   store: store, 
   jid: "alice@jiddy.jid", 
   deviceid: 123, 
   conn: "strophe connection",
 }
+let omemo_alice = ''
 
-omemo.init(initRecord).then(() => {
-  //there's an issue with the order of resolving promises. should make it 
-  //sequential. might become blocking? the arming is more or less sequential,
-  //making it proper seq. would block the tab though. 
-  //should introduce a ready flag somewhere.
-  gcm.encrypt("hello world")
-}).then(console.log("after"))
+omemo.init(AliceInitRecord)
 
-var me = "OMEMOalice@jiddy.jid"
+
+let BobInitRecord = {
+  libsignal: libsignal, 
+  store: store, 
+  jid: "bob@jiddy.jid", 
+  deviceid: 321,  //the device ids are still not implemented, demo first
+  conn: "strophe connection",
+}
+let omemo_bob = ''
+//omemo.init(BobInitRecord)//.then(omemo.serialize())
+
+let bobStore = omemo.getSerialized("bob@jiddy.jid")
+let bobLibStore = omemo.restore(bobStore)
+
+let aliceStore = omemo.getSerialized("alice@jiddy.jid")
+let aliceLibStore = omemo.restore(aliceStore)
+
+let session = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
+let msg = "hello world"
+let encrypted = ''
+gcm.encrypt(msg).then((out) => encrypted  =  out)
 
   </script>
 </html>

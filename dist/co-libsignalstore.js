@@ -159,7 +159,6 @@ SignalProtocolStore.prototype = {
     }
     return undefined
   },
-
   countPreKeysEfficient: function () {
     return   (100 - this.usedPreKeyCounter)
   },
@@ -195,7 +194,6 @@ SignalProtocolStore.prototype = {
     }
     return keys
   },
-
   extractAndRemoveRandomPreKey: function() {
     //track key # here
     let range = 100
@@ -221,6 +219,23 @@ SignalProtocolStore.prototype = {
       preKeys: this.getPreKeyBundle()
     }
   },
+  getSessionBuilderBundle: function() {
+    let preKey =  this.extractAndRemoveRandomPreKey()
+    return {
+      registrationId: this.get("registrationId"),
+      identityKey: this.get("identityKey").pubKey,
+      signedPreKey: {
+        keyId     : this.get("signedPreKey").keyId,
+        publicKey : this.get("signedPreKey").keyPair.pubKey,
+        signature : this.get("signedPreKey").signature
+      },
+      preKey: {
+        keyId     : preKey.keyId,
+        publicKey : preKey.keyPair.pubKey //when a bundle is reconstructed from an omemo message, keyPair is removed, only pubKey is directly available. could also keep pubKey within a keyPair for consistency and not adding more functions. future considerations.
+      } 
+    }
+  },
+
   //custom end
   /* Returns a signed keypair object or undefined */
   loadSignedPreKey: function(keyId) {
