@@ -8,7 +8,9 @@
 
     <script type="text/javascript" src="../js/libsignalstore.js"></script>
 
-    <script type="text/javascript" src="../dist/co-strophe.omemo.js"></script>
+    <!--  <script type="text/javascript" src="../dist/co-strophe.omemo.js"></script> -->
+    <!-- co-testing should introduce 'new Omemo()' -->
+    <script type="text/javascript" src="../dist/co-testing.js"></script>
     <script type="text/javascript" src="../dist/co-codec.js"></script>
     <script type="text/javascript" src="../dist/co-gcm.js"></script>
 
@@ -57,77 +59,85 @@ var result = add(2, 2);
 assert( result == 4, 'Checking the add function');
 assert( result == 8, 'Checking the add function');
 
-let gcm = omemo._gcm
-let codec = omemo._codec
-
-let store =  new SignalProtocolStore();
-let AliceInitRecord = {
-  libsignal: libsignal,
-  store: store,
-  jid: "alice@jiddy.jid",
-  deviceid: 123,
-  conn: "strophe connection",
-}
-let omemo_alice = ''
-
-omemo.init(AliceInitRecord)
+//let alice = new Omemo()
+//let bob = new Omemo('bob@jiddy.jid', 321)
 
 
-let BobInitRecord = {
-  libsignal: libsignal,
-  store: store,
-  jid: "bob@jiddy.jid",
-  deviceid: 321,  //the device ids are still not implemented, demo first
-  conn: "strophe connection",
-}
-let omemo_bob = ''
-//omemo.init(BobInitRecord)//.then(omemo.serialize())
+//
+//let gcm = omemo._gcm
+//let codec = omemo._codec
+//
+//let store =  new SignalProtocolStore();
+//let AliceInitRecord = {
+//  libsignal: libsignal,
+//  store: store,
+//  jid: "alice@jiddy.jid",
+//  deviceid: 123,
+//  conn: "strophe connection",
+//}
+//let omemo_alice = ''
+//
+//omemo.init(AliceInitRecord)
+//
+//
+//let BobInitRecord = {
+//  libsignal: libsignal,
+//  store: store,
+//  jid: "bob@jiddy.jid",
+//  deviceid: 321,  //the device ids are still not implemented, demo first
+//  conn: "strophe connection",
+//}
+//let omemo_bob = ''
+////omemo.init(BobInitRecord)//.then(omemo.serialize())
+//
+//let bobStore = omemo.getSerialized("bob@jiddy.jid")
+//if (bobStore != "nothing found to return") {
+//
+//
+//  let bobLibStore = omemo.restore(bobStore)
+//
+//  let aliceStore = omemo.getSerialized("alice@jiddy.jid")
+//  let aliceLibStore = omemo.restore(aliceStore)
+//
+//  let AliceSessionWithBob = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
+//  let AliceCipher = AliceSessionWithBob.SessionCipher
+//
+//  let msg = "hello world"
+//  let encrypted = ''
+//  let libSignalPayload = ''
+//  let libSignalEncrypted = ''
+//  let serializedKey = ''
+//
+//
+//  omemo._gcm.encrypt(msg).then(out => {
+//    encrypted = out //can get rid of this now or keep for tracking
+//    gcm.serializeKey(out.key).then(res => {
+//      serializedKey = res // can get rid of this now or keep for tracking
+//      libSignalPayload = res // + codec.BufferToString(encrypted.tag) // having some encoding and decoding issues here
+//      //need some time to look at javascript encoding functions and string byte sequence constructions.
+//    })
+//  })
+//
+//  AliceCipher.encrypt(libSignalPayload).then(res => libSignalEncrypted = res)
+//
+//  function buildBobCipher(jid) {
+//
+//    let aliceAddress = omemo._address //omemo._jid = alice@jiddy.jid, current setup 
+//    let bobSerializedBundle = omemo.getSerialized("bob@jiddy.jid")
+//    let bobBundle = omemo.restore(bobSerializedBundle)
+//    let bobAddress = new libsignal.SignalProtocolAddress(bobBundle.store.jid, bobBundle.store.sid)
+//    //missing builder 
+//    let bobSessionCipher = new libsignal.SessionCipher(bobBundle, aliceAddress)
+//
+//    return bobSessionCipher
+//
+//  }
+//
+//  let BobCipher = buildBobCipher("bob@jiddy.jid")
+//} else {
+//
+//}
 
-let bobStore = omemo.getSerialized("bob@jiddy.jid")
-if (bobStore != "nothing found to return") {
-
-
-  let bobLibStore = omemo.restore(bobStore)
-
-  let aliceStore = omemo.getSerialized("alice@jiddy.jid")
-  let aliceLibStore = omemo.restore(aliceStore)
-
-  let AliceSessionWithBob = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
-  let AliceCipher = AliceSessionWithBob.SessionCipher
-
-  let msg = "hello world"
-  let encrypted = ''
-  let libSignalPayload = ''
-  let libSignalEncrypted = ''
-  let serializedKey = ''
-
-
-  omemo._gcm.encrypt(msg).then(out => {
-    encrypted = out //can get rid of this now or keep for tracking
-    gcm.serializeKey(out.key).then(res => {
-      serializedKey = res // can get rid of this now or keep for tracking
-      libSignalPayload = res // + codec.BufferToString(encrypted.tag) // having some encoding and decoding issues here
-      //need some time to look at javascript encoding functions and string byte sequence constructions.
-    })
-  })
-
-  AliceCipher.encrypt(libSignalPayload).then(res => libSignalEncrypted = res)
-
-  function buildBobCipher(jid) {
-
-    let aliceAddress = omemo._address //omemo._jid = alice@jiddy.jid, current setup 
-    let bobSerializedBundle = omemo.getSerialized("bob@jiddy.jid")
-    let bobBundle = omemo.restore(bobSerializedBundle)
-    let bobAddress = new libsignal.SignalProtocolAddress(bobBundle.store.jid, bobBundle.store.sid)
-    //missing builder 
-    let bobSessionCipher = new libsignal.SessionCipher(bobBundle, aliceAddress)
-
-    return bobSessionCipher
-
-  }
-
-  let BobCipher = buildBobCipher("bob@jiddy.jid")
-}
 
   </script>
 </html>

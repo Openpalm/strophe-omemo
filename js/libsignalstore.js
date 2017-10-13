@@ -1,12 +1,9 @@
   //mv InMemorySignalProtocolStore.js store.js
 
-  function SignalProtocolStore() {
-    this.store = {}
-    this.usedPreKeyCounter = 0
-    //the store can be used for tracking, even transformed into a pure
-    //omemo library if it includes all functionality
-    //and can serve as a standalone file that contains everything.
-  }
+function SignalProtocolStore() {
+  this.store = {}
+  this.usedPreKeyCounter = 0
+}
 
   SignalProtocolStore.prototype = {
     getIdentityKeyPair: function() {
@@ -154,21 +151,23 @@
       }
     },
     getSessionBuilderBundle: function() {
-    let preKey =  this.extractAndRemoveRandomPreKey()
-    return {
-      registrationId: this.get("registrationId"),
-      identityKey: this.get("identityKey").pubKey,
-      signedPreKey: {
-        keyId     : this.get("signedPreKey").keyId,
-        publicKey : this.get("signedPreKey").keyPair.pubKey,
-        signature : this.get("signedPreKey").signature
-      },
-      preKey: {
-        keyId     : preKey.keyId,
-        publicKey : preKey.keyPair.pubKey //when a bundle is reconstructed from an omemo message, keyPair is removed, only pubKey is directly available. could also keep pubKey within a keyPair for consistency and not adding more functions. future considerations.
-      } 
-    }
-  },
+      let preKey =  this.extractAndRemoveRandomPreKey()
+      return {
+        registrationId: this.get("registrationId"),
+        identityKey: this.get("identityKey").pubKey,
+        signedPreKey: {
+          keyId     : this.get("signedPreKey").keyId,
+          publicKey : this.get("signedPreKey").keyPair.pubKey,
+          signature : this.get("signedPreKey").signature
+        },
+        preKey: {
+          keyId     : preKey.keyId,
+          publicKey : preKey.keyPair.pubKey //when a bundle is reconstructed from an omemo message, keyPair is removed, only pubKey is directly available. could also keep pubKey within a keyPair for consistency and not adding more functions. future considerations.
+        } 
+      }
+    },
+
+
 
 
   //custom end
