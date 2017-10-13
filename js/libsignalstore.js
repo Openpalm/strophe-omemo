@@ -1,156 +1,159 @@
-//mv InMemorySignalProtocolStore.js store.js
+  //mv InMemorySignalProtocolStore.js store.js
 
-function SignalProtocolStore() {
-  this.store = {}
-  this.usedPreKeyCounter = 0
-}
+  function SignalProtocolStore() {
+    this.store = {}
+    this.usedPreKeyCounter = 0
+    //the store can be used for tracking, even transformed into a pure
+    //omemo library if it includes all functionality
+    //and can serve as a standalone file that contains everything.
+  }
 
-SignalProtocolStore.prototype = {
-  getIdentityKeyPair: function() {
-    return Promise.resolve(this.get('identityKey'));
-  },
-  getLocalRegistrationId: function() {
-    return Promise.resolve(this.get('registrationId'));
-  },
-  put: function(key, value) {
-    if (key === undefined || value === undefined || key === null || value === null)
-      throw new Error("Tried to store undefined/null");
-    this.store[key] = value;
-  },
-  get: function(key, defaultValue) {
-    if (key === null || key === undefined)
-      throw new Error("Tried to get value for undefined/null key");
-    if (key in this.store) {
-      return this.store[key];
-    } else {
-      return defaultValue;
-    }
-  },
-  remove: function(key) {
-    if (key === null || key === undefined)
-      throw new Error("Tried to remove value for undefined/null key");
-    delete this.store[key];
-  },
-
-  isTrustedIdentity: function(identifier, identityKey) {
-    if (identifier === null || identifier === undefined) {
-      throw new Error("tried to check identity key for undefined/null key");
-    }
-    if (!(identityKey instanceof ArrayBuffer)) {
-      throw new Error("Expected identityKey to be an ArrayBuffer");
-    }
-    var trusted = this.get('identityKey' + identifier);
-    if (trusted === undefined) {
-      return Promise.resolve(true);
-    }
-    return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
-  },
-  loadIdentityKey: function(identifier) {
-    if (identifier === null || identifier === undefined)
-      throw new Error("Tried to get identity key for undefined/null key");
-    return Promise.resolve(this.get('identityKey' + identifier));
-  },
-  saveIdentity: function(identifier, identityKey) {
-    if (identifier === null || identifier === undefined)
-      throw new Error("Tried to put identity key for undefined/null key");
-    return Promise.resolve(this.put('identityKey' + identifier, identityKey));
-  },
-
-  /* Returns a prekeypair object or undefined */
-  loadPreKey: function(keyId) { //the array buffers for the keys are undefined for some reason.
-    //might work for libsig internally, but not working externally.
-    var res = this.get('25519KeypreKey' + keyId);
-    if (res !== undefined) {
-      res = { pubKey: res.pubKey, privKey: res.privKey };
-    }
-    return Promise.resolve(res);
-  },
-  storePreKey: function(keyId, keyPair) {
-    return Promise.resolve(this.put('25519KeypreKey' + keyId, keyPair));
-  },
-  removePreKey: function(keyId) {
-    return Promise.resolve(this.remove('25519KeypreKey' + keyId));
-  },
-  //custom start
-  getPreKey: function(keyId) {
-    let res = this.get('25519KeypreKey' + keyId);
-    if (res !== undefined) {
-      return res
-    }
-    return undefined
-  },
-  getPreKeyPub: function(keyId) {
-    let res = this.get('25519KeypreKey' + keyId);
-    if (res !== undefined) {
-      let pubRecord =  { 
-        keyId: res.keyId, 
-        pubKey: res.keyPair.pubKey 
+  SignalProtocolStore.prototype = {
+    getIdentityKeyPair: function() {
+      return Promise.resolve(this.get('identityKey'));
+    },
+    getLocalRegistrationId: function() {
+      return Promise.resolve(this.get('registrationId'));
+    },
+    put: function(key, value) {
+      if (key === undefined || value === undefined || key === null || value === null)
+        throw new Error("Tried to store undefined/null");
+      this.store[key] = value;
+    },
+    get: function(key, defaultValue) {
+      if (key === null || key === undefined)
+        throw new Error("Tried to get value for undefined/null key");
+      if (key in this.store) {
+        return this.store[key];
+      } else {
+        return defaultValue;
       }
-      return  pubRecord
-    }
-    return undefined
-  },
-  countPreKeysEfficient: function () {
-    return   (100 - this.usedPreKeyCounter)
-  },
-  getPreKeyBundle: function() {
-    //track key # here
-    let range = 101
-    let id = 1 
-    let key = undefined
-    let keys = []
-    while (range) {
-      key = omemo._store.getPreKeyPub(id)
-      if (key != undefined) {
-        keys.push(key)
+    },
+    remove: function(key) {
+      if (key === null || key === undefined)
+        throw new Error("Tried to remove value for undefined/null key");
+      delete this.store[key];
+    },
+
+    isTrustedIdentity: function(identifier, identityKey) {
+      if (identifier === null || identifier === undefined) {
+        throw new Error("tried to check identity key for undefined/null key");
       }
-      id++
-      range--
-    }
-    return keys
-  },
-  getPreKeys: function() {
-    //track key # here
-    let range = 101
-    let id = 1 
-    let key = undefined
-    let keys = []
-    while (range) {
-      key = omemo._store.getPreKey(id)
-      if (key != undefined) {
-        keys.push(key)
+      if (!(identityKey instanceof ArrayBuffer)) {
+        throw new Error("Expected identityKey to be an ArrayBuffer");
       }
-      id++
-      range--
-    }
-    return keys
-  },
-  extractAndRemoveRandomPreKey: function() {
-    //track key # here
-    let range = 100
-    let id = 1 
-    let key = undefined
-    while (key == undefined) {
-      id = Math.floor(Math.random() * range) + 1 
-      key = omemo._store.getPreKey(id)
-      omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
-    }
-    this.usedPreKeyCounter++
-    return key
-  },
-  getOmemoBundle: function() {
-    return {
-      sid: this.get("sid"),
-      identityKey: this.get("identityKey").pubKey,
-      signedPreKey: {
-        keyId     : this.get("signedPreKey").keyId,
-        publicKey : this.get("signedPreKey").keyPair.pubKey,
-        signature : this.get("signedPreKey").signature
-      },
-      preKeys: this.getPreKeyBundle()
-    }
-  },
-  getSessionBuilderBundle: function() {
+      var trusted = this.get('identityKey' + identifier);
+      if (trusted === undefined) {
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
+    },
+    loadIdentityKey: function(identifier) {
+      if (identifier === null || identifier === undefined)
+        throw new Error("Tried to get identity key for undefined/null key");
+      return Promise.resolve(this.get('identityKey' + identifier));
+    },
+    saveIdentity: function(identifier, identityKey) {
+      if (identifier === null || identifier === undefined)
+        throw new Error("Tried to put identity key for undefined/null key");
+      return Promise.resolve(this.put('identityKey' + identifier, identityKey));
+    },
+
+    /* Returns a prekeypair object or undefined */
+    loadPreKey: function(keyId) { //the array buffers for the keys are undefined for some reason.
+      //might work for libsig internally, but not working externally.
+      var res = this.get('25519KeypreKey' + keyId);
+      if (res !== undefined) {
+        res = { pubKey: res.pubKey, privKey: res.privKey };
+      }
+      return Promise.resolve(res);
+    },
+    storePreKey: function(keyId, keyPair) {
+      return Promise.resolve(this.put('25519KeypreKey' + keyId, keyPair));
+    },
+    removePreKey: function(keyId) {
+      return Promise.resolve(this.remove('25519KeypreKey' + keyId));
+    },
+    //custom start
+    getPreKey: function(keyId) {
+      let res = this.get('25519KeypreKey' + keyId);
+      if (res !== undefined) {
+        return res
+      }
+      return undefined
+    },
+    getPreKeyPub: function(keyId) {
+      let res = this.get('25519KeypreKey' + keyId);
+      if (res !== undefined) {
+        let pubRecord =  { 
+          keyId: res.keyId, 
+          pubKey: res.keyPair.pubKey 
+        }
+        return  pubRecord
+      }
+      return undefined
+    },
+    countPreKeysEfficient: function () {
+      return   (100 - this.usedPreKeyCounter)
+    },
+    getPreKeyBundle: function() {
+      //track key # here
+      let range = 101
+      let id = 1 
+      let key = undefined
+      let keys = []
+      while (range) {
+        key = omemo._store.getPreKeyPub(id)
+        if (key != undefined) {
+          keys.push(key)
+        }
+        id++
+        range--
+      }
+      return keys
+    },
+    getPreKeys: function() {
+      //track key # here
+      let range = 101
+      let id = 1 
+      let key = undefined
+      let keys = []
+      while (range) {
+        key = omemo._store.getPreKey(id)
+        if (key != undefined) {
+          keys.push(key)
+        }
+        id++
+        range--
+      }
+      return keys
+    },
+    extractAndRemoveRandomPreKey: function() {
+      //track key # here
+      let range = 100
+      let id = 1 
+      let key = undefined
+      while (key == undefined) {
+        id = Math.floor(Math.random() * range) + 1 
+        key = omemo._store.getPreKey(id)
+        omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
+      }
+      this.usedPreKeyCounter++
+      return key
+    },
+    getOmemoBundle: function() {
+      return {
+        registrationId: this.get("registrationId"),
+        identityKey: this.get("identityKey").pubKey,
+        signedPreKey: {
+          keyId     : this.get("signedPreKey").keyId,
+          publicKey : this.get("signedPreKey").keyPair.pubKey,
+          signature : this.get("signedPreKey").signature
+        },
+        preKeys: this.getPreKeyBundle()
+      }
+    },
+    getSessionBuilderBundle: function() {
     let preKey =  this.extractAndRemoveRandomPreKey()
     return {
       registrationId: this.get("registrationId"),
@@ -166,6 +169,7 @@ SignalProtocolStore.prototype = {
       } 
     }
   },
+
 
   //custom end
   /* Returns a signed keypair object or undefined */

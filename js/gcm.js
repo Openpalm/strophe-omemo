@@ -7,6 +7,27 @@ var gcm = {};
 function pprint(s) {
   console.log("gcm.js: " + s)
 }
+function serializeKey(CryptoKeyObject) {
+  let res = ''
+  return window.crypto.subtle.exportKey("jwk", CryptoKeyObject)
+    .then((e) => {
+      return e.k
+    })
+}
+function restoreKey(CryptoKeyString) {
+  let CryptoKeyString = {
+    "alg":"A256GCM",
+    "ext":true,
+    "k":codec.b64encodeToString(CryptoKeyString),
+    "key_ops":["encrypt","decrypt"],
+    "kty":"oct"
+  }
+  let parsed = JSON.parse(CryptoKeyString)
+  return crypto.subtle.importKey('jwk', parsed, 'AES-GCM', true, ['encrypt','decrypt'])
+    .then((e) => {
+      return e
+    })
+}
 function gettag(encrypted, tagLength) {
     if (tagLength === void 0) tagLength = 128;
     return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
@@ -24,16 +45,16 @@ function encrypt(key, text) {
     additionalData: aad, //uint8 buffer
     tagLength: 128
   }
-  return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => { 
+  return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
     let gcm_out = {
       key: key,
-      ct: cipherText, 
+      cipherText: cipherText,
       iv: temp_iv,
       aad: aad,
       tag: gettag(cipherText, 128)
-    } 
+    }
    return  Promise.resolve(gcm_out)
-    //omemo._store.put("encrypted", gcm_out) 
+    //omemo._store.put("encrypted", gcm_out)
   })
 }
 
@@ -42,9 +63,9 @@ function decrypt(key, cipherText, iv, aad) {
   return window.crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: iv, 
-      additionalData: aad, 
-      tagLength: 128, 
+      iv: iv,
+      additionalData: aad,
+      tagLength: 128,
     },
     key,
     cipherText
@@ -52,7 +73,6 @@ function decrypt(key, cipherText, iv, aad) {
     .then((gcm_out) =>  {
       omemo._store.put("decrypted", gcm_out)
       let res = enc.decode(store.get("decrypted"))
-      console.log(res)
     })
   return res
 }
@@ -73,11 +93,16 @@ gcm = {
   decrypt: function (key, cipherText, iv, aad) {
     decrypt(key, cipherText,iv, aad)
     //on success destroy key ? or set timer for key destruction?
+  },
+  serializeKey: function(key) {
+    return serializeKey(key)
+  },
+  restoreKey: function(key) {
+    return restoreKey(key)
   }
 }
 
 module.exports = gcm
-window.gcm = gcm
 
 //gcm.key()
 //gcm.encrypt("hello", gcm.iv(), key, gcm.aad())

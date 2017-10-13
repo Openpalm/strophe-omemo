@@ -20,6 +20,8 @@ var omemo = {
   _jid: null,
   _storage: window.localStorage,
   _address: null,
+  _gcm: gcm,
+  _codec: codec,
   _sessionBuilder: null,
   _sessions: null,
   _connection: null,
@@ -42,12 +44,11 @@ omemo.init = function(e) {
     pprint("pre-existing store found. restoring ...")
     omemo._store = omemo.restore(omemo._storage.getItem('OMEMO'+omemo._jid))
     omemo._libsignal = e.libsignal
-    omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("sid"))
+    omemo._address = new omemo._libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get("registrationId"))
     return
   }
-  //omemo._address = new e.libsignal.SignalProtocolAddress(e.jid, omemo.store.get("sid))
     omemo.setStore(e.store)
-    omemo.setNewDeviceId()
+    //omemo.setNewDeviceId()
     omemo.setLibsignal(e.libsignal) // can probably be replaced with a direct assignment
     omemo.armLibsignal()
     omemo.gen100PreKeys(1,100)
@@ -56,18 +57,19 @@ omemo.init = function(e) {
   //session per tab
   //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
 }
-omemo.setNewDeviceId= function () {
-  var minDeviceId = 1
-  var maxDeviceId = 2147483647
-  let diff = (maxDeviceId - minDeviceId)
-  let res = Math.floor(Math.random() * diff  + minDeviceId) 
-  omemo._deviceid = res
-  omemo._store.put('sid', res)
-  pprint("generated new device id: " + res)
-}
+//omemo.setNewDeviceId= function () {
+//  var minDeviceId = 1
+//  var maxDeviceId = 2147483647
+//  let diff = (maxDeviceId - minDeviceId)
+//  let res = Math.floor(Math.random() * diff  + minDeviceId) 
+//  omemo._deviceid = res
+//  omemo._store.put('sid', res)
+//  pprint("generated new device id: " + res)
+//}
 omemo.setStore = function (store) {
   omemo._store = store 
 }
+//give reg id here as option, if not null, use, if null, gen new.
 omemo.setLibsignal = function(ep) {
   if (typeof ep.KeyHelper == "undefined") {
     throw new Error("Illegal input or corrupted libsignal."  + 
@@ -75,24 +77,30 @@ omemo.setLibsignal = function(ep) {
       "and an appropriate store.\nTerminating.")
   }
   pprint("setting route to libsignal-protocol.js ...")
-  omemo._libsignal  = ep
+  omemo._libsignal = ep
   pprint("setting KeyHelper ... ")
-  omemo._keyhelper  = ep.KeyHelper
+  omemo._keyhelper = ep.KeyHelper
   pprint("library loaded, KeyHelper set.")
 }
-omemo.armLibsignal = function() {
+omemo.armLibsignal = function(jid, id) {
   pprint("first use! arming libsignal with fresh keys... ")
   if (omemo._store == null) {
     throw new Error("no store set, terminating.")
   }
   let KeyHelper = omemo._keyhelper
+  let registrationId = ''
   Promise.all([
     KeyHelper.generateIdentityKeyPair(),
-    KeyHelper.generateRegistrationId(),
+    KeyHelper.generateRegistrationId(), //supply manually.
   ]).then(function(result) {
     let identity = result[0];
-    let registrationId = result[1];
-    omemo._store.put('registrationId', result[1])
+    if (id == null) {
+      pprint('device id not supplied, using a randomly generated id')
+      registrationId = result[1]
+    } else {
+      registrationId = id
+    }
+    omemo._store.put('registrationId', registrationId)
     pprint("registration id generated and stored.")
     omemo._store.put('identityKey', result[0])
     pprint("identity Key generated and stored.")
@@ -101,14 +109,14 @@ omemo.armLibsignal = function() {
       omemo._store.put('signedPreKey', skey)
       pprint("signed PreKey generated and stored.")
     })
+  omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo._store.get('registrationId'));
+  pprint("libsignal armed for " + omemo._jid + '.' + omemo._store.get('registrationId'))
   })
-  pprint("initiating local libsignal SessionBuilder")
-  omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo._deviceid);
 }
 omemo.constructOwnXMPPBundle= function (store) { 
   let res = $iq({type: 'set', from: omemo._jid, id: 'anounce2'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-    .c('publish', {node: omemo._ns_bundles + ":" + omemo._deviceid})
+    .c('publish', {node: omemo._ns_bundles + ":" + omemo._store.get('registrationId')})
     .c('item')
     .c('bundle', {xmlns: omemo._ns_main}) 
     .c('signedPreKeyPublic', {signedPreKeyId: omemo._store.get('signedPreKey').keyId}).
@@ -151,7 +159,6 @@ omemo.refreshPreKeys = function() {
 omemo.serialize = function() {
   let res = {}
   res.jid = omemo._jid
-  res.sid = omemo._deviceid
   res.registrationId = omemo._store.get("registrationId")
   res.signedPreKey = { 
     keyId: omemo._store.get('signedPreKey').keyId,
@@ -180,7 +187,6 @@ omemo.restore = function (serialized) {
   let res = new SignalProtocolStore()
   serialized = JSON.parse(serialized)
   res.store.jid = serialized.jid
-  res.store.sid = serialized.sid
   res.store.registrationId = serialized.registrationId
   res.store.signedPreKey = { 
     keyId: serialized['signedPreKey'].keyId,
@@ -216,21 +222,33 @@ omemo.createEncryptedStanza = function(to, plaintext) {
 
   return encryptedStanza;
 }
-omemo._onMessage = function(stanza) {
-  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
-}
-omemo.OmemoBundleMsgToSTore = function (receivedBundleMsg) {
-
-}
 omemo.buildSession = function (theirStore, theirJid) {
+  let target = theirStore.get('jid') + '.' + theirStore.get('registrationId')
+  pprint('building session with ' + target)
   let myAddress =  omemo._address
+  pprint('our own libsignal address record: ') 
+  console.log(myAddress)
+  pprint('importing our own store')
   let myStore = omemo._store
-  let theirAddress = new omemo._libsignal.SignalProtocolAddress(theirStore.store.jid, theirStore.store.sid)
+  console.log(myStore)
+  let theirAddress = new omemo._libsignal.SignalProtocolAddress(theirStore.store.jid, theirStore.store.registrationId)
+  pprint('creating a libsignal address recrod from their Store:')
+  console.log(theirAddress)
+  pprint('extracting a preKey record from their store ')
   let theirSessionBundle =  theirStore.getSessionBuilderBundle() //should be a /public/ keystore from a received bundle
+  console.log(theirSessionBundle)
   let myBuilder = new omemo._libsignal.SessionBuilder(omemo._store, theirAddress)
-  let session =  myBuilder.processPreKey(theirSessionBundle)
-  let myCipher = new omemo._libsignal.SessionCipher(myStore, theirAddress)
-  return { LibSigCipher: myCipher, thierBundle: theirSessionBundle }
+  pprint('building session, processing PreKey record:')
+  let cipher = ''
+  let session = myBuilder.processPreKey(theirSessionBundle)
+  session.then( function onsuccess(){
+    pprint('session successfully established')
+  })
+  session.catch( function onerror(error ){
+    pprint('there was an error establishing the session')
+  })
+  cipher = new omemo._libsignal.SessionCipher(myStore, theirAddress)
+  return { SessionCipher: cipher }
 }
 
 omemo.getSerialized = function(jid) {
@@ -240,6 +258,13 @@ omemo.getSerialized = function(jid) {
   }
   return "nothing found to return"
 }
+omemo._onMessage = function(stanza) {
+  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+}
+omemo.OmemoBundleMsgToSTore = function (receivedBundleMsg) {
+
+}
+
 
 module.exports = omemo
 window.omemo = omemo

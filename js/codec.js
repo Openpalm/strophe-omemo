@@ -9,7 +9,7 @@ codec = {
     for (var i = 0; i < len; i++) {
       binary += String.fromCharCode(bytes[i])
     }
-    return window.btoa(binary)
+    return btoa(binary)
   },
   b64encodeToBuffer: function (base64) {
     var binary_string =  window.atob(base64);
@@ -28,10 +28,12 @@ codec = {
     let enc = new TextEncoder()
     return enc.encode(buffer)
   },
+  StringToBuffer: function (string) {
+   return Buffer.from(string, 'utf8')
+  },
   Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer);
+    return String.fromCharCode.apply(null, buffer)
   }
 }
 
 module.exports = codec
-window.codec = codec
