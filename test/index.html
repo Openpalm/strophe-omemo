@@ -61,8 +61,8 @@ function pprint(s){
   console.log('index.html: ' + s)
 }
 
-let aliceStore =  new SignalProtocolStore()
-let bobStore =  new SignalProtocolStore()
+let aliceStore = new SignalProtocolStore()
+let bobStore = new SignalProtocolStore()
 
 let libsig = libsignal
 let util = new Omemo('dummy@util.com', 000, Object, Object)
@@ -126,18 +126,36 @@ bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 //chained in the proper order. otherwise BobsPublicBundle tries to finish while
 //arming is not done, cause the tab to hang due to store Promises not resolving.
 
-function manualSession() {
+function manualAliceSessionStart() {
   let bobsPublicBundle= bob._store.getPublicBundle(bob)
   console.log(bobsPublicBundle)
   return alice.buildSession(bobsPublicBundle, bob._jid, alice)
 }
 
-function manualLibSigEncrypt(cipher) {
- return cipher.encrypt(aliceFirstKey)
+let am1enc = ''
+function manualAliceLibSigEncrypt(session) {
+  return session.SessionCipher.encrypt(aliceFirstKey).then(res => { 
+    am1enc = res
+    pprint('result saved in am1enc')
+  })
+}
+
+function manualBobSession() {
+  let bobsPublicBundle= bob._store.getPublicBundle(bob)
+  console.log(bobsPublicBundle)
+  return alice.buildSession(bobsPublicBundle, bob._jid, alice)
+}
+
+let am1dec = ''
+function manualBobLibSigDecryptPreKeyMessage() {
+  let bobSessionCipher = new libsigna.SessionCipher(bob._store, alice._address)
+  bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => console.log(res))
+  //should output the gcm key for am1
+  //signed key issue again.
+
 }
 
 //have to be careful here. can only get the SessionBuilderBundle after the promise based functions above actually resolve.
-
 //  let AliceSessionWithBob = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
 //  let AliceCipher = AliceSessionWithBob.SessionCipher
 //
