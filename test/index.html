@@ -57,54 +57,87 @@ var result = add(2, 2);
 assert( result == 4, 'Checking the add function');
 assert( result == 8, 'Checking the add function');
 
+function pprint(s){
+  console.log('index.html: ' + s)
+}
 
 let aliceStore =  new SignalProtocolStore()
 let bobStore =  new SignalProtocolStore()
 
 let libsig = libsignal
+let util = new Omemo('dummy@util.com', 000, Object, Object)
+let gcm = util._gcm
+
+let am1 = "hello dear bob"
+let am2 = "hello dear alice"
+let bm1 = "it's been a while."
+let bm2 = "it sure has my dear."
+
+let aliceFirstMsg = ''
+let aliceSecondMsg = ''
+let bobFirstMsg = '' 
+let bobSecondMsg = ''
+
+let aliceFirstKey = ''
+let aliceSecondKey = ''
+let bobFirstKey = ''
+let bobSecondKey = ''
+
+gcm.encrypt(am1).then(res => 
+  {
+    aliceFirstMsg = res
+    gcm.serializeKey(res.key).then(res => {
+      aliceFirstKey = res
+      pprint('first alice message key: ' + res) 
+    })
+  })
+gcm.encrypt(am2).then(res => 
+  {
+    aliceSecondMsg = res
+    gcm.serializeKey(res.key).then(res => {
+      aliceSecondKey = res
+      pprint('second alice message key: ' + res) 
+    })
+  })
+gcm.encrypt(bm1).then(res => 
+  {
+    bobFirstMsg = res
+    gcm.serializeKey(res.key).then(res => {
+      bobFirstKey = res
+      pprint('first bob message key: ' + res) 
+    })
+  })
+gcm.encrypt(bm2).then(res => 
+  {
+    bobSecondMsg = res
+    gcm.serializeKey(res.key).then(res => {
+      bobSecondKey = res
+      pprint('second bob message key: ' + res) 
+    })
+  })
 
 let alice = new Omemo('alice@jiddy.jid', 123, libsig, aliceStore)
-let bob = new Omemo('bob@jiddy.jid', 123, libsig, bobStore)
+let bob = new Omemo('bob@jiddy.jid', 321, libsig, bobStore)
 
 alice.init(alice) //inner alice is context of this, could forgo, but just in case.
 bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 
+//work for later - turn the code into proper Promise based so things can be 
+//chained in the proper order. otherwise BobsPublicBundle tries to finish while
+//arming is not done, cause the tab to hang due to store Promises not resolving.
 
-//let gcm = omemo._gcm
-//let codec = omemo._codec
-//
-//let store =  new SignalProtocolStore()
-//let AliceInitRecord = {
-//  libsignal: libsignal,
-//  store: store,
-//  jid: "alice@jiddy.jid",
-//  deviceid: 123,
-//  conn: "strophe connection",
-//}
-//let omemo_alice = ''
-//
-//omemo.init(AliceInitRecord)
-//
-//
-//let BobInitRecord = {
-//  libsignal: libsignal,
-//  store: store,
-//  jid: "bob@jiddy.jid",
-//  deviceid: 321,  //the device ids are still not implemented, demo first
-//  conn: "strophe connection",
-//}
-//let omemo_bob = ''
-////omemo.init(BobInitRecord)//.then(omemo.serialize())
-//
-//let bobStore = omemo.getSerialized("bob@jiddy.jid")
-//if (bobStore != "nothing found to return") {
-//
-//
-//  let bobLibStore = omemo.restore(bobStore)
-//
-//  let aliceStore = omemo.getSerialized("alice@jiddy.jid")
-//  let aliceLibStore = omemo.restore(aliceStore)
-//
+function manualSession() {
+  let bobsPublicBundle= bob._store.getPublicBundle(bob)
+  console.log(bobsPublicBundle)
+  return alice.buildSession(bobsPublicBundle, bob._jid, alice)
+}
+
+function manualLibSigEncrypt(cipher) {
+ return cipher.encrypt(aliceFirstKey)
+}
+
+//have to be careful here. can only get the SessionBuilderBundle after the promise based functions above actually resolve.
+
 //  let AliceSessionWithBob = omemo.buildSession(bobLibStore, bobLibStore.store.jid)
 //  let AliceCipher = AliceSessionWithBob.SessionCipher
 //

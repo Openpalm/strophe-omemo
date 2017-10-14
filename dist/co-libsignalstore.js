@@ -141,15 +141,15 @@ function SignalProtocolStore() {
       return Promise.resolve(this.remove('25519KeypreKey' + keyId));
     },
     //custom start
-    getPreKey: function(keyId) {
-      let res = this.get('25519KeypreKey' + keyId);
+    getPreKey: function(keyId, context) {
+      let res = context._store.get('25519KeypreKey' + keyId);
       if (res !== undefined) {
         return res
       }
       return undefined
     },
-    getPreKeyPub: function(keyId) {
-      let res = this.get('25519KeypreKey' + keyId);
+    getPreKeyPub: function(keyId, context) {
+      let res = context._store.get('25519KeypreKey' + keyId);
       if (res !== undefined) {
         let pubRecord =  { 
           keyId: res.keyId, 
@@ -159,17 +159,16 @@ function SignalProtocolStore() {
       }
       return undefined
     },
-    countPreKeysEfficient: function () {
-      return   (100 - this.usedPreKeyCounter)
+    countPreKeysEfficient: function (context) {
+      return   (100 - context._store.usedPreKeyCounter)
     },
-    getPreKeyBundle: function() {
-      //track key # here
+    getPreKeyBundle: function(context) {
       let range = 101
       let id = 1 
       let key = undefined
       let keys = []
       while (range) {
-        key = omemo._store.getPreKeyPub(id)
+        key = context._store.getPreKeyPub(id, context)
         if (key != undefined) {
           keys.push(key)
         }
@@ -178,14 +177,14 @@ function SignalProtocolStore() {
       }
       return keys
     },
-    getPreKeys: function() {
+    getPreKeys: function(context) {
       //track key # here
       let range = 101
       let id = 1 
       let key = undefined
       let keys = []
       while (range) {
-        key = omemo._store.getPreKey(id)
+        key = context._store.getPreKey(id, context)
         if (key != undefined) {
           keys.push(key)
         }
@@ -194,50 +193,47 @@ function SignalProtocolStore() {
       }
       return keys
     },
-    extractAndRemoveRandomPreKey: function() {
+    selectRandomPreKey: function(context) {
       //track key # here
       let range = 100
       let id = 1 
       let key = undefined
       while (key == undefined) {
         id = Math.floor(Math.random() * range) + 1 
-        key = omemo._store.getPreKey(id)
-        omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
+        key = context._store.getPreKey(id, context)
+        //omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
       }
-      this.usedPreKeyCounter++
+      context._store.usedPreKeyCounter++
       return key
     },
-    getOmemoBundle: function() {
+    getOmemoBundle: function(context) {
       return {
-        registrationId: this.get("registrationId"),
-        identityKey: this.get("identityKey").pubKey,
+        registrationId: context._store.get("registrationId"),
+        identityKey: context._store.get("identityKey").pubKey,
         signedPreKey: {
-          keyId     : this.get("signedPreKey").keyId,
-          publicKey : this.get("signedPreKey").keyPair.pubKey,
-          signature : this.get("signedPreKey").signature
+          keyId     : context._store.get("signedPreKey").keyId,
+          publicKey : context._store.get("signedPreKey").keyPair.pubKey,
+          signature : context._store.get("signedPreKey").signature
         },
-        preKeys: this.getPreKeyBundle()
+        preKeys: context._store.getPreKeyBundle()
       }
     },
-    getSessionBuilderBundle: function() {
-      let preKey =  this.extractAndRemoveRandomPreKey()
+    getPublicBundle: function(context) {
+      let preKey =  context._store.selectRandomPreKey(context)
       return {
-        registrationId: this.get("registrationId"),
-        identityKey: this.get("identityKey").pubKey,
+        registrationId: context._store.get("registrationId"),
+        identityKey: context._store.get("identityKey").pubKey,
         signedPreKey: {
-          keyId     : this.get("signedPreKey").keyId,
-          publicKey : this.get("signedPreKey").keyPair.pubKey,
-          signature : this.get("signedPreKey").signature
+          keyId     : context._store.get("signedPreKey").keyId,
+          publicKey : context._store.get("signedPreKey").keyPair.pubKey,
+          signature : context._store.get("signedPreKey").signature
         },
         preKey: {
           keyId     : preKey.keyId,
-          publicKey : preKey.keyPair.pubKey //when a bundle is reconstructed from an omemo message, keyPair is removed, only pubKey is directly available. could also keep pubKey within a keyPair for consistency and not adding more functions. future considerations.
+          publicKey : preKey.keyPair.pubKey 
         } 
       }
     },
-
-
-
 
   //custom end
   /* Returns a signed keypair object or undefined */

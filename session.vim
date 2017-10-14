@@ -7,12 +7,12 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +14 js/strophe.omemo.js
-badd +1 js/gcm.js
+badd +269 js/strophe.omemo.js
+badd +3 js/gcm.js
 badd +1 js/encoding.js
 badd +1 test/browser.html
-badd +37 js/codec.js
-badd +156 js/libsignalstore.js
+badd +1 js/codec.js
+badd +2 js/libsignalstore.js
 badd +38 test/mockdata.txt
 badd +84 test/index.html
 badd +1 man://builtins(1)
@@ -20,7 +20,78 @@ badd +0 js/strophe.omemo.object.js
 argglobal
 silent! argdel *
 set stal=2
-edit js/strophe.omemo.js
+edit js/libsignalstore.js
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+set nosplitbelow
+set nosplitright
+wincmd t
+set winminheight=1 winminwidth=1 winheight=1 winwidth=1
+exe 'vert 1resize ' . ((&columns * 3 + 75) / 150)
+exe 'vert 2resize ' . ((&columns * 146 + 75) / 150)
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 204 - ((0 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+204
+normal! 0
+wincmd w
+argglobal
+edit js/strophe.omemo.object.js
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 215 - ((17 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+215
+normal! 012|
+wincmd w
+exe 'vert 1resize ' . ((&columns * 3 + 75) / 150)
+exe 'vert 2resize ' . ((&columns * 146 + 75) / 150)
+tabedit test/index.html
+set splitbelow splitright
+set nosplitbelow
+set nosplitright
+wincmd t
+set winminheight=1 winminwidth=1 winheight=1 winwidth=1
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 87 - ((21 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+87
+normal! 0
+tabedit js/libsignalstore.js
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -34,7 +105,7 @@ exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
 exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
 argglobal
 enew
-file NERD_tree_1
+file NERD_tree_4
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -54,87 +125,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 14 - ((13 * winheight(0) + 18) / 37)
+let s:l = 152 - ((18 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-14
-normal! 0
+152
+normal! 07|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
 exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
-tabedit js/libsignalstore.js
-set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
-set nosplitbelow
-set nosplitright
-wincmd t
-set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 55 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 94 + 75) / 150)
-argglobal
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 18) / 37)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-1
-normal! 03|
-wincmd w
-argglobal
-edit js/strophe.omemo.object.js
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 264 - ((35 * winheight(0) + 18) / 37)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-264
-normal! 0
-wincmd w
-2wincmd w
-exe 'vert 1resize ' . ((&columns * 55 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 94 + 75) / 150)
-tabedit js/codec.js
-set splitbelow splitright
-set nosplitbelow
-set nosplitright
-wincmd t
-set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-argglobal
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 18) / 37)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-1
-normal! 06|
 tabedit js/gcm.js
 set splitbelow splitright
 set nosplitbelow
@@ -151,56 +150,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 12 - ((11 * winheight(0) + 18) / 37)
+let s:l = 98 - ((33 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-12
+98
 normal! 0
-tabedit js/libsignalstore.js
-set splitbelow splitright
-set nosplitbelow
-set nosplitright
-wincmd t
-set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-argglobal
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 2 - ((1 * winheight(0) + 18) / 37)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-2
-normal! 0
-tabedit test/index.html
-set splitbelow splitright
-set nosplitbelow
-set nosplitright
-wincmd t
-set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-argglobal
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 13 - ((12 * winheight(0) + 18) / 37)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-13
-normal! 023|
 tabnext 2
 set stal=1
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

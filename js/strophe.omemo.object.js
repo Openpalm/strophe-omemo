@@ -17,7 +17,7 @@ let Omemo = function (jid, deviceid, libsig, store) { //deviceid = registration 
   this._jid = jid 
   this._storage = window.localStorage
   this._address = null
-  this._gcm =  gcm
+  this._gcm = gcm
   this._codec = codec
   this._sessionBuilder = null
   this._sessions = null
@@ -42,6 +42,7 @@ Omemo.prototype = {
     context.armLibsignal(context)
     context.gen100PreKeys(1,100, context)
     context._ready = true
+    return Promise.resolve(true)
     //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
   },
   setNewDeviceId: function () {
@@ -53,36 +54,41 @@ Omemo.prototype = {
     context._store.put('sid', res)
     pprint("generated new device id: " + res)
   },
-  armLibsignal:  function(context) {
-    pprint("first use! arming libsignal with fresh keys... ")
-    if (context._store == null) {
-      throw new Error("no store set, terminating.")
-    }
-    let KeyHelper = context._keyhelper
-    let registrationId = ''
-    Promise.all([
-      KeyHelper.generateIdentityKeyPair(),
-      KeyHelper.generateRegistrationId(), //supply manually.
-    ]).then(function(result) {
-      let identity = result[0];
-      if (context._id == null) {
-        pprint('device id not supplied, using a randomly generated id')
-        registrationId = result[1]
-      } else {
-        registrationId = context._deviceid
-      }
-      context._store.put('registrationId', registrationId)
-      pprint("registration id generated and stored.")
-      context._store.put('identityKey', result[0])
-      pprint("identity Key generated and stored.")
-      context._store.getIdentityKeyPair().then((ikey) => 
-        context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-          context._store.put('signedPreKey', skey)
-          pprint("signed PreKey generated and stored.")
+  armLibsignal: function(context) {
+    new Promise (
+      function (resolve, reject) {
+        pprint("first use! arming libsignal with fresh keys... ")
+        if (context._store == null) {
+          throw new Error("no store set, terminating.")
+        }
+        let KeyHelper = context._keyhelper
+        let registrationId = ''
+        Promise.all([
+          KeyHelper.generateIdentityKeyPair(),
+          KeyHelper.generateRegistrationId(), //supply manually.
+        ]).then(function(result) {
+          let identity = result[0];
+          if (context._deviceid === undefined) {
+            pprint('device id not supplied, using a randomly generated id')
+            registrationId = result[1]
+          } else {
+            registrationId = context._deviceid
+          }
+          context._store.put('registrationId', registrationId)
+          pprint("registration id generated and stored.")
+          context._store.put('identityKey', result[0])
+          pprint("identity Key generated and stored.")
+          context._store.getIdentityKeyPair().then((ikey) => 
+            context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
+              context._store.put('signedPreKey', skey)
+              pprint("signed PreKey generated and stored.")
+            })
+          context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
+          pprint("libsignal armed for " + context._jid + '.' + context._store.get('registrationId'))
         })
-      context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
-      pprint("libsignal armed for " + context._jid + '.' + context._store.get('registrationId'))
-    })
+        resolve(true)
+      }
+    )
   },
   constructOwnXMPPBundle: function (store, context) { 
     let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
@@ -106,7 +112,7 @@ Omemo.prototype = {
   gen100PreKeys: function (start, finish, context) { 
     if (start == finish+1)  { 
       pprint("100preKey genereration complete")
-      return
+      return Promise.resolve(true)
     }
     let index = start  //cant use start. since storePreKey is a promise, and since start++ happens
     //the value of start in relation to k is off by 1 by the time the promise resolves.
@@ -192,25 +198,22 @@ Omemo.prototype = {
     });
     return encryptedStanza;
   },
-  buildSession: function (theirStore, theirJid) {
-    let target = theirStore.get('jid') + '.' + theirStore.get('registrationId')
+  buildSession: function (theirPublicBundle, theirJid, context) {
+    let target = theirJid + '.' + theirPublicBundle.registrationId
     pprint('building session with ' + target)
-    let myAddress =  this._address
-    pprint('our own libsignal address record: ') 
+    let myAddress =  context._address
+    pprint('our own libsignal address record:') 
     console.log(myAddress)
     pprint('importing our own store')
-    let myStore = this._store
+    let myStore = context._store
     console.log(myStore)
-    let theirAddress = new this._libsignal.SignalProtocolAddress(theirStore.store.jid, theirStore.store.registrationId)
+    let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
     pprint('creating a libsignal address recrod from their Store:')
     console.log(theirAddress)
-    pprint('extracting a preKey record from their store ')
-    let theirSessionBundle =  theirStore.getSessionBuilderBundle() //should be a /public/ keystore from a received bundle
-    console.log(theirSessionBundle)
-    let myBuilder = new this._libsignal.SessionBuilder(this._store, theirAddress)
+    let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
     pprint('building session, processing PreKey record:')
     let cipher = ''
-    let session = myBuilder.processPreKey(theirSessionBundle)
+    let session = myBuilder.processPreKey(theirPublicBundle)
     session.then( function onsuccess(){
       pprint('session successfully established')
     })
@@ -218,14 +221,14 @@ Omemo.prototype = {
       pprint('there was an error establishing the session')
     })
     cipher = new this._libsignal.SessionCipher(myStore, theirAddress)
-    return { SessionCipher: cipher }
+    return { SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId }
   },
   getSerialized: function(context) {
     let res = context._storage.getItem('OMEMO'+context._jid)
     if (res != null) {
       return  res
     }
-    return "nothing found to return"
+    return "no serialized store found to return"
   },
   _onMessage: function(stanza) {
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
