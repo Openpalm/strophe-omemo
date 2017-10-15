@@ -4,11 +4,12 @@ function SignalProtocolStore() {
   this.store = {}
   this.usedPreKeyCounter = 0
   this.currentSignedPreKeyId = 0
+  this.identifier = ''
 }
 
   SignalProtocolStore.prototype = {
     getIdentityKeyPair: function() {
-      return Promise.resolve(this.get('identityKey'));
+      return Promise.resolve(this.get('identityKey' + this.identifier));
     },
     getLocalRegistrationId: function() {
       return Promise.resolve(this.get('registrationId'));
@@ -147,7 +148,7 @@ function SignalProtocolStore() {
           signedPreKey: {
             keyId     : context._store.get("signedPreKey").keyId,
             publicKey : context._store.get("signedPreKey").keyPair.pubKey,
-            signature : context._store.get("signedPreKey").signature
+            signature : context._store.get("sigedPreKey").signature
           },
           preKeys: context._store.getPreKeyBundle()
         }
@@ -155,20 +156,23 @@ function SignalProtocolStore() {
       getPublicBundle: function(context) {
         let sk = context._store.get('25519KeysignedKey' + context._store.currentSignedPreKeyId)
         let preKey =  context._store.selectRandomPreKey(context)
-        return {
-          registrationId: context._store.get("registrationId"),
-          identityKey: context._store.loadIdentityKey(context._jid).pubKey,
-          signedPreKey: {
-            keyId     : sk.keyId,
-            publicKey : sk.keyPair.pubKey,
-            signature : sk.signature
-          },
-          preKey: {
-            keyId     : preKey.keyId,
-            publicKey : preKey.keyPair.pubKey 
-        } 
-      }
-    },
+        return context._store.loadIdentityKey(context._jid).then(res => {
+          res.pubKey
+          return {
+            registrationId: context._store.get("registrationId"),
+            identityKey: res.pubKey,
+            signedPreKey: {
+              keyId     : sk.keyId,
+              publicKey : sk.keyPair.pubKey,
+              signature : sk.signature
+            },
+            preKey: {
+              keyId     : preKey.keyId,
+              publicKey : preKey.keyPair.pubKey 
+            } 
+          }
+        })
+      },
 
   //custom end
   /* Returns a signed keypair object or undefined */

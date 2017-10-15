@@ -127,10 +127,11 @@ bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 //arming is not done, cause the tab to hang due to store Promises not resolving.
 
 function aliceSessionStart() {
-  let bobsPublicBundle= bob._store.getPublicBundle(bob)
-  console.log(bobsPublicBundle)
-  return alice.buildSession(bobsPublicBundle, bob._jid, alice)
+  bob._store.getPublicBundle(bob).then(res =>  {
+    return alice.buildSession(res, bob._jid, alice)
+  })
 }
+
 
 let am1enc = ''
 function manualAliceLibSigEncrypt(session) {

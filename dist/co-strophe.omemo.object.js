@@ -192,9 +192,9 @@ Omemo.prototype = {
             registrationId = context._deviceid
           }
           context._store.put('registrationId', registrationId)
+          context._store.identifier = context._jid
           pprint("registration id generated and stored.")
           context._store.saveIdentity(context._jid, result[0])
-
           pprint("identity Key generated and stored.")
           context._store.loadIdentityKey(context._jid).then((ikey) => 
             context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
