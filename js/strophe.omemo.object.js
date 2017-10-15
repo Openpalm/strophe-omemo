@@ -237,7 +237,7 @@ Omemo.prototype = {
       pprint('there was an error establishing the session')
     })
     cipher = new this._libsignal.SessionCipher(myStore, theirAddress)
-    return { SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId }
+    return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
   },
   getSerialized: function(context) {
     let res = context._storage.getItem('OMEMO'+context._jid)
