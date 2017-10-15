@@ -117,10 +117,10 @@ gcm.encrypt(bm2).then(res =>
   })
 
 let alice = new Omemo('alice@jiddy.jid', 123, libsig, aliceStore)
-//let bob = new Omemo('bob@jiddy.jid', 321, libsig, bobStore)
+let bob = new Omemo('bob@jiddy.jid', 321, libsig, bobStore)
 
 alice.init(alice) //inner alice is context of this, could forgo, but just in case.
-//bob.init(bob) //inner alice is context of this, could forgo, but just in case.
+bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 
 //work for later - turn the code into proper Promise based so things can be 
 //chained in the proper order. otherwise BobsPublicBundle tries to finish while

@@ -76,10 +76,10 @@ Omemo.prototype = {
           }
           context._store.put('registrationId', registrationId)
           pprint("registration id generated and stored.")
-          context._store.saveIdentity(registrationId, result[0])
+          context._store.saveIdentity(context._jid, result[0])
 
           pprint("identity Key generated and stored.")
-          context._store.loadIdentityKey(context._store.store.registrationId).then((ikey) => 
+          context._store.loadIdentityKey(context._jid).then((ikey) => 
             context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
               context._store.storeSignedPreKey(1, skey)
               pprint("signed PreKey generated and stored.")

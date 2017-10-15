@@ -47,6 +47,7 @@ function SignalProtocolStore() {
       return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
     },
       loadIdentityKey: function(identifier) {
+        //identifier is the jid, internally called from libsignaladdress.getName()
         if (identifier === null || identifier === undefined)
           throw new Error("Tried to get identity key for undefined/null key");
         return Promise.resolve(this.get('identityKey' + identifier));
@@ -156,7 +157,7 @@ function SignalProtocolStore() {
         let preKey =  context._store.selectRandomPreKey(context)
         return {
           registrationId: context._store.get("registrationId"),
-          identityKey: context._store.loadIdentity(registrationId).pubKey,
+          identityKey: context._store.loadIdentityKey(context._jid).pubKey,
           signedPreKey: {
             keyId     : sk.keyId,
             publicKey : sk.keyPair.pubKey,
