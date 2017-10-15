@@ -193,11 +193,12 @@ Omemo.prototype = {
           }
           context._store.put('registrationId', registrationId)
           pprint("registration id generated and stored.")
-          context._store.put('identityKey', result[0])
+          context._store.saveIdentity(registrationId, result[0])
+
           pprint("identity Key generated and stored.")
-          context._store.getIdentityKeyPair().then((ikey) => 
+          context._store.loadIdentityKey(context._store.store.registrationId).then((ikey) => 
             context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-              context._store.put('signedPreKey', skey)
+              context._store.storeSignedPreKey(1, skey)
               pprint("signed PreKey generated and stored.")
             })
           context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
@@ -213,10 +214,10 @@ Omemo.prototype = {
       .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
       .c('item')
       .c('bundle', {xmlns: this._ns_main}) 
-      .c('signedPreKeyPublic', {signedPreKeyId: this._store.get('signedPreKey').keyId}).
-      t(codec.b64encode(this._store.get('signedPreKey').keyPair.pubKey)).up()
+      .c('signedPreKeyPublic', {signedPreKeyId: this._store.loadSignedPreKey(1).keyId}).
+      t(codec.b64encode(this._store.loadSignedPreKey(1).keyPair.pubKey)).up()
       .c('signedPreKeySignature')
-      .t(codec.b64encode(this._store.get('signedPreKey').signature)).up()
+      .t(codec.b64encode(this._store.loadSignedPreKey(1).signature)).up()
       .c('identityKey')
       .t(codec.b64encode(this._store.get('identityKey').pubKey)).up()
       .c('prekeys')
@@ -251,22 +252,26 @@ Omemo.prototype = {
     }
   },
   serialize: function(context) {
+    let sk_id = context._store.currentSignedPreKeyId
+    let sk_prefix = '25519KeysignedKey'
     let res = {}
-    res.jid = this._jid
-    res.registrationId = this._store.get("registrationId")
-    res.signedPreKey = { 
-      keyId: this._store.get('signedPreKey').keyId,
+    res.usedPreKeyCounter = context._store.usedPreKeyCounter
+    res.currentSignedPreKeyId = context._store.currentSignedPreKeyId
+    res.jid = context._jid
+    res.registrationId = context._store.get("registrationId")
+    res[sk_prefix + sk_id] = { 
+      keyId: sk_id,
       keyPair: { 
-        pubKey: codec.b64encode(this._store.get('signedPreKey').keyPair.pubKey), 
-        privKey: codec.b64encode(this._store.get('signedPreKey').keyPair.privKey)
+        pubKey: codec.b64encode(context._store.get(sk_prefix + sk_id).keyPair.pubKey), 
+        privKey: codec.b64encode(context._store.get(sk_prefix + sk_id).keyPair.privKey)
       },
-      signature:  codec.b64encode(this._store.get('signedPreKey').signature)
+      signature:  codec.b64encode(context._store.get(sk_prefix + sk_id).signature)
     }
     res.identityKey =  { 
-      pubKey: codec.b64encode(this._store.get('identityKey').pubKey), 
-      privKey: codec.b64encode(this._store.get('identityKey').privKey)
+      pubKey: codec.b64encode(context._store.get('identityKey').pubKey), 
+      privKey: codec.b64encode(context._store.get('identityKey').privKey)
     }
-    let keys = this._store.getPreKeys()
+    let keys = context._store.getPreKeys(context)
     keys.forEach(function(key) { 
       res['25519KeypreKey' + key.keyId] =  { 
         pubKey: codec.b64encode(key.keyPair.pubKey), 
@@ -274,21 +279,32 @@ Omemo.prototype = {
       }
     })
     res = JSON.stringify(res)
-    let me = 'OMEMO' + this._jid
+    let me = 'OMEMO' + context._jid
     context._storage.setItem(me, res)
   },
   restore: function (serialized) {
+    //secondary priority, get decrypt to work.
+    let sk_record = ''
+    for (var v in bob._store.store) {  //works if only 1 signed prekey there.
+      // modify later for multiple signedpreKeys
+      if ((v !== undefined) && (v.indexOf("Keysign") >= 0)) {
+        sk_record = v
+      }
+    } 
     let res = new SignalProtocolStore()
     serialized = JSON.parse(serialized)
+    res.usedPreKeyCounter = serialized.usedPreKeyCounter
+    res.currentSignedPreKeyId = serialized.currentSignedPreKeyId
     res.store.jid = serialized.jid
     res.store.registrationId = serialized.registrationId
-    res.store.signedPreKey = { 
-      keyId: serialized['signedPreKey'].keyId,
+    console.log(sk_record)
+    res.store[sk_record] = { 
+      keyId: serialized[sk_record].keyId,
       keyPair: { 
-        pubKey:   codec.b64encodeToBuffer(serialized.signedPreKey['keyPair'].pubKey), 
-        privKey:  codec.b64encodeToBuffer(serialized.signedPreKey['keyPair'].privKey)
+        pubKey:   codec.b64encodeToBuffer(serialized[sk_record].keyPair.pubKey), 
+        privKey:  codec.b64encodeToBuffer(serialized[sk_record].keyPair.privKey)
       },
-      signature: codec.b64encodeToBuffer(serialized.signedPreKey['signature'])
+      signature: codec.b64encodeToBuffer(serialized[sk_record].signature)
     }
     res.store.identityKey =  { 
       pubKey:   codec.b64encodeToBuffer(serialized.identityKey.pubKey), 

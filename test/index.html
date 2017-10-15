@@ -117,16 +117,16 @@ gcm.encrypt(bm2).then(res =>
   })
 
 let alice = new Omemo('alice@jiddy.jid', 123, libsig, aliceStore)
-let bob = new Omemo('bob@jiddy.jid', 321, libsig, bobStore)
+//let bob = new Omemo('bob@jiddy.jid', 321, libsig, bobStore)
 
 alice.init(alice) //inner alice is context of this, could forgo, but just in case.
-bob.init(bob) //inner alice is context of this, could forgo, but just in case.
+//bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 
 //work for later - turn the code into proper Promise based so things can be 
 //chained in the proper order. otherwise BobsPublicBundle tries to finish while
 //arming is not done, cause the tab to hang due to store Promises not resolving.
 
-function manualAliceSessionStart() {
+function aliceSessionStart() {
   let bobsPublicBundle= bob._store.getPublicBundle(bob)
   console.log(bobsPublicBundle)
   return alice.buildSession(bobsPublicBundle, bob._jid, alice)
@@ -140,15 +140,17 @@ function manualAliceLibSigEncrypt(session) {
   })
 }
 
-function manualBobSession() {
-  let bobsPublicBundle= bob._store.getPublicBundle(bob)
+//used later. we go the alice route.
+let bobSession = ''
+function bobSessionStart() {
+  let bobsPublicBundle = alice._store.getPublicBundle(bob)
   console.log(bobsPublicBundle)
-  return alice.buildSession(bobsPublicBundle, bob._jid, alice)
+  return bob.buildSession(alicePublicBundle, bob._jid, alice)
 }
 
 let am1dec = ''
 function manualBobLibSigDecryptPreKeyMessage() {
-  let bobSessionCipher = new libsigna.SessionCipher(bob._store, alice._address)
+  let bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
   bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => console.log(res))
   //should output the gcm key for am1
   //signed key issue again.
