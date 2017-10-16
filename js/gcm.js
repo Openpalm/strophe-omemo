@@ -18,7 +18,7 @@ function restoreKey(k) {
   let CryptoKeyString = {
     "alg":"A256GCM",
     "ext":true,
-    "k":codec.b64encodeToString(k),
+    "k":codec.b64encodeToBuffer(k),
     "key_ops":["encrypt","decrypt"],
     "kty":"oct"
   }

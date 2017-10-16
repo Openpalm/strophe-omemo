@@ -184,16 +184,18 @@ function bobSessionStart() {
 }
 let am1dec = ''
 //should output the gcm key for am1
-function manualBobLibSigDecryptPreKeyMessage() {
+function BobLibSigDecryptPreKeyMessage() {
   let bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
   bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => {
     let decoder = new TextDecoder()
     pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
-    am1dec = decoder.decode(res)
+    return Promise.resolve(am1dec = decoder.decode(res))
   })
 }
 //assert key equality here.
-function manualDecryptFirstMessage() {
+//Decrypt takes am1dec as key to restore
+//iv, aad and 
+function bobDecryptFirstMessage() {
 
 }
 

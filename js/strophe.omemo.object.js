@@ -131,7 +131,7 @@ Omemo.prototype = {
     for (let i = 0; i < 100; i++) {
       context._keyhelper.generatePreKey(i)
         .then((keyPair) => context._store.storePreKey(i, keyPair))
-        .then("one time key generation done")
+        .then("one time key generation completed")
     }
   },
   serialize: function(context) {
