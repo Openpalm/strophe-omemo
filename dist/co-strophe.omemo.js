@@ -12718,11 +12718,11 @@ function serializeKey(CryptoKeyObject) {
       return e.k
     })
 }
-function restoreKey(CryptoKeyString) {
+function restoreKey(k) {
   let CryptoKeyString = {
     "alg":"A256GCM",
     "ext":true,
-    "k":codec.b64encodeToString(CryptoKeyString),
+    "k":codec.b64encodeToString(k),
     "key_ops":["encrypt","decrypt"],
     "kty":"oct"
   }

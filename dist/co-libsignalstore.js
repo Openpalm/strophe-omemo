@@ -249,7 +249,7 @@ function SignalProtocolStore() {
     var res = this.get('25519KeysignedKey' + keyId);
     console.log(res)
     if (res !== undefined) {
-      res = { pubKey: res.keyPairpubKey, privKey: res.keyPairprivKey };
+      res = { pubKey: res.keyPair.pubKey, privKey: res.keyPair.privKey };
     }
     return Promise.resolve(res);
   },

@@ -52,7 +52,7 @@ function add(num1, num2) {
   return num1 + num2;
 }
 
-var result = add(2, 2);
+let result = add(2, 2);
 
 assert( result == 4, 'Checking the add function');
 assert( result == 8, 'Checking the add function');
@@ -130,14 +130,10 @@ let session
 function aliceSessionStart() {
   return bob._store.getPublicBundle(bob).then(res =>  {
    return  alice.buildSession(res, bob._jid, alice).then (res =>  {
-     console.log(res)
      session = res
-    return "success"
     })
   })
 }
-
-
 let am1enc = ''
 function manualAliceLibSigEncrypt(session) {
   return session.SessionCipher.encrypt(aliceFirstKey).then(res => { 
@@ -145,7 +141,6 @@ function manualAliceLibSigEncrypt(session) {
     pprint('result saved in am1enc')
   })
 }
-
 //used later. we go the alice route.
 let bobSession = ''
 function bobSessionStart() {
@@ -153,14 +148,17 @@ function bobSessionStart() {
   console.log(bobsPublicBundle)
   return bob.buildSession(alicePublicBundle, bob._jid, alice)
 }
-
 let am1dec = ''
+//should output the gcm key for am1
 function manualBobLibSigDecryptPreKeyMessage() {
   let bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
-  bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => console.log(res))
-  //should output the gcm key for am1
-  //signed key issue again.
-
+  bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => {
+    let decoder = new TextDecoder()
+    pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
+    am1dec = decoder.decode(res)
+  })
+}
+function manualDecryptFirstMessage() {
 }
 
 //have to be careful here. can only get the SessionBuilderBundle after the promise based functions above actually resolve.
