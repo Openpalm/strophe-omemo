@@ -61,6 +61,40 @@ function pprint(s){
   console.log('index.html: ' + s)
 }
 
+/*
+
+before asserts/tests can be sanely implemented, the main file has be to 
+rewritten in Promise format.
+
+store/gcm/codec asserts on types can be safely implemented beforehand.
+
+*/
+
+
+//store function return type asserts here
+
+
+//bundle creation asserts here
+
+
+//inner omemo object instantiation asserts here
+
+
+//codec asserts here
+
+
+//gcm asserts here
+
+
+//session asserts here
+
+
+//initial msg assersts here
+
+
+//non prekey message asserts here
+
+
 let aliceStore = new SignalProtocolStore()
 let bobStore = new SignalProtocolStore()
 
@@ -158,6 +192,7 @@ function manualBobLibSigDecryptPreKeyMessage() {
     am1dec = decoder.decode(res)
   })
 }
+//assert key equality here.
 function manualDecryptFirstMessage() {
 }
 
