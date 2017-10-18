@@ -8,15 +8,15 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +269 js/strophe.omemo.js
-badd +3 js/gcm.js
+badd +98 js/gcm.js
 badd +1 js/encoding.js
 badd +1 test/browser.html
 badd +1 js/codec.js
 badd +2 js/libsignalstore.js
 badd +38 test/mockdata.txt
-badd +84 test/index.html
+badd +157 test/index.html
 badd +1 man://builtins(1)
-badd +0 js/strophe.omemo.object.js
+badd +221 js/strophe.omemo.object.js
 argglobal
 silent! argdel *
 set stal=2
@@ -42,11 +42,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 204 - ((0 * winheight(0) + 18) / 37)
+let s:l = 213 - ((0 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-204
+213
 normal! 0
 wincmd w
 argglobal
@@ -60,12 +60,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 215 - ((17 * winheight(0) + 18) / 37)
+let s:l = 245 - ((16 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-215
-normal! 012|
+245
+normal! 0
 wincmd w
 exe 'vert 1resize ' . ((&columns * 3 + 75) / 150)
 exe 'vert 2resize ' . ((&columns * 146 + 75) / 150)
@@ -85,36 +85,18 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 87 - ((21 * winheight(0) + 18) / 37)
+let s:l = 206 - ((15 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-87
+206
 normal! 0
 tabedit js/libsignalstore.js
 set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
-argglobal
-enew
-file NERD_tree_4
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal nofen
-wincmd w
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -125,15 +107,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 152 - ((18 * winheight(0) + 18) / 37)
+let s:l = 193 - ((15 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-152
-normal! 07|
-wincmd w
-exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
+193
+normal! 03|
 tabedit js/gcm.js
 set splitbelow splitright
 set nosplitbelow
@@ -150,13 +129,35 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 98 - ((33 * winheight(0) + 18) / 37)
+let s:l = 100 - ((25 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-98
-normal! 0
-tabnext 2
+100
+normal! 08|
+tabedit js/codec.js
+set splitbelow splitright
+set nosplitbelow
+set nosplitright
+wincmd t
+set winminheight=1 winminwidth=1 winheight=1 winwidth=1
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 21 - ((20 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+21
+normal! 05|
+tabnext 4
 set stal=1
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

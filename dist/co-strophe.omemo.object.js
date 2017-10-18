@@ -95,7 +95,7 @@ codec = {
     return enc.encode(string)
   },
   BufferToString: function (buffer) {
-    let enc = new TextEncoder()
+    let enc = new TextDecoder()
     return enc.encode(buffer)
   },
   StringToBuffer: function (string) {
@@ -142,7 +142,7 @@ let Omemo = function (jid, deviceid, libsig, store) { //deviceid = registration 
   this._store = store
   this._libsignal = libsig
   this._keyhelper = libsig.KeyHelper
-  this._deviceid = deviceid 
+  this._deviceid = deviceid  //refactor into registrationId. 
   this._ns_main = 'eu.siacs.conversations.axolotl'
   this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
   this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
@@ -232,9 +232,7 @@ Omemo.prototype = {
       pprint("100preKey genereration complete")
       return Promise.resolve(true)
     }
-    let index = start  //cant use start. since storePreKey is a promise, and since start++ happens
-    //the value of start in relation to k is off by 1 by the time the promise resolves.
-    //settins index = start solves this.
+    let index = start  
     context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
     start++
 
@@ -248,7 +246,7 @@ Omemo.prototype = {
     for (let i = 0; i < 100; i++) {
       context._keyhelper.generatePreKey(i)
         .then((keyPair) => context._store.storePreKey(i, keyPair))
-        .then("one time key generation done")
+        .then("one time key generation completed")
     }
   },
   serialize: function(context) {
@@ -317,8 +315,8 @@ Omemo.prototype = {
       res.store[prefix + keyId] =  { 
         keyId: keyId, 
         keyPair: {
-          pubKey:   codec.b64encodeToBuffer(key.pubKey), 
-          privKey:  codec.b64encodeToBuffer(key.privKey)
+          pubKey: codec.b64encodeToBuffer(key.pubKey), 
+          privKey: codec.b64encodeToBuffer(key.privKey)
         }
       }
     }
@@ -333,18 +331,10 @@ Omemo.prototype = {
   },
   buildSession: function (theirPublicBundle, theirJid, context) {
     let target = theirJid + '.' + theirPublicBundle.registrationId
-    pprint('building session with ' + target)
     let myAddress =  context._address
-    pprint('our own libsignal address record:') 
-    console.log(myAddress)
-    pprint('importing our own store')
     let myStore = context._store
-    console.log(myStore)
     let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
-    pprint('creating a libsignal address recrod from their Store:')
-    console.log(theirAddress)
     let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
-    pprint('building session, processing PreKey record:')
     let cipher = ''
     let session = myBuilder.processPreKey(theirPublicBundle)
     session.then( function onsuccess(){
@@ -353,7 +343,7 @@ Omemo.prototype = {
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
     })
-    cipher = new this._libsignal.SessionCipher(myStore, theirAddress)
+    cipher = new context._libsignal.SessionCipher(myStore, theirAddress)
     return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
   },
   getSerialized: function(context) {
@@ -361,7 +351,18 @@ Omemo.prototype = {
     if (res != null) {
       return  res
     }
-    return "no serialized store found to return"
+    return "no serialized store for ' + context._jid + ' found to return" },
+  send: function (text, to, context) {
+    let gcm = context._gcm
+    let codec = context._codec
+    let OmemoEncrypted, LibsignalEncrypted
+    gcm.encrypt(text).then(res => {
+
+    })
+    
+  },
+  receive: function (encrypted) {
+
   },
   _onMessage: function(stanza) {
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
@@ -12707,22 +12708,21 @@ function serializeKey(CryptoKeyObject) {
     })
 }
 function restoreKey(k) {
-  let CryptoKeyString = {
-    "alg":"A256GCM",
-    "ext":true,
-    "k":codec.b64encodeToString(k),
-    "key_ops":["encrypt","decrypt"],
-    "kty":"oct"
+  let CryptoKeyObject = {
+    "alg": "A256GCM",
+    "ext": true,
+    "k": k,
+    "key_ops": ["encrypt","decrypt"],
+    "kty": "oct"
   }
-  let parsed = JSON.parse(CryptoKeyString)
-  return crypto.subtle.importKey('jwk', parsed, 'AES-GCM', true, ['encrypt','decrypt'])
+  return crypto.subtle.importKey('jwk', CryptoKeyObject, 'AES-GCM', true, ['encrypt','decrypt'])
     .then((e) => {
       return e
     })
 }
 function gettag(encrypted, tagLength) {
-    if (tagLength === void 0) tagLength = 128;
-    return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
+  if (tagLength === void 0) tagLength = 128;
+  return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
 }
 function encrypt(key, text) {
   //the out of window.crypto is only the cipher text (i assume?)
@@ -12738,20 +12738,28 @@ function encrypt(key, text) {
     tagLength: 128
   }
   return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
-    let gcm_out = {
-      key: key,
-      cipherText: cipherText,
-      iv: temp_iv,
-      aad: aad,
-      tag: gettag(cipherText, 128)
-    }
-   return  Promise.resolve(gcm_out)
-    //omemo._store.put("encrypted", gcm_out)
+    let out = ''
+    let libsignalPayload = ''
+    return serializeKey(key).then(res => {
+      libsignalPayload = res
+      let gcm_out = {
+        key: key,
+        cipherText: cipherText,
+        iv: temp_iv,
+        aad: aad,
+        tag: gettag(cipherText, 128)
+      }
+      //OMMSG: omemo msg
+      //LSPLD: Libsignal payload
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload}
+      return Promise.resolve(out)
+    })
   })
 }
 
 function decrypt(key, cipherText, iv, aad) {
   let enc = new TextDecoder()
+  let out = ''
   return window.crypto.subtle.decrypt(
     {
       name: "AES-GCM",
@@ -12763,27 +12771,32 @@ function decrypt(key, cipherText, iv, aad) {
     cipherText
   )
     .then((gcm_out) =>  {
-      omemo._store.put("decrypted", gcm_out)
-      let res = enc.decode(store.get("decrypted"))
+      console.log(out)
+      return gcm_out 
     })
-  return res
 }
-
 gcm = {
   encrypt: function (text) {
-   return  window.crypto.subtle.generateKey(
+    return window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
         length: 256, //current max value
       },
       true, //extractable yes
       ["encrypt", "decrypt"] //can "encrypt", "decrypt",
-   ).then((key) => {
+    ).then((key) => {
       return encrypt(key, text)
-   })
+    })
   },
   decrypt: function (key, cipherText, iv, aad) {
-    decrypt(key, cipherText,iv, aad)
+    return restoreKey(key).then(res => {
+      console.log(res)
+      return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
+        let decoder = new TextDecoder()
+        return decoder.decode(decrypt_out)
+      })
+    })
+    //return decoder.decode(res)
     //on success destroy key ? or set timer for key destruction?
   },
   serializeKey: function(key) {
@@ -12793,11 +12806,7 @@ gcm = {
     return restoreKey(key)
   }
 }
-
 module.exports = gcm
-
-//gcm.key()
-//gcm.encrypt("hello", gcm.iv(), key, gcm.aad())
 
 
 /***/ })

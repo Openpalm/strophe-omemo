@@ -25,7 +25,7 @@ let Omemo = function (jid, deviceid, libsig, store) { //deviceid = registration 
   this._store = store
   this._libsignal = libsig
   this._keyhelper = libsig.KeyHelper
-  this._deviceid = deviceid 
+  this._deviceid = deviceid  //refactor into registrationId. 
   this._ns_main = 'eu.siacs.conversations.axolotl'
   this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
   this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
@@ -115,9 +115,7 @@ Omemo.prototype = {
       pprint("100preKey genereration complete")
       return Promise.resolve(true)
     }
-    let index = start  //cant use start. since storePreKey is a promise, and since start++ happens
-    //the value of start in relation to k is off by 1 by the time the promise resolves.
-    //settins index = start solves this.
+    let index = start  
     context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
     start++
 
@@ -200,8 +198,8 @@ Omemo.prototype = {
       res.store[prefix + keyId] =  { 
         keyId: keyId, 
         keyPair: {
-          pubKey:   codec.b64encodeToBuffer(key.pubKey), 
-          privKey:  codec.b64encodeToBuffer(key.privKey)
+          pubKey: codec.b64encodeToBuffer(key.pubKey), 
+          privKey: codec.b64encodeToBuffer(key.privKey)
         }
       }
     }
@@ -216,18 +214,10 @@ Omemo.prototype = {
   },
   buildSession: function (theirPublicBundle, theirJid, context) {
     let target = theirJid + '.' + theirPublicBundle.registrationId
-    pprint('building session with ' + target)
     let myAddress =  context._address
-    pprint('our own libsignal address record:') 
-    console.log(myAddress)
-    pprint('importing our own store')
     let myStore = context._store
-    console.log(myStore)
     let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
-    pprint('creating a libsignal address recrod from their Store:')
-    console.log(theirAddress)
     let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
-    pprint('building session, processing PreKey record:')
     let cipher = ''
     let session = myBuilder.processPreKey(theirPublicBundle)
     session.then( function onsuccess(){
@@ -236,7 +226,7 @@ Omemo.prototype = {
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
     })
-    cipher = new this._libsignal.SessionCipher(myStore, theirAddress)
+    cipher = new context._libsignal.SessionCipher(myStore, theirAddress)
     return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
   },
   getSerialized: function(context) {
@@ -244,7 +234,18 @@ Omemo.prototype = {
     if (res != null) {
       return  res
     }
-    return "no serialized store found to return"
+    return "no serialized store for ' + context._jid + ' found to return" },
+  send: function (text, to, context) {
+    let gcm = context._gcm
+    let codec = context._codec
+    let OmemoEncrypted, LibsignalEncrypted
+    gcm.encrypt(text).then(res => {
+
+    })
+    
+  },
+  receive: function (encrypted) {
+
   },
   _onMessage: function(stanza) {
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);

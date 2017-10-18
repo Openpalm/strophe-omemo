@@ -95,7 +95,7 @@ codec = {
     return enc.encode(string)
   },
   BufferToString: function (buffer) {
-    let enc = new TextEncoder()
+    let enc = new TextDecoder()
     return enc.encode(buffer)
   },
   StringToBuffer: function (string) {

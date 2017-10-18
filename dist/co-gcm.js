@@ -85,22 +85,21 @@ function serializeKey(CryptoKeyObject) {
     })
 }
 function restoreKey(k) {
-  let CryptoKeyString = {
-    "alg":"A256GCM",
-    "ext":true,
-    "k":codec.b64encodeToString(k),
-    "key_ops":["encrypt","decrypt"],
-    "kty":"oct"
+  let CryptoKeyObject = {
+    "alg": "A256GCM",
+    "ext": true,
+    "k": k,
+    "key_ops": ["encrypt","decrypt"],
+    "kty": "oct"
   }
-  let parsed = JSON.parse(CryptoKeyString)
-  return crypto.subtle.importKey('jwk', parsed, 'AES-GCM', true, ['encrypt','decrypt'])
+  return crypto.subtle.importKey('jwk', CryptoKeyObject, 'AES-GCM', true, ['encrypt','decrypt'])
     .then((e) => {
       return e
     })
 }
 function gettag(encrypted, tagLength) {
-    if (tagLength === void 0) tagLength = 128;
-    return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
+  if (tagLength === void 0) tagLength = 128;
+  return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
 }
 function encrypt(key, text) {
   //the out of window.crypto is only the cipher text (i assume?)
@@ -116,20 +115,28 @@ function encrypt(key, text) {
     tagLength: 128
   }
   return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
-    let gcm_out = {
-      key: key,
-      cipherText: cipherText,
-      iv: temp_iv,
-      aad: aad,
-      tag: gettag(cipherText, 128)
-    }
-   return  Promise.resolve(gcm_out)
-    //omemo._store.put("encrypted", gcm_out)
+    let out = ''
+    let libsignalPayload = ''
+    return serializeKey(key).then(res => {
+      libsignalPayload = res
+      let gcm_out = {
+        key: key,
+        cipherText: cipherText,
+        iv: temp_iv,
+        aad: aad,
+        tag: gettag(cipherText, 128)
+      }
+      //OMMSG: omemo msg
+      //LSPLD: Libsignal payload
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload}
+      return Promise.resolve(out)
+    })
   })
 }
 
 function decrypt(key, cipherText, iv, aad) {
   let enc = new TextDecoder()
+  let out = ''
   return window.crypto.subtle.decrypt(
     {
       name: "AES-GCM",
@@ -141,27 +148,32 @@ function decrypt(key, cipherText, iv, aad) {
     cipherText
   )
     .then((gcm_out) =>  {
-      omemo._store.put("decrypted", gcm_out)
-      let res = enc.decode(store.get("decrypted"))
+      console.log(out)
+      return gcm_out 
     })
-  return res
 }
-
 gcm = {
   encrypt: function (text) {
-   return  window.crypto.subtle.generateKey(
+    return window.crypto.subtle.generateKey(
       {
         name: "AES-GCM",
         length: 256, //current max value
       },
       true, //extractable yes
       ["encrypt", "decrypt"] //can "encrypt", "decrypt",
-   ).then((key) => {
+    ).then((key) => {
       return encrypt(key, text)
-   })
+    })
   },
   decrypt: function (key, cipherText, iv, aad) {
-    decrypt(key, cipherText,iv, aad)
+    return restoreKey(key).then(res => {
+      console.log(res)
+      return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
+        let decoder = new TextDecoder()
+        return decoder.decode(decrypt_out)
+      })
+    })
+    //return decoder.decode(res)
     //on success destroy key ? or set timer for key destruction?
   },
   serializeKey: function(key) {
@@ -171,11 +183,7 @@ gcm = {
     return restoreKey(key)
   }
 }
-
 module.exports = gcm
-
-//gcm.key()
-//gcm.encrypt("hello", gcm.iv(), key, gcm.aad())
 
 
 /***/ }),
@@ -210,7 +218,7 @@ codec = {
     return enc.encode(string)
   },
   BufferToString: function (buffer) {
-    let enc = new TextEncoder()
+    let enc = new TextDecoder()
     return enc.encode(buffer)
   },
   StringToBuffer: function (string) {
