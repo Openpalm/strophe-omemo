@@ -14,9 +14,10 @@ badd +1 test/browser.html
 badd +1 js/codec.js
 badd +2 js/libsignalstore.js
 badd +38 test/mockdata.txt
-badd +157 test/index.html
+badd +154 test/index.html
 badd +1 man://builtins(1)
 badd +221 js/strophe.omemo.object.js
+badd +0 report/API.md
 argglobal
 silent! argdel *
 set stal=2
@@ -60,16 +61,59 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 245 - ((16 * winheight(0) + 18) / 37)
+let s:l = 238 - ((18 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-245
-normal! 0
+238
+normal! 03|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 3 + 75) / 150)
 exe 'vert 2resize ' . ((&columns * 146 + 75) / 150)
 tabedit test/index.html
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+set nosplitbelow
+set nosplitright
+wincmd t
+set winminheight=1 winminwidth=1 winheight=1 winwidth=1
+exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
+exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
+argglobal
+enew
+file NERD_tree_5
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal nofen
+wincmd w
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 154 - ((21 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+154
+normal! 09|
+wincmd w
+exe 'vert 1resize ' . ((&columns * 31 + 75) / 150)
+exe 'vert 2resize ' . ((&columns * 118 + 75) / 150)
+tabedit report/API.md
 set splitbelow splitright
 set nosplitbelow
 set nosplitright
@@ -85,11 +129,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 206 - ((15 * winheight(0) + 18) / 37)
+let s:l = 1 - ((0 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-206
+1
 normal! 0
 tabedit js/libsignalstore.js
 set splitbelow splitright
@@ -129,12 +173,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 100 - ((25 * winheight(0) + 18) / 37)
+let s:l = 65 - ((36 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-100
-normal! 08|
+65
+normal! 0
 tabedit js/codec.js
 set splitbelow splitright
 set nosplitbelow
@@ -151,13 +195,13 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 21 - ((20 * winheight(0) + 18) / 37)
+let s:l = 1 - ((0 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-21
+1
 normal! 05|
-tabnext 4
+tabnext 3
 set stal=1
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

@@ -234,7 +234,8 @@ Omemo.prototype = {
     if (res != null) {
       return  res
     }
-    return "no serialized store for ' + context._jid + ' found to return" },
+    return "no serialized store for ' + context._jid + ' found to return"
+  },
   send: function (text, to, context) {
     let gcm = context._gcm
     let codec = context._codec

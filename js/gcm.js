@@ -58,7 +58,7 @@ function encrypt(key, text) {
       }
       //OMMSG: omemo msg
       //LSPLD: Libsignal payload
-      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload}
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
       return Promise.resolve(out)
     })
   })

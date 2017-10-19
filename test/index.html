@@ -52,8 +52,8 @@ let result = add(2, 2);
 assert( result == 4, 'Checking the add function');
 assert( result == 8, 'Checking the add function');
 
-function pprint(s){
-  console.log('index.html: ' + s)
+function pprint(s) {
+  console.log(s)
 }
 
 /*
@@ -62,6 +62,10 @@ before asserts/tests can be sanely implemented, the main file has be to
 rewritten in Promise format.
 
 store/gcm/codec asserts on types can be safely implemented beforehand.
+
+usage tests cases are half way done
+
+xmpp tests due after re-write as Promise based.
 
  */
 
@@ -90,9 +94,11 @@ store/gcm/codec asserts on types can be safely implemented beforehand.
 //non prekey message asserts here
 
 
+//usage tests. need to add assert statements and introduce static tupels for
+//static tests. current tests generate new gcm keys on each refresh.
+
 let aliceStore = new SignalProtocolStore()
 let bobStore = new SignalProtocolStore()
-
 let libsig = libsignal
 let util = new Omemo('dummy@util.com', 000, Object, Object)
 let gcm = util._gcm
@@ -127,19 +133,46 @@ let bm2 = "good good"
 let bm3 = "what are you upto to two"
 let am3 = "writing tests for a project"
 
+
+// if alice tries to send another msg to bob, without bob replying, 
+// "decryptWhisperMessage" will fail because it'll be a preKeyMessage,
+// which of type (3,1) and not (3,2). this requires decryptPreKeyWhisperMessage
+// so this func will fail if that happens. 
+
+// => bob has to reply first.
+function test_enc_step(out_cipher, in_cipher, gcm_enc_out) {
+  let OMMSG = gcm_enc_out.OMMSG // => to assert
+  let LSPLD = gcm_enc_out.LSPLD
+  let ORIGSTR = gcm_enc_out.ORIGSTR //assert material
+  let res = function () {
+    return out_cipher.encrypt(LSPLD).then(res => {
+      return in_cipher.decryptWhisperMessage(res.body, 'binary').then(res => {
+        let decoder = new TextDecoder()
+        let person = 'bob'
+        if (out_cipher.getRemoteRegistrationId() == 321) {
+          person = 'alice'
+        }
+        return Promise.resolve(person + "'s key: '"decoder.decode(res))
+      })
+    })
+  }
+  return Promise.resolve(res)
+}
+
 gcm.encrypt(am1).then(res => 
   {
     console.log(res)
     aliceFirstMsg = res.OMMSG
     aliceFirstKey = res.LSPLD
+    aliceFirstMsgObj = res
     pprint('first alice message key: ' + aliceFirstKey) 
   })
-
 gcm.encrypt(am2).then(res => 
   {
     console.log(res)
     aliceSecondMsg = res.OMMSG
     aliceSecondKey = res.LSPLD
+    aliceSecondMsgObj = res
     pprint('second alice message key: ' + aliceSecondKey) 
   })
 gcm.encrypt(bm1).then(res => 
@@ -147,6 +180,7 @@ gcm.encrypt(bm1).then(res =>
     console.log(res)
     bobFirstMsg = res.OMMSG
     bobFirstKey = res.LSPLD
+    bobFirstMsgObj = res
     pprint('first bob message key: ' + bobFirstKey) 
   })
 gcm.encrypt(bm2).then(res => 
@@ -154,6 +188,7 @@ gcm.encrypt(bm2).then(res =>
     console.log(res)
     bobSecondMsg = res.OMMSG
     bobSecondKey = res.LSPLD
+    bobSecondMsgObj = res
     pprint('second bob message key: ' + bobSecondKey) 
   })
 
@@ -169,7 +204,7 @@ bob.init(bob) //inner alice is context of this, could forgo, but just in case.
 
 let aliceSessionCipher, bobSessionCipher
 //alice estbalishes session
-function start() {
+function initiate() {
   return bob._store.getPublicBundle(bob).then(res =>  {
     return  alice.buildSession(res, bob._jid, alice).then(res =>  {
       aliceSessionCipher = res.SessionCipher
@@ -187,9 +222,10 @@ function doenc() {
   })
 }
 
+
 let am1dec = ''
 //bob receives alice's first message, decrypts it as a prekey whisper message
-function two() {
+function establish() {
   bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
   bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => {
     let decoder = new TextDecoder()
@@ -200,7 +236,7 @@ function two() {
 
 //bob moves on to decrypt the output of step three, which is a decrypted gcm key 
 let firstMsgEndResult
-function three() {
+function print() {
   let decoder = new TextDecoder()
   return gcm.decrypt(am1dec, aliceFirstMsg.cipherText, aliceFirstMsg.iv, aliceFirstMsg.aad).then(res => {
     firstMsgEndResult = res
@@ -211,28 +247,18 @@ function three() {
 
 //alice and bob exchange messages, 
 //bob replies and the exchange starts.
-function four() {
-  //assumes steps 1-3 were executed and 
-  //a session between both is established
-  let key1, key2, skip_key3, key4, key5, ready
-  let arrStr =  [
-    "hello bob"
-    ,"hello alice"
-    ,"hows things"
-    ,"good good"
-    ,"what are you upto to two"
-    ,"writing tests for a project"
-  ]
-
-  console.log(arrStr)
-  var arrKs = [] 
-  for (var i in arrStr) {
-    gcm.encrypt(arrStr[i]).then(res=> {
-      arrKs[i] =  res.k
-    })
-  }
+//initial run fialure, debug with breakpoints
+//subsequent runs are fine
+function exchange() {
+  let a = bobSessionCipher
+  let b = aliceSessionCipher
+  test_enc_step(a, b, bobFirstMsgObj).then(res1 =>  {
+    res1().then(o1 => console.log(o1))
+  })
+  test_enc_step(b, a, aliceSecondMsgObj).then(res1 =>  {
+    res1().then(o2 => console.log(o2))
+  })
 }
-
 
 //alice sends messages in a chain without bob replying, bob receives and decrypts
 

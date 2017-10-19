@@ -12762,7 +12762,7 @@ function encrypt(key, text) {
       }
       //OMMSG: omemo msg
       //LSPLD: Libsignal payload
-      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload}
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
       return Promise.resolve(out)
     })
   })
@@ -12782,7 +12782,6 @@ function decrypt(key, cipherText, iv, aad) {
     cipherText
   )
     .then((gcm_out) =>  {
-      console.log(out)
       return gcm_out 
     })
 }
@@ -12801,7 +12800,6 @@ gcm = {
   },
   decrypt: function (key, cipherText, iv, aad) {
     return restoreKey(key).then(res => {
-      console.log(res)
       return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
         let decoder = new TextDecoder()
         return decoder.decode(decrypt_out)

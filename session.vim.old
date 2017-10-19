@@ -42,11 +42,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 214 - ((0 * winheight(0) + 18) / 37)
+let s:l = 213 - ((0 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-214
+213
 normal! 0
 wincmd w
 argglobal
@@ -60,27 +60,21 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 210 - ((0 * winheight(0) + 18) / 37)
+let s:l = 238 - ((18 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-210
+238
 normal! 03|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 3 + 75) / 150)
 exe 'vert 2resize ' . ((&columns * 146 + 75) / 150)
 tabedit test/index.html
 set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winminheight=1 winminwidth=1 winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 109 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 40 + 75) / 150)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -91,27 +85,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 231 - ((19 * winheight(0) + 18) / 37)
+let s:l = 138 - ((13 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-231
-normal! 0
-wincmd w
-argglobal
-enew
-file __Tagbar__.13
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal nofen
-wincmd w
-exe 'vert 1resize ' . ((&columns * 109 + 75) / 150)
-exe 'vert 2resize ' . ((&columns * 40 + 75) / 150)
+138
+normal! 05|
 tabedit js/libsignalstore.js
 set splitbelow splitright
 set nosplitbelow
@@ -128,12 +107,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 124 - ((9 * winheight(0) + 18) / 37)
+let s:l = 193 - ((15 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-124
-normal! 07|
+193
+normal! 03|
 tabedit js/gcm.js
 set splitbelow splitright
 set nosplitbelow
@@ -150,12 +129,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 17 - ((16 * winheight(0) + 18) / 37)
+let s:l = 65 - ((36 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-17
-normal! 04|
+65
+normal! 0
 tabedit js/codec.js
 set splitbelow splitright
 set nosplitbelow
@@ -172,11 +151,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 21 - ((20 * winheight(0) + 18) / 37)
+let s:l = 1 - ((0 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-21
+1
 normal! 05|
 tabnext 2
 set stal=1
