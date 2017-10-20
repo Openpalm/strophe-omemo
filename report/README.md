@@ -1,6 +1,6 @@
 * [Introduction](#Introduction)
 * [Report](#Report)
-* [Protocols](#Protocols)
+* [Protocol(s)](#Protocol(s))
 * [Structure](#Structure)
 * [Implementation](#Implementation)
 * [Testing](#Testing)
@@ -32,9 +32,70 @@ accepted as XEP-0384 in December 2016.[2]
 [0]:https://xmpp.org/extensions/xep-0384.html 
 [1]:https://signal.org/docs/specifications/doubleratchet/
 [2]:https://en.wikipedia.org/wiki/OMEMO
-## Omemo & Libsignal 
+
+## Abstract
+
+## Protocol(s)
+
+#### Glossary of Terms
+
+### Libsignal
+Conceptually, Omemo uses relies on a Libsignal session to encrypt a cipher text's 
+message key, where the message key is encrypted using a shared libsignal session 
+using its derived chain keys that act as the second layer of message encryption
+and provide forward secrecy. libsignal message keys get deleted on a per-message-read basis and
+are refreshed on message-reply basis as the session key gets *advnaced* according to
+the double ratchet specification.[1]
+
+Omemo prescribes XMPP message recipes that serve as the basis for its storage format
+as well as message exchange. We will see that some book keeping information can be omitted
+while still maintaining full functionality. Infact and in practice, some implementations
+  omit certain pieces of information. [Richard/Lurch, citation needed]
+
+In order to allow the protocol to function, each party must generate a *bundle* of keys:
+```
+1. Identity Key (IdentityKey)
+2. Signed Key (keyPair, keyId, Signature)
+3. Pre Key (keyPair, keyId)*
+```
+
+Parties generate 100 Pre Keys in order to publish them on a server to allow for 
+sessions with multiple participants and devices. These keys are refreshed once
+their count gets to <20. After which the bundle is republished.[0]
+
+Parties should also re-generate a new signed Prekey and republish the bundle on
+a weekly basis.[3]
+
+#### X3DH Key Agreement: A-symmetric tripple Deffie Helman 
+
+
+[4]:https://www.youtube.com/watch?v=7WnwSovjYMs
+
+
+```
++-------------+-----------------+-------------+
+|     Key     |     Purpose     |  Life Span  |
++-------------+-----------------+-------------+
+| IdentitKey  | Authenticity    | Inf         |
+| SignedPeKey | Authenticity    | Weekly      |
+| PreKey      | Forward Secrecy | PerSession* |
+| DHKey       | A-Sym-Session   | PerSession* |
+| RootKey     | Sym-Internal    | PerReply    |
+| ChainKey    | Sym-Internal    | PerReply    |
+| CryptoKy*   | Sym-Msg-Sending | PerMessage  |
++-------------+-----------------+-------------+
+```
+
+
+Procedure and *Arming*
+```
+1. Both parties advertise their 
+
+
+```
 
 ## Project Structure 
+  
 ### Processing Messages
 
 ## Implementation
