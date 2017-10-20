@@ -56,10 +56,10 @@ In order to allow the protocol to function, each party must generate a *bundle* 
 ```
 1. Identity Key (IdentityKey)
 2. Signed Key (keyPair, keyId, Signature)
-3. Pre Key (keyPair, keyId)^1
+3. Pre Key (keyPair, keyId)*
 ```
 
-1. Parties generate 100 Pre Keys in order to publish them on a server to allow for 
+*. Parties generate 100 Pre Keys in order to publish them on a server to allow for 
 sessions with multiple participants and devices. These keys are refreshed once
 their count gets to <20. After which the bundle is republished.[0]
 
