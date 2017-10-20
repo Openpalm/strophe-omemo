@@ -18,7 +18,7 @@
 
 
 
-## Introduction
+##Introduction
 An implementation of the OMEMO XMPP protocol as Strophe plugin using the 
 Libsignal library, according to version 0.2 2017-06-02 of XEP-0384.[0]
 
@@ -33,11 +33,11 @@ accepted as XEP-0384 in December 2016.[2]
 [1]:https://signal.org/docs/specifications/doubleratchet/
 [2]:https://en.wikipedia.org/wiki/OMEMO
 
-## Abstract
+##Abstract
 
-## Protocol(s)
+##Protocol(s)
 
-#### Glossary of Terms
+####Glossary of Terms
 
 ### Libsignal
 Conceptually, Omemo uses relies on a Libsignal session to encrypt a cipher text's 
