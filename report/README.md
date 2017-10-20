@@ -20,7 +20,7 @@
 
 ## Introduction
 An implementation of the OMEMO XMPP protocol as Strophe plugin using the 
-Libsignal library, according to version 0.2 2017-06-02 of XEP-0384[0].
+Libsignal library, according to version 0.2 2017-06-02 of XEP-0384.[0]
 
 The Libsignal protocol was created by Moxie Marlinspike and Trevor Perrin 
 at Open Whisper Systems in order to improve upon existing secure communication 
@@ -31,7 +31,7 @@ accepted as XEP-0384 in December 2016.[2]
 
 [0]:https://xmpp.org/extensions/xep-0384.html 
 [1]:https://signal.org/docs/specifications/doubleratchet/
-[3]:https://en.wikipedia.org/wiki/OMEMO
+[2]:https://en.wikipedia.org/wiki/OMEMO
 ## Omemo & Libsignal 
 
 ## Project Structure 
