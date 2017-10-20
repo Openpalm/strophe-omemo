@@ -66,10 +66,11 @@ their count gets to <20. After which the bundle is republished.[0]
 Parties should also re-generate a new signed Prekey and republish the bundle on
 a weekly basis.[3]
 
+[3]:https://www.youtube.com/watch?v=7WnwSovjYMs
+
 #### X3DH Key Agreement: A-symmetric tripple Deffie Helman 
 
 
-[4]:https://www.youtube.com/watch?v=7WnwSovjYMs
 
 
 ```
