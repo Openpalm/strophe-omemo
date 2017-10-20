@@ -18,7 +18,8 @@
 
 
 
-##Introduction
+##  Introduction
+
 An implementation of the OMEMO XMPP protocol as Strophe plugin using the 
 Libsignal library, according to version 0.2 2017-06-02 of XEP-0384.[0]
 
