@@ -152,7 +152,7 @@ function test_enc_step(out_cipher, in_cipher, gcm_enc_out) {
         if (out_cipher.getRemoteRegistrationId() == 321) {
           person = 'alice'
         }
-        return Promise.resolve(person + "'s key: '"decoder.decode(res))
+        return Promise.resolve(person + "\'s key: " + decoder.decode(res))
       })
     })
   }

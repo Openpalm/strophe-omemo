@@ -213,8 +213,6 @@ Omemo.prototype = {
     return encryptedStanza;
   },
   buildSession: function (theirPublicBundle, theirJid, context) {
-    let target = theirJid + '.' + theirPublicBundle.registrationId
-    let myAddress =  context._address
     let myStore = context._store
     let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
     let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
