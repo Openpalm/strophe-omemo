@@ -110,7 +110,7 @@ Omemo.prototype = {
       pprint("100preKey genereration complete")
       return Promise.resolve(true)
     }
-      let index = start
+    let index = start
     context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
     start++
 
