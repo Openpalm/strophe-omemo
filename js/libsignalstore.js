@@ -178,11 +178,17 @@ function SignalProtocolStore() {
   /* Returns a signed keypair object or undefined */
   loadSignedPreKey: function(keyId) {
     var res = this.get('25519KeysignedKey' + keyId);
-    console.log(res)
     if (res !== undefined) {
       res = { pubKey: res.keyPair.pubKey, privKey: res.keyPair.privKey };
     }
     return Promise.resolve(res);
+  },
+  loadSignedPreKeySignature: function(keyId) {
+    var res = this.get('25519KeysignedKey' + keyId).signature;
+    if (res !== undefined) {
+      res = { res };
+    }
+    return Promise.resolve(res.res);
   },
   storeSignedPreKey: function(keyId, keyPair) {
     this.currentSignedPreKeyId = keyId

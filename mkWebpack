@@ -1,4 +1,3 @@
-webpack js/strophe.omemo.js dist/co-strophe.omemo.js
 webpack js/strophe.omemo.object.js dist/co-strophe.omemo.object.js
 webpack js/gcm.js dist/co-gcm.js
 webpack js/codec.js dist/co-codec.js

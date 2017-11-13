@@ -155,9 +155,9 @@ function SignalProtocolStore() {
       getPreKeyPub: function(keyId, context) {
         let res = context._store.get('25519KeypreKey' + keyId);
         if (res !== undefined) {
-          let pubRecord =  { 
-            keyId: res.keyId, 
-            pubKey: res.keyPair.pubKey 
+          let pubRecord =  {
+            keyId: res.keyId,
+            pubKey: res.keyPair.pubKey
           }
           return  pubRecord
         }
@@ -168,7 +168,7 @@ function SignalProtocolStore() {
       },
       getPreKeyBundle: function(context) {
         let range = 101
-        let id = 1 
+        let id = 1
         let key = undefined
         let keys = []
         while (range) {
@@ -184,7 +184,7 @@ function SignalProtocolStore() {
       getPreKeys: function(context) {
         //track key # here
         let range = 101
-        let id = 1 
+        let id = 1
         let key = undefined
         let keys = []
         while (range) {
@@ -200,10 +200,10 @@ function SignalProtocolStore() {
       selectRandomPreKey: function(context) {
         //track key # here
         let range = 100
-        let id = 1 
+        let id = 1
         let key = undefined
         while (key == undefined) {
-          id = Math.floor(Math.random() * range) + 1 
+          id = Math.floor(Math.random() * range) + 1
           key = context._store.getPreKey(id, context)
           //omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
         }
@@ -237,8 +237,8 @@ function SignalProtocolStore() {
             },
             preKey: {
               keyId     : preKey.keyId,
-              publicKey : preKey.keyPair.pubKey 
-            } 
+              publicKey : preKey.keyPair.pubKey
+            }
           }
         })
       },
@@ -247,11 +247,17 @@ function SignalProtocolStore() {
   /* Returns a signed keypair object or undefined */
   loadSignedPreKey: function(keyId) {
     var res = this.get('25519KeysignedKey' + keyId);
-    console.log(res)
     if (res !== undefined) {
       res = { pubKey: res.keyPair.pubKey, privKey: res.keyPair.privKey };
     }
     return Promise.resolve(res);
+  },
+  loadSignedPreKeySignature: function(keyId) {
+    var res = this.get('25519KeysignedKey' + keyId).signature;
+    if (res !== undefined) {
+      res = { res };
+    }
+    return Promise.resolve(res.res);
   },
   storeSignedPreKey: function(keyId, keyPair) {
     this.currentSignedPreKeyId = keyId

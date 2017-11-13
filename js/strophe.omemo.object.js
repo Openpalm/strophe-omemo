@@ -86,24 +86,35 @@ Omemo.prototype = {
       }
     )
   },
-  constructOwnXMPPBundle: function (store, context) {
-    let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
-      .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-      .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
-      .c('item')
-      .c('bundle', {xmlns: this._ns_main})
-      .c('signedPreKeyPublic', {signedPreKeyId: this._store.loadSignedPreKey(1).keyId}).
-      t(codec.b64encode(this._store.loadSignedPreKey(1).keyPair.pubKey)).up()
-      .c('signedPreKeySignature')
-      .t(codec.b64encode(this._store.loadSignedPreKey(1).signature)).up()
-      .c('identityKey')
-      .t(codec.b64encode(this._store.get('identityKey').pubKey)).up()
-      .c('prekeys')
-    let keys = context._store.getPreKeyBundle()
-    keys.forEach(function(key) {
-      res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
-    })
-    return res
+  constructOwnXMPPBundle: function (context) {
+    let store = context._store
+    let sk_id = store.currentSignedPreKeyId
+
+    return store.loadSignedPreKey(sk_id).then(sk =>
+      store.getIdentityKeyPair().then(ikp =>
+        store.loadSignedPreKeySignature(sk_id).then(signature => {
+          let signature64 = codec.b64encode(signature)
+          let sk64 = codec.b64encode(sk.pubKey)
+          let ik64 = codec.b64encode(ikp.pubKey)
+          console.log(sk.id)
+          let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
+          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+          .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
+          .c('item')
+          .c('bundle', {xmlns: this._ns_main})
+          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+          .c('signedPreKeySignature').t(signature64).up()
+          .c('identityKey').t(ik64).up()
+          .c('prekeys')
+          let keys = context._store.getPreKeyBundle(context)
+          keys.forEach(function(key) {
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
+          })
+          return res
+        })
+      )
+    )
+
   },
   gen100PreKeys: function (start, finish, context, counter) {
     if (start == finish+1)  {

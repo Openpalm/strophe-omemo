@@ -131,7 +131,7 @@ function pprint(t) {
 }
 
 let Omemo = function (jid, deviceid, libsig, store) { //deviceid = registration id.
-  this._jid = jid 
+  this._jid = jid
   this._storage = window.localStorage
   this._address = null
   this._gcm = gcm
@@ -142,7 +142,7 @@ let Omemo = function (jid, deviceid, libsig, store) { //deviceid = registration 
   this._store = store
   this._libsignal = libsig
   this._keyhelper = libsig.KeyHelper
-  this._deviceid = deviceid  //refactor into registrationId. 
+  this._deviceid = deviceid  //refactor into registrationId.
   this._ns_main = 'eu.siacs.conversations.axolotl'
   this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
   this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
@@ -154,22 +154,21 @@ Omemo.prototype = {
       pprint("pre-existing store found. restoring ...")
       context._store = context.restore(context._storage.getItem('OMEMO'+ context._jid))
       context._address = new context._libsignal.SignalProtocolAddress(context._jid, context._store.get("registrationId"))
-      return
+      return Promise.resolve(true)
     }
-    context.armLibsignal(context)
     context.gen100PreKeys(1,100, context)
+    context.armLibsignal(context)
     context._ready = true
     return Promise.resolve(true)
-    //conn.addHandler(this._onMessage.bind(this), null, 'message'); // ? strophe conn?
+    //conn.addHandler(this._onMessage.bind(this), null, 'message');
   },
   setNewDeviceId: function () {
     let minDeviceId = 1
     let maxDeviceId = 2147483647
     let diff = (maxDeviceId - minDeviceId)
-    let res = Math.floor(Math.random() * diff  + minDeviceId) 
+    let res = Math.floor(Math.random() * diff  + minDeviceId)
     context._deviceid = res
     context._store.put('sid', res)
-    pprint("generated new device id: " + res)
   },
   armLibsignal: function(context) {
     new Promise (
@@ -186,20 +185,16 @@ Omemo.prototype = {
         ]).then(function(result) {
           let identity = result[0];
           if (context._deviceid === undefined) {
-            pprint('device id not supplied, using a randomly generated id')
             registrationId = result[1]
           } else {
             registrationId = context._deviceid
           }
           context._store.put('registrationId', registrationId)
           context._store.identifier = context._jid
-          pprint("registration id generated and stored.")
           context._store.saveIdentity(context._jid, result[0])
-          pprint("identity Key generated and stored.")
-          context._store.loadIdentityKey(context._jid).then((ikey) => 
+          context._store.loadIdentityKey(context._jid).then((ikey) =>
             context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
               context._store.storeSignedPreKey(1, skey)
-              pprint("signed PreKey generated and stored.")
             })
           context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
           pprint("libsignal armed for " + context._jid + '.' + context._store.get('registrationId'))
@@ -208,31 +203,42 @@ Omemo.prototype = {
       }
     )
   },
-  constructOwnXMPPBundle: function (store, context) { 
-    let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
-      .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-      .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
-      .c('item')
-      .c('bundle', {xmlns: this._ns_main}) 
-      .c('signedPreKeyPublic', {signedPreKeyId: this._store.loadSignedPreKey(1).keyId}).
-      t(codec.b64encode(this._store.loadSignedPreKey(1).keyPair.pubKey)).up()
-      .c('signedPreKeySignature')
-      .t(codec.b64encode(this._store.loadSignedPreKey(1).signature)).up()
-      .c('identityKey')
-      .t(codec.b64encode(this._store.get('identityKey').pubKey)).up()
-      .c('prekeys')
-    let keys = context._store.getPreKeyBundle()
-    keys.forEach(function(key) { 
-      res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
-    })
-    return res
+  constructOwnXMPPBundle: function (context) {
+    let store = context._store
+    let sk_id = store.currentSignedPreKeyId
+
+    return store.loadSignedPreKey(sk_id).then(sk =>
+      store.getIdentityKeyPair().then(ikp =>
+        store.loadSignedPreKeySignature(sk_id).then(signature => {
+          let signature64 = codec.b64encode(signature)
+          let sk64 = codec.b64encode(sk.pubKey)
+          let ik64 = codec.b64encode(ikp.pubKey)
+          console.log(sk.id)
+          let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
+          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+          .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
+          .c('item')
+          .c('bundle', {xmlns: this._ns_main})
+          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+          .c('signedPreKeySignature').t(signature64).up()
+          .c('identityKey').t(ik64).up()
+          .c('prekeys')
+          let keys = context._store.getPreKeyBundle(context)
+          keys.forEach(function(key) {
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
+          })
+          return res
+        })
+      )
+    )
+
   },
-  gen100PreKeys: function (start, finish, context) { 
-    if (start == finish+1)  { 
+  gen100PreKeys: function (start, finish, context, counter) {
+    if (start == finish+1)  {
       pprint("100preKey genereration complete")
       return Promise.resolve(true)
     }
-    let index = start  
+    let index = start
     context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
     start++
 
@@ -257,23 +263,23 @@ Omemo.prototype = {
     res.currentSignedPreKeyId = context._store.currentSignedPreKeyId
     res.jid = context._jid
     res.registrationId = context._store.get("registrationId")
-    res[sk_prefix + sk_id] = { 
+    res[sk_prefix + sk_id] = {
       keyId: sk_id,
-      keyPair: { 
-        pubKey: codec.b64encode(context._store.get(sk_prefix + sk_id).keyPair.pubKey), 
+      keyPair: {
+        pubKey: codec.b64encode(context._store.get(sk_prefix + sk_id).keyPair.pubKey),
         privKey: codec.b64encode(context._store.get(sk_prefix + sk_id).keyPair.privKey)
       },
       signature:  codec.b64encode(context._store.get(sk_prefix + sk_id).signature)
     }
-    res.identityKey =  { 
-      pubKey: codec.b64encode(context._store.get('identityKey').pubKey), 
+    res.identityKey =  {
+      pubKey: codec.b64encode(context._store.get('identityKey').pubKey),
       privKey: codec.b64encode(context._store.get('identityKey').privKey)
     }
     let keys = context._store.getPreKeys(context)
-    keys.forEach(function(key) { 
-      res['25519KeypreKey' + key.keyId] =  { 
-        pubKey: codec.b64encode(key.keyPair.pubKey), 
-        privKey: codec.b64encode(key.keyPair.privKey), 
+    keys.forEach(function(key) {
+      res['25519KeypreKey' + key.keyId] =  {
+        pubKey: codec.b64encode(key.keyPair.pubKey),
+        privKey: codec.b64encode(key.keyPair.privKey),
       }
     })
     res = JSON.stringify(res)
@@ -288,7 +294,7 @@ Omemo.prototype = {
       if ((v !== undefined) && (v.indexOf("Keysign") >= 0)) {
         sk_record = v
       }
-    } 
+    }
     let res = new SignalProtocolStore()
     serialized = JSON.parse(serialized)
     res.usedPreKeyCounter = serialized.usedPreKeyCounter
@@ -296,26 +302,26 @@ Omemo.prototype = {
     res.store.jid = serialized.jid
     res.store.registrationId = serialized.registrationId
     console.log(sk_record)
-    res.store[sk_record] = { 
+    res.store[sk_record] = {
       keyId: serialized[sk_record].keyId,
-      keyPair: { 
-        pubKey:   codec.b64encodeToBuffer(serialized[sk_record].keyPair.pubKey), 
+      keyPair: {
+        pubKey:   codec.b64encodeToBuffer(serialized[sk_record].keyPair.pubKey),
         privKey:  codec.b64encodeToBuffer(serialized[sk_record].keyPair.privKey)
       },
       signature: codec.b64encodeToBuffer(serialized[sk_record].signature)
     }
-    res.store.identityKey =  { 
-      pubKey:   codec.b64encodeToBuffer(serialized.identityKey.pubKey), 
+    res.store.identityKey =  {
+      pubKey:   codec.b64encodeToBuffer(serialized.identityKey.pubKey),
       privKey:  codec.b64encodeToBuffer(serialized.identityKey.privKey)
     }
     let prefix = '25519KeypreKey'
     let key = ''
     for (let keyId = 1; keyId <= 100; keyId++) {
       key = serialized[prefix + keyId]
-      res.store[prefix + keyId] =  { 
-        keyId: keyId, 
+      res.store[prefix + keyId] =  {
+        keyId: keyId,
         keyPair: {
-          pubKey: codec.b64encodeToBuffer(key.pubKey), 
+          pubKey: codec.b64encodeToBuffer(key.pubKey),
           privKey: codec.b64encodeToBuffer(key.privKey)
         }
       }
@@ -330,8 +336,6 @@ Omemo.prototype = {
     return encryptedStanza;
   },
   buildSession: function (theirPublicBundle, theirJid, context) {
-    let target = theirJid + '.' + theirPublicBundle.registrationId
-    let myAddress =  context._address
     let myStore = context._store
     let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
     let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
@@ -360,7 +364,7 @@ Omemo.prototype = {
     gcm.encrypt(text).then(res => {
 
     })
-    
+
   },
   receive: function (encrypted) {
 
@@ -12772,7 +12776,7 @@ function decrypt(key, cipherText, iv, aad) {
     cipherText
   )
     .then((gcm_out) =>  {
-      return gcm_out 
+      return gcm_out
     })
 }
 gcm = {
