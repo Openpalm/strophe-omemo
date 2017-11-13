@@ -110,7 +110,7 @@ Omemo.prototype = {
           keys.forEach(function(key) {
             res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
           })
-          return res
+          return Promise.resolve(res)
         })
       )
     )
