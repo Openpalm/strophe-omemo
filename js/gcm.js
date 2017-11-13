@@ -78,7 +78,7 @@ function decrypt(key, cipherText, iv, aad) {
     cipherText
   )
     .then((gcm_out) =>  {
-      return gcm_out 
+      return gcm_out
     })
 }
 gcm = {
