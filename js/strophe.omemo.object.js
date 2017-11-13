@@ -39,8 +39,8 @@ Omemo.prototype = {
       context._address = new context._libsignal.SignalProtocolAddress(context._jid, context._store.get("registrationId"))
       return Promise.resolve(true)
     }
-    context.armLibsignal(context)
     context.gen100PreKeys(1,100, context)
+    context.armLibsignal(context)
     context._ready = true
     return Promise.resolve(true)
     //conn.addHandler(this._onMessage.bind(this), null, 'message');
