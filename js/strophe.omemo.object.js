@@ -110,7 +110,7 @@ Omemo.prototype = {
           keys.forEach(function(key) {
             res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
           })
-          return Promise.resolve(res)
+          return res
         })
       )
     )
@@ -124,7 +124,6 @@ Omemo.prototype = {
     let index = start
     context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
     start++
-
     context.gen100PreKeys(start, finish, context)
   },
   refreshPreKeys: function(context) {
@@ -137,6 +136,7 @@ Omemo.prototype = {
         .then((keyPair) => context._store.storePreKey(i, keyPair))
         .then("one time key generation completed")
     }
+    return Promise.resolve(true)
   },
   serialize: function(context) {
     let sk_id = context._store.currentSignedPreKeyId
@@ -172,7 +172,7 @@ Omemo.prototype = {
   restore: function (serialized) {
     //secondary priority, get decrypt to work.
     let sk_record = ''
-    for (var v in bob._store.store) {  //works if only 1 signed prekey there.
+    for (var v in bob._store.store) {
       // modify later for multiple signedpreKeys
       if ((v !== undefined) && (v.indexOf("Keysign") >= 0)) {
         sk_record = v
@@ -245,9 +245,7 @@ Omemo.prototype = {
     let codec = context._codec
     let OmemoEncrypted, LibsignalEncrypted
     gcm.encrypt(text).then(res => {
-
     })
-
   },
   receive: function (encrypted) {
 
