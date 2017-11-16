@@ -1,16 +1,17 @@
 # strophe-omemo
 
-#Milestones
-1. Load into browser, make testable
-week 1
-2. Gcm functions
-3. Bundle
-4. session initiation with libsignal and OMEMO
-week 2
-5. message sending and receiving in OMEMO
-week 3
-6. storage considerations, and restoration of previous sessions
+## dec && nov 2017 
+promises
+setup debugging env. 
+connect to XMPP server & publish bundle
+connect to XMPP server & retrieve bundle
+parse bundle
 
-7. multiparty.
-** tests written at end of each day 
- 
+repeat for two users.
+establish session
+receive and handle messages
+
+
+work on rest of XEP.
+
+
