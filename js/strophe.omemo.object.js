@@ -39,8 +39,9 @@ Omemo.prototype = {
       context._address = new context._libsignal.SignalProtocolAddress(context._jid, context._store.get("registrationId"))
       return Promise.resolve(true)
     }
-    context.gen100PreKeys(1,100, context)
-    context.armLibsignal(context)
+    context.gen100PreKeys(1,100, context).then(
+      context.armLibsignal(context)   
+    )
     context._ready = true
     return Promise.resolve(true)
     //conn.addHandler(this._onMessage.bind(this), null, 'message');
@@ -52,6 +53,7 @@ Omemo.prototype = {
     let res = Math.floor(Math.random() * diff  + minDeviceId)
     context._deviceid = res
     context._store.put('sid', res)
+    return Promise.resolve(res)
   },
   armLibsignal: function(context) {
     new Promise (
@@ -118,13 +120,14 @@ Omemo.prototype = {
   },
   gen100PreKeys: function (start, finish, context, counter) {
     if (start == finish+1)  {
-      pprint("100preKey genereration complete")
       return Promise.resolve(true)
     }
     let index = start
-    context._keyhelper.generatePreKey(index).then((k) => context._store.storePreKey(index,k))
+    context._keyhelper.generatePreKey(index).then((k) =>  {
+      context._store.storePreKey(index,k)
+    })
     start++
-    context.gen100PreKeys(start, finish, context)
+    return Promise.resolve(context.gen100PreKeys(start, finish, context))
   },
   refreshPreKeys: function(context) {
     if (context._store == null) {
@@ -247,13 +250,43 @@ Omemo.prototype = {
     gcm.encrypt(text).then(res => {
     })
   },
+
+  createPreKeyStanza: function(to, id) { 
+
+  },
+  createEncryptedStanza: function(to, plaintext) { 
+
+  },
+
+  createFetchBundleStanza: function(jid) { 
+
+  },
+
+  createAnnounceBundleStanza: function(store) {
+
+  },
+
+  createDeviceUpdateStanza: function(id) { 
+  
+  },
+ 
+  handleDeviceUpdate: function(id) { 
+
+  },
+
+  OmemoBundleXMLToSTore: function (receivedBundleMsg) { 
+
+  },
+
   receive: function (encrypted) {
 
   },
   _onMessage: function(stanza) {
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
+
   OmemoBundleMsgToSTore: function (receivedBundleMsg) {
+
   }
 }
 

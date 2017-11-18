@@ -50,14 +50,17 @@ $(document).ready(function () {
 
 $(document).bind('connect', function (ev, data) {
     var conn = new Strophe.Connection(
-        "http://bosh.metajack.im:5280/xmpp-httpbind");
+        "http://localhost:5280/http-bind");
 
     conn.connect(data.jid, data.password, function (status) {
+	    console.log(status)
         if (status === Strophe.Status.CONNECTED) {
+		console.log("connected")
             $(document).trigger('connected');
         } else if (status === Strophe.Status.DISCONNECTED) {
+		console.log("disconnected")
             $(document).trigger('disconnected');
-        }
+        } 
     });
 
 	console.log(conn)
