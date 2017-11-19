@@ -41,6 +41,9 @@ codec = {
   },
   StringToBase64: function (string) {
     return Base64.encode(string)
+  },
+  Base64ToString: function (base64string) {
+    return Base64.decode(base64string)
   }
 }
 
