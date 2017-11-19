@@ -11,7 +11,7 @@ function serializeKey(CryptoKeyObject) {
   let res = ''
   return window.crypto.subtle.exportKey("jwk", CryptoKeyObject)
     .then((e) => {
-      return e.k
+      return codec.StringToBase64(e.k)
     })
 }
 function restoreKey(k) {

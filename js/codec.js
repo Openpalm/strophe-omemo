@@ -1,4 +1,6 @@
 "use strict";
+
+let base64 = require('./base64.js')
 var codec = {};
 
 codec = {
@@ -11,7 +13,7 @@ codec = {
     }
     return btoa(binary)
   },
-  b64encodeToBuffer: function (base64) {
+  b64ToBuffer: function (base64) {
     var binary_string =  window.atob(base64);
     var len = binary_string.length
     var bytes = new Uint8Array( len )
@@ -33,6 +35,12 @@ codec = {
   },
   Uint8ToString: function (buffer) {
     return String.fromCharCode.apply(null, buffer)
+  },
+  type: function (obj){
+    return Object.prototype.toString.call(obj).slice(8, -1);
+  },
+  StringToBase64: function (string) {
+    return Base64.encode(string)
   }
 }
 

@@ -60,179 +60,11 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var codec= __webpack_require__(1)
-var gcm = {};
-
-
-function pprint(s) {
-  console.log("gcm.js: " + s)
-}
-function serializeKey(CryptoKeyObject) {
-  let res = ''
-  return window.crypto.subtle.exportKey("jwk", CryptoKeyObject)
-    .then((e) => {
-      return e.k
-    })
-}
-function restoreKey(k) {
-  let CryptoKeyObject = {
-    "alg": "A256GCM",
-    "ext": true,
-    "k": k,
-    "key_ops": ["encrypt","decrypt"],
-    "kty": "oct"
-  }
-  return crypto.subtle.importKey('jwk', CryptoKeyObject, 'AES-GCM', true, ['encrypt','decrypt'])
-    .then((e) => {
-      return e
-    })
-}
-function gettag(encrypted, tagLength) {
-  if (tagLength === void 0) tagLength = 128;
-  return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
-}
-function encrypt(key, text) {
-  //the out of window.crypto is only the cipher text (i assume?)
-  //the tag is not mentioned. unless it concatinated inside. look at code?
-  //after ecnrypting, we dont need to keep the key
-  const data = codec.StringToUint8(text)
-  const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
-  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
-  const alg = {
-    name: "AES-GCM",
-    iv: temp_iv, //uint8 buffer
-    additionalData: aad, //uint8 buffer
-    tagLength: 128
-  }
-  return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
-    let out = ''
-    let libsignalPayload = ''
-    return serializeKey(key).then(res => {
-      libsignalPayload = res
-      let gcm_out = {
-        key: key,
-        cipherText: cipherText,
-        iv: temp_iv,
-        aad: aad,
-        tag: gettag(cipherText, 128)
-      }
-      //OMMSG: omemo msg
-      //LSPLD: Libsignal payload
-      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
-      return Promise.resolve(out)
-    })
-  })
-}
-
-function decrypt(key, cipherText, iv, aad) {
-  let enc = new TextDecoder()
-  let out = ''
-  return window.crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-      additionalData: aad,
-      tagLength: 128,
-    },
-    key,
-    cipherText
-  )
-    .then((gcm_out) =>  {
-      return gcm_out
-    })
-}
-gcm = {
-  encrypt: function (text) {
-    return window.crypto.subtle.generateKey(
-      {
-        name: "AES-GCM",
-        length: 256, //current max value
-      },
-      true, //extractable yes
-      ["encrypt", "decrypt"] //can "encrypt", "decrypt",
-    ).then((key) => {
-      return encrypt(key, text)
-    })
-  },
-  decrypt: function (key, cipherText, iv, aad) {
-    return restoreKey(key).then(res => {
-      return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
-        let decoder = new TextDecoder()
-        return decoder.decode(decrypt_out)
-      })
-    })
-    //return decoder.decode(res)
-    //on success destroy key ? or set timer for key destruction?
-  },
-  serializeKey: function(key) {
-    return serializeKey(key)
-  },
-  restoreKey: function(key) {
-    return restoreKey(key)
-  }
-}
-module.exports = gcm
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(Buffer) {
-var codec = {};
-
-codec = {
-  b64encode: function (buffer) {
-    let binary = ''
-    let bytes = new Uint8Array(buffer)
-    let len = bytes.byteLength
-    for (var i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i])
-    }
-    return btoa(binary)
-  },
-  b64encodeToBuffer: function (base64) {
-    var binary_string =  window.atob(base64);
-    var len = binary_string.length
-    var bytes = new Uint8Array( len )
-    for (var i = 0; i < len; i++) {
-      bytes[i] = binary_string.charCodeAt(i)
-    }
-    return bytes.buffer
-  },
-  StringToUint8: function (string) {
-    let enc = new TextEncoder("utf-8")
-    return enc.encode(string)
-  },
-  BufferToString: function (buffer) {
-    let enc = new TextDecoder()
-    return enc.encode(buffer)
-  },
-  StringToBuffer: function (string) {
-   return Buffer.from(string, 'utf8')
-  },
-  Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer)
-  }
-}
-
-module.exports = codec
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2).Buffer))
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2026,10 +1858,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 3 */
+/* 1 */
 /***/ (function(module, exports) {
 
 var g;
@@ -2054,6 +1886,182 @@ try {
 
 module.exports = g;
 
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var codec= __webpack_require__(3)
+var gcm = {};
+
+
+function pprint(s) {
+  console.log("gcm.js: " + s)
+}
+function serializeKey(CryptoKeyObject) {
+  let res = ''
+  return window.crypto.subtle.exportKey("jwk", CryptoKeyObject)
+    .then((e) => {
+      return codec.StringToBase64(e.k)
+    })
+}
+function restoreKey(k) {
+  let CryptoKeyObject = {
+    "alg": "A256GCM",
+    "ext": true,
+    "k": k,
+    "key_ops": ["encrypt","decrypt"],
+    "kty": "oct"
+  }
+  return crypto.subtle.importKey('jwk', CryptoKeyObject, 'AES-GCM', true, ['encrypt','decrypt'])
+    .then((e) => {
+      return e
+    })
+}
+function gettag(encrypted, tagLength) {
+  if (tagLength === void 0) tagLength = 128;
+  return encrypted.slice(encrypted.byteLength - ((tagLength + 7) >> 3))
+}
+function encrypt(key, text) {
+  //the out of window.crypto is only the cipher text (i assume?)
+  //the tag is not mentioned. unless it concatinated inside. look at code?
+  //after ecnrypting, we dont need to keep the key
+  const data = codec.StringToUint8(text)
+  const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
+  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
+  const alg = {
+    name: "AES-GCM",
+    iv: temp_iv, //uint8 buffer
+    additionalData: aad, //uint8 buffer
+    tagLength: 128
+  }
+  return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
+    let out = ''
+    let libsignalPayload = ''
+    return serializeKey(key).then(res => {
+      libsignalPayload = res
+      let gcm_out = {
+        key: key,
+        cipherText: cipherText,
+        iv: temp_iv,
+        aad: aad,
+        tag: gettag(cipherText, 128)
+      }
+      //OMMSG: omemo msg
+      //LSPLD: Libsignal payload
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
+      return Promise.resolve(out)
+    })
+  })
+}
+
+function decrypt(key, cipherText, iv, aad) {
+  let enc = new TextDecoder()
+  let out = ''
+  return window.crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: iv,
+      additionalData: aad,
+      tagLength: 128,
+    },
+    key,
+    cipherText
+  )
+    .then((gcm_out) =>  {
+      return gcm_out
+    })
+}
+gcm = {
+  encrypt: function (text) {
+    return window.crypto.subtle.generateKey(
+      {
+        name: "AES-GCM",
+        length: 256, //current max value
+      },
+      true, //extractable yes
+      ["encrypt", "decrypt"] //can "encrypt", "decrypt",
+    ).then((key) => {
+      return encrypt(key, text)
+    })
+  },
+  decrypt: function (key, cipherText, iv, aad) {
+    return restoreKey(key).then(res => {
+      return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
+        let decoder = new TextDecoder()
+        return decoder.decode(decrypt_out)
+      })
+    })
+    //return decoder.decode(res)
+    //on success destroy key ? or set timer for key destruction?
+  },
+  serializeKey: function(key) {
+    return serializeKey(key)
+  },
+  restoreKey: function(key) {
+    return restoreKey(key)
+  }
+}
+module.exports = gcm
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(Buffer) {
+
+let base64 = __webpack_require__(7)
+var codec = {};
+
+codec = {
+  b64encode: function (buffer) {
+    let binary = ''
+    let bytes = new Uint8Array(buffer)
+    let len = bytes.byteLength
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
+  },
+  b64ToBuffer: function (base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length
+    var bytes = new Uint8Array( len )
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binary_string.charCodeAt(i)
+    }
+    return bytes.buffer
+  },
+  StringToUint8: function (string) {
+    let enc = new TextEncoder("utf-8")
+    return enc.encode(string)
+  },
+  BufferToString: function (buffer) {
+    let enc = new TextDecoder()
+    return enc.encode(buffer)
+  },
+  StringToBuffer: function (string) {
+   return Buffer.from(string, 'utf8')
+  },
+  Uint8ToString: function (buffer) {
+    return String.fromCharCode.apply(null, buffer)
+  },
+  type: function (obj){
+    return Object.prototype.toString.call(obj).slice(8, -1);
+  },
+  StringToBase64: function (string) {
+    return Base64.encode(string)
+  }
+}
+
+module.exports = codec
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0).Buffer))
 
 /***/ }),
 /* 4 */
@@ -2276,6 +2284,234 @@ module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+ * $Id: base64.js,v 2.15 2014/04/05 12:58:57 dankogai Exp dankogai $
+ *
+ *  Licensed under the BSD 3-Clause License.
+ *    http://opensource.org/licenses/BSD-3-Clause
+ *
+ *  References:
+ *    http://en.wikipedia.org/wiki/Base64
+ */
+
+(function(global) {
+    'use strict';
+    // existing version for noConflict()
+    var _Base64 = global.Base64;
+    var version = "2.3.2";
+    // if node.js, we use Buffer
+    var buffer;
+    if (typeof module !== 'undefined' && module.exports) {
+        try {
+            buffer = __webpack_require__(0).Buffer;
+        } catch (err) {}
+    }
+    // constants
+    var b64chars
+        = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    var b64tab = function(bin) {
+        var t = {};
+        for (var i = 0, l = bin.length; i < l; i++) t[bin.charAt(i)] = i;
+        return t;
+    }(b64chars);
+    var fromCharCode = String.fromCharCode;
+    // encoder stuff
+    var cb_utob = function(c) {
+        if (c.length < 2) {
+            var cc = c.charCodeAt(0);
+            return cc < 0x80 ? c
+                : cc < 0x800 ? (fromCharCode(0xc0 | (cc >>> 6))
+                                + fromCharCode(0x80 | (cc & 0x3f)))
+                : (fromCharCode(0xe0 | ((cc >>> 12) & 0x0f))
+                   + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                   + fromCharCode(0x80 | ( cc         & 0x3f)));
+        } else {
+            var cc = 0x10000
+                + (c.charCodeAt(0) - 0xD800) * 0x400
+                + (c.charCodeAt(1) - 0xDC00);
+            return (fromCharCode(0xf0 | ((cc >>> 18) & 0x07))
+                    + fromCharCode(0x80 | ((cc >>> 12) & 0x3f))
+                    + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                    + fromCharCode(0x80 | ( cc         & 0x3f)));
+        }
+    };
+    var re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+    var utob = function(u) {
+        return u.replace(re_utob, cb_utob);
+    };
+    var cb_encode = function(ccc) {
+        var padlen = [0, 2, 1][ccc.length % 3],
+        ord = ccc.charCodeAt(0) << 16
+            | ((ccc.length > 1 ? ccc.charCodeAt(1) : 0) << 8)
+            | ((ccc.length > 2 ? ccc.charCodeAt(2) : 0)),
+        chars = [
+            b64chars.charAt( ord >>> 18),
+            b64chars.charAt((ord >>> 12) & 63),
+            padlen >= 2 ? '=' : b64chars.charAt((ord >>> 6) & 63),
+            padlen >= 1 ? '=' : b64chars.charAt(ord & 63)
+        ];
+        return chars.join('');
+    };
+    var btoa = global.btoa ? function(b) {
+        return global.btoa(b);
+    } : function(b) {
+        return b.replace(/[\s\S]{1,3}/g, cb_encode);
+    };
+    var _encode = buffer ?
+        buffer.from && buffer.from !== Uint8Array.from ? function (u) {
+            return (u.constructor === buffer.constructor ? u : buffer.from(u))
+                .toString('base64')
+        }
+        :  function (u) {
+            return (u.constructor === buffer.constructor ? u : new  buffer(u))
+                .toString('base64')
+        }
+        : function (u) { return btoa(utob(u)) }
+    ;
+    var encode = function(u, urisafe) {
+        return !urisafe
+            ? _encode(String(u))
+            : _encode(String(u)).replace(/[+\/]/g, function(m0) {
+                return m0 == '+' ? '-' : '_';
+            }).replace(/=/g, '');
+    };
+    var encodeURI = function(u) { return encode(u, true) };
+    // decoder stuff
+    var re_btou = new RegExp([
+        '[\xC0-\xDF][\x80-\xBF]',
+        '[\xE0-\xEF][\x80-\xBF]{2}',
+        '[\xF0-\xF7][\x80-\xBF]{3}'
+    ].join('|'), 'g');
+    var cb_btou = function(cccc) {
+        switch(cccc.length) {
+        case 4:
+            var cp = ((0x07 & cccc.charCodeAt(0)) << 18)
+                |    ((0x3f & cccc.charCodeAt(1)) << 12)
+                |    ((0x3f & cccc.charCodeAt(2)) <<  6)
+                |     (0x3f & cccc.charCodeAt(3)),
+            offset = cp - 0x10000;
+            return (fromCharCode((offset  >>> 10) + 0xD800)
+                    + fromCharCode((offset & 0x3FF) + 0xDC00));
+        case 3:
+            return fromCharCode(
+                ((0x0f & cccc.charCodeAt(0)) << 12)
+                    | ((0x3f & cccc.charCodeAt(1)) << 6)
+                    |  (0x3f & cccc.charCodeAt(2))
+            );
+        default:
+            return  fromCharCode(
+                ((0x1f & cccc.charCodeAt(0)) << 6)
+                    |  (0x3f & cccc.charCodeAt(1))
+            );
+        }
+    };
+    var btou = function(b) {
+        return b.replace(re_btou, cb_btou);
+    };
+    var cb_decode = function(cccc) {
+        var len = cccc.length,
+        padlen = len % 4,
+        n = (len > 0 ? b64tab[cccc.charAt(0)] << 18 : 0)
+            | (len > 1 ? b64tab[cccc.charAt(1)] << 12 : 0)
+            | (len > 2 ? b64tab[cccc.charAt(2)] <<  6 : 0)
+            | (len > 3 ? b64tab[cccc.charAt(3)]       : 0),
+        chars = [
+            fromCharCode( n >>> 16),
+            fromCharCode((n >>>  8) & 0xff),
+            fromCharCode( n         & 0xff)
+        ];
+        chars.length -= [0, 0, 2, 1][padlen];
+        return chars.join('');
+    };
+    var atob = global.atob ? function(a) {
+        return global.atob(a);
+    } : function(a){
+        return a.replace(/[\s\S]{1,4}/g, cb_decode);
+    };
+    var _decode = buffer ?
+        buffer.from && buffer.from !== Uint8Array.from ? function(a) {
+            return (a.constructor === buffer.constructor
+                    ? a : buffer.from(a, 'base64')).toString();
+        }
+        : function(a) {
+            return (a.constructor === buffer.constructor
+                    ? a : new buffer(a, 'base64')).toString();
+        }
+        : function(a) { return btou(atob(a)) };
+    var decode = function(a){
+        return _decode(
+            String(a).replace(/[-_]/g, function(m0) { return m0 == '-' ? '+' : '/' })
+                .replace(/[^A-Za-z0-9\+\/]/g, '')
+        );
+    };
+    var noConflict = function() {
+        var Base64 = global.Base64;
+        global.Base64 = _Base64;
+        return Base64;
+    };
+    // export Base64
+    global.Base64 = {
+        VERSION: version,
+        atob: atob,
+        btoa: btoa,
+        fromBase64: decode,
+        toBase64: encode,
+        utob: utob,
+        encode: encode,
+        encodeURI: encodeURI,
+        btou: btou,
+        decode: decode,
+        noConflict: noConflict
+    };
+    // if ES5 is available, make Base64.extendString() available
+    if (typeof Object.defineProperty === 'function') {
+        var noEnum = function(v){
+            return {value:v,enumerable:false,writable:true,configurable:true};
+        };
+        global.Base64.extendString = function () {
+            Object.defineProperty(
+                String.prototype, 'fromBase64', noEnum(function () {
+                    return decode(this)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64', noEnum(function (urisafe) {
+                    return encode(this, urisafe)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64URI', noEnum(function () {
+                    return encode(this, true)
+                }));
+        };
+    }
+    //
+    // export Base64 to the namespace
+    //
+    if (global['Meteor']) { // Meteor.js
+        Base64 = global.Base64;
+    }
+    // module.exports and AMD are mutually exclusive.
+    // module.exports has precedence.
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports.Base64 = global.Base64;
+    }
+    else if (true) {		
+        // AMD. Register as an anonymous module.	
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function(){ return global.Base64 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    }
+    // that's it!
+})(   typeof self   !== 'undefined' ? self
+    : typeof window !== 'undefined' ? window
+    : typeof global !== 'undefined' ? global
+    : this
+);
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ })
 /******/ ]);

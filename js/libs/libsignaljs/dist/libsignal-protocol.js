@@ -30232,8 +30232,6 @@ var Internal = Internal || {};
                         infoArray.set(new Uint8Array(T2));
                         infoArray[infoArray.length - 1] = 3;
                         return Internal.crypto.sign(PRK, infoBuffer).then(function(T3) {
-                          console.log("HKDF in libsignal")
-                          console.log([ T1, T2, T3 ])
                             return [ T1, T2, T3 ];
                         });
                     });

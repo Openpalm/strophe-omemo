@@ -40,7 +40,7 @@ Omemo.prototype = {
       return Promise.resolve(true)
     }
     context.gen100PreKeys(1,100, context).then(
-      context.armLibsignal(context)   
+      context.armLibsignal(context)
     )
     context._ready = true
     return Promise.resolve(true)
@@ -88,37 +88,7 @@ Omemo.prototype = {
       }
     )
   },
-  constructOwnXMPPBundle: function (context) {
-    let store = context._store
-    let sk_id = store.currentSignedPreKeyId
-
-    return store.loadSignedPreKey(sk_id).then(sk =>
-      store.getIdentityKeyPair().then(ikp =>
-        store.loadSignedPreKeySignature(sk_id).then(signature => {
-          let signature64 = codec.b64encode(signature)
-          let sk64 = codec.b64encode(sk.pubKey)
-          let ik64 = codec.b64encode(ikp.pubKey)
-          console.log(sk.id)
-          let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
-          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-          .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
-          .c('item')
-          .c('bundle', {xmlns: this._ns_main})
-          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
-          .c('signedPreKeySignature').t(signature64).up()
-          .c('identityKey').t(ik64).up()
-          .c('prekeys')
-          let keys = context._store.getPreKeyBundle(context)
-          keys.forEach(function(key) {
-            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
-          })
-          return res
-        })
-      )
-    )
-
-  },
-  gen100PreKeys: function (start, finish, context, counter) {
+    gen100PreKeys: function (start, finish, context, counter) {
     if (start == finish+1)  {
       return Promise.resolve(true)
     }
@@ -226,6 +196,7 @@ Omemo.prototype = {
     let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
     let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
     let cipher = ''
+
     let session = myBuilder.processPreKey(theirPublicBundle)
     session.then( function onsuccess(){
       pprint('session successfully established')
@@ -233,52 +204,83 @@ Omemo.prototype = {
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
     })
+
     cipher = new context._libsignal.SessionCipher(myStore, theirAddress)
     return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
   },
   getSerialized: function(context) {
     let res = context._storage.getItem('OMEMO'+context._jid)
     if (res != null) {
-      return  res
+      return res
     }
-    return "no serialized store for ' + context._jid + ' found to return"
+    return "no serialized store for " + context._jid + " found to return"
   },
-  send: function (text, to, context) {
-    let gcm = context._gcm
-    let codec = context._codec
-    let OmemoEncrypted, LibsignalEncrypted
-    gcm.encrypt(text).then(res => {
-    })
+  createFetchBundleStanza: function(to, device) {
+   let res = $iq({type: 'get', from: self._jid, to: to, id: 'fetch1'})
+            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+            .c('items', {node: self._ns_bundles + ":" + device})
+
+   return Promise.resolve(res)
+  },
+  createAnnounceBundleStanza: function (context) {
+    let store = context._store
+    let sk_id = store.currentSignedPreKeyId
+
+    return store.loadSignedPreKey(sk_id).then(sk =>
+      store.getIdentityKeyPair().then(ikp =>
+        store.loadSignedPreKeySignature(sk_id).then(signature => {
+          let signature64 = codec.b64encode(signature)
+          let sk64 = codec.b64encode(sk.pubKey)
+          let ik64 = codec.b64encode(ikp.pubKey)
+          console.log(sk.id)
+          let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
+            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+            .c('publish', {node:context._ns_bundles + ":" + context._store.get('registrationId')})
+            .c('item')
+            .c('bundle', {xmlns: this._ns_main})
+            .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+            .c('signedPreKeySignature').t(signature64).up()
+            .c('identityKey').t(ik64).up()
+            .c('prekeys')
+          let keys = context._store.getPreKeyBundle(context)
+          keys.forEach(function(key) {
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
+          })
+          return res
+        })
+      )
+    )
   },
 
-  createPreKeyStanza: function(to, id) { 
 
-  },
-  createEncryptedStanza: function(to, plaintext) { 
-
-  },
-
-  createFetchBundleStanza: function(jid) { 
-
-  },
-
-  createAnnounceBundleStanza: function(store) {
-
+  createEncryptedStanza: function(to, msgObj, prekeyToggle) {
+    let res = $msg({to: to, from:self._jid, id1: 'send1'})
+          .c('encrypted', {xmlns: self._ns_main })
+          .c('header', {sid: self._deviceid })
+          .c('key', {prekey: prekeyToggle, rid: to}).up()
+        //  .iv()
+        //  .t(codec.b64encode(msgObj.iv)).up()
+          return res
   },
 
-  createDeviceUpdateStanza: function(id) { 
-  
-  },
- 
-  handleDeviceUpdate: function(id) { 
+  createPreKeyStanza: function(to, id) {
 
   },
 
-  OmemoBundleXMLToSTore: function (receivedBundleMsg) { 
+  createDeviceUpdateStanza: function(id) {
 
   },
 
-  receive: function (encrypted) {
+  handleDeviceUpdate: function(id) {
+
+  },
+
+  OmemoBundleXMLToSTore: function (receivedBundleMsg) {
+	  //omemo store out or directly serialize to localStorage
+
+  },
+
+  receive: function (encXML) {
 
   },
   _onMessage: function(stanza) {
