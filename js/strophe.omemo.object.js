@@ -267,7 +267,10 @@ Omemo.prototype = {
         .c('encrypted', {xmlns: self._ns_main })
         .c('header', {sid: self._deviceid })
 
-        console.log(keys)
+        //console.log(keys)
+        let i  = this.encKeys(msgObj, jidSessions)
+        
+        return Promise.resolved(i)
 
         xml = xml.c('iv')
         .t(enforced64.iv).up()
@@ -291,7 +294,7 @@ Omemo.prototype = {
           }
         })
       }
-      return enforced64
+      return keys
   },
   encryptPayloads: function (msgObj, jidSessions) {
     return codec.enforceBase64ForSending(msgObj.OMMSG).then(enforced64 => {

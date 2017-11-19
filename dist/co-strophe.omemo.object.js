@@ -2221,7 +2221,7 @@ Omemo.prototype = {
     )
   },
 
-  createEncryptedStanza: function(to, msgObj) {
+  createEncryptedStanza: function(to, msgObj, keys) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
     let jidSessions = this._omemoStore.Sessions[to]
     if (jidSessions === undefined) {
@@ -2233,16 +2233,13 @@ Omemo.prototype = {
         .c('encrypted', {xmlns: self._ns_main })
         .c('header', {sid: self._deviceid })
 
+        //console.log(keys)
+        let i  = this.encKeys(msgObj, jidSessions)
+        
+        return Promise.resolved(i)
+
         xml = xml.c('iv')
         .t(enforced64.iv).up()
-
-        let i = 0
-        console.log("looping")
-        console.log(enforced64.keys.pop())
-        while (!enforced64.keys[i] === undefined) {
-          console.log(enforced64.keys[i])
-          i++
-        }
         return enforced64
       })
     }
@@ -2251,6 +2248,20 @@ Omemo.prototype = {
       //      res = res.t(record.payload).up()
   },
 
+ encKeys: function (msgObj, jidSessions) {
+    let keys = []
+      for (let k in jidSessions) {
+        let record = jidSessions[k]
+        record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
+          keys[k] = {
+            payload64: this._codec.StringToBase64(enc.body),
+            rid: enc.registrationId,
+            preKey: record.preKeyFlag
+          }
+        })
+      }
+      return keys
+  },
   encryptPayloads: function (msgObj, jidSessions) {
     return codec.enforceBase64ForSending(msgObj.OMMSG).then(enforced64 => {
       for (let k in jidSessions) {
