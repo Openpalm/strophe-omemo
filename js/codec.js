@@ -37,9 +37,9 @@ codec = {
     return dec.decode(buffer)
   },
   StringToBuffer: function (string) {
-   return Buffer.from(string, 'utf8')
+    return Buffer.from(string, 'utf8')
   },
-  type: function (obj){
+  type: function (obj) {
     return Object.prototype.toString.call(obj).slice(8, -1);
   },
   StringToBase64: function (string) {
@@ -48,16 +48,16 @@ codec = {
   Base64ToString: function (base64string) {
     return Base64.decode(base64string)
   },
-  enforceBase64ForSending: function (omemoEncrypted, bodyEncrypted) {
+  enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
     //bodyEncrypted = libsig enc.body
-    return {
+    return Promise.resolve({
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),
-      aad: this.BufferToBase64(omemoEncrypted.aad),
       tag: this.BufferToBase64(omemoEncrypted.tag),
-      body: this.StringToBase64(bodyEncrypted)
-    }
+     keys: []
+    })
+
   }
 }
 

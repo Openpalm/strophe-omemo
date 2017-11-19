@@ -226,7 +226,6 @@ function SignalProtocolStore() {
         let sk = context._store.get('25519KeysignedKey' + context._store.currentSignedPreKeyId)
         let preKey =  context._store.selectRandomPreKey(context)
         return context._store.loadIdentityKey(context._jid).then(res => {
-          res.pubKey
           return {
             registrationId: context._store.get("registrationId"),
             identityKey: res.pubKey,

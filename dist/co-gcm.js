@@ -1931,11 +1931,9 @@ function encrypt(key, text) {
   //after ecnrypting, we dont need to keep the key
   const data = codec.StringToUint8(text)
   const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
-//  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
   const alg = {
     name: "AES-GCM",
     iv: temp_iv, //uint8 buffer
- //   additionalData: aad, //uint8 buffer
     tagLength: 128
   }
   return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
@@ -1947,7 +1945,6 @@ function encrypt(key, text) {
         key: key,
         cipherText: cipherText,
         iv: temp_iv,
-  //      aad: aad,
         tag: gettag(cipherText, 128)
       }
       //OMMSG: omemo msg
@@ -1965,7 +1962,6 @@ function decrypt(key, cipherText, iv) {
     {
       name: "AES-GCM",
       iv: iv,
-      //additionalData: aad,
       tagLength: 128,
     },
     key,
@@ -2058,9 +2054,9 @@ codec = {
     return dec.decode(buffer)
   },
   StringToBuffer: function (string) {
-   return Buffer.from(string, 'utf8')
+    return Buffer.from(string, 'utf8')
   },
-  type: function (obj){
+  type: function (obj) {
     return Object.prototype.toString.call(obj).slice(8, -1);
   },
   StringToBase64: function (string) {
@@ -2069,16 +2065,16 @@ codec = {
   Base64ToString: function (base64string) {
     return Base64.decode(base64string)
   },
-  enforceBase64ForSending: function (omemoEncrypted, bodyEncrypted) {
+  enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
     //bodyEncrypted = libsig enc.body
-    return {
+    return Promise.resolve({
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),
-      aad: this.BufferToBase64(omemoEncrypted.aad),
       tag: this.BufferToBase64(omemoEncrypted.tag),
-      body: this.StringToBase64(bodyEncrypted)
-    }
+     keys: []
+    })
+
   }
 }
 
