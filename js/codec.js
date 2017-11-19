@@ -48,11 +48,15 @@ codec = {
   Base64ToString: function (base64string) {
     return Base64.decode(base64string)
   },
-  enforceBase64ForSending: function (omemoEncrypted, libsignalEncrypted) {
+  enforceBase64ForSending: function (omemoEncrypted, bodyEncrypted) {
+    //omemoenrypted = OMMSG
+    //libsignalEncrypted = libsig enc.body
     return {
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
-      iv: this.BufferToBase64(aliceFirstMsgObj.OMMSG.iv)
-
+      iv: this.BufferToBase64(omemoEncrypted.iv),
+      aad: this.BufferToBase64(omemoEncrypted.aad),
+      tag: this.BufferToBase64(omemoEncrypted.tag),
+      body: this.StringToBase64(bodyEncrypted)
     }
   }
 }
