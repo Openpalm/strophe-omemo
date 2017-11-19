@@ -72,7 +72,7 @@
 var codec = {};
 
 codec = {
-  b64encode: function (buffer) {
+  BufferToBase64: function (buffer) {
     let binary = ''
     let bytes = new Uint8Array(buffer)
     let len = bytes.byteLength
@@ -81,7 +81,7 @@ codec = {
     }
     return btoa(binary)
   },
-  b64encodeToBuffer: function (base64) {
+  BufferToBase64ToBuffer: function (base64) {
     var binary_string =  window.atob(base64);
     var len = binary_string.length
     var bytes = new Uint8Array( len )
@@ -237,15 +237,15 @@ omemo.constructOwnXMPPBundle= function (store) {
     .c('item')
     .c('bundle', {xmlns: omemo._ns_main}) 
     .c('signedPreKeyPublic', {signedPreKeyId: omemo._store.get('signedPreKey').keyId}).
-    t(codec.b64encode(omemo._store.get('signedPreKey').keyPair.pubKey)).up()
+    t(codec.BufferToBase64(omemo._store.get('signedPreKey').keyPair.pubKey)).up()
     .c('signedPreKeySignature')
-    .t(codec.b64encode(omemo._store.get('signedPreKey').signature)).up()
+    .t(codec.BufferToBase64(omemo._store.get('signedPreKey').signature)).up()
     .c('identityKey')
-    .t(codec.b64encode(omemo._store.get('identityKey').pubKey)).up()
+    .t(codec.BufferToBase64(omemo._store.get('identityKey').pubKey)).up()
     .c('prekeys')
   let keys = omemo._store.getPreKeyBundle()
   keys.forEach(function(key) { 
-    res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.b64encode(key.pubKey)).up()
+    res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
   })
   return res
 }
@@ -280,20 +280,20 @@ omemo.serialize = function() {
   res.signedPreKey = { 
     keyId: omemo._store.get('signedPreKey').keyId,
     keyPair: { 
-      pubKey: codec.b64encode(omemo._store.get('signedPreKey').keyPair.pubKey), 
-      privKey: codec.b64encode(omemo._store.get('signedPreKey').keyPair.privKey)
+      pubKey: codec.BufferToBase64(omemo._store.get('signedPreKey').keyPair.pubKey), 
+      privKey: codec.BufferToBase64(omemo._store.get('signedPreKey').keyPair.privKey)
     },
-    signature:  codec.b64encode(omemo._store.get('signedPreKey').signature)
+    signature:  codec.BufferToBase64(omemo._store.get('signedPreKey').signature)
   }
   res.identityKey =  { 
-    pubKey: codec.b64encode(omemo._store.get('identityKey').pubKey), 
-    privKey: codec.b64encode(omemo._store.get('identityKey').privKey)
+    pubKey: codec.BufferToBase64(omemo._store.get('identityKey').pubKey), 
+    privKey: codec.BufferToBase64(omemo._store.get('identityKey').privKey)
   }
   let keys = omemo._store.getPreKeys()
   keys.forEach(function(key) { 
     res['25519KeypreKey' + key.keyId] =  { 
-      pubKey: codec.b64encode(key.keyPair.pubKey), 
-      privKey: codec.b64encode(key.keyPair.privKey), 
+      pubKey: codec.BufferToBase64(key.keyPair.pubKey), 
+      privKey: codec.BufferToBase64(key.keyPair.privKey), 
     }
   })
   res = JSON.stringify(res)
@@ -308,14 +308,14 @@ omemo.restore = function (serialized) {
   res.store.signedPreKey = { 
     keyId: serialized['signedPreKey'].keyId,
     keyPair: { 
-      pubKey:   codec.b64encodeToBuffer(serialized.signedPreKey['keyPair'].pubKey), 
-      privKey:  codec.b64encodeToBuffer(serialized.signedPreKey['keyPair'].privKey)
+      pubKey:   codec.BufferToBase64ToBuffer(serialized.signedPreKey['keyPair'].pubKey), 
+      privKey:  codec.BufferToBase64ToBuffer(serialized.signedPreKey['keyPair'].privKey)
     },
-    signature: codec.b64encodeToBuffer(serialized.signedPreKey['signature'])
+    signature: codec.BufferToBase64ToBuffer(serialized.signedPreKey['signature'])
   }
   res.store.identityKey =  { 
-    pubKey:   codec.b64encodeToBuffer(serialized.identityKey.pubKey), 
-    privKey:  codec.b64encodeToBuffer(serialized.identityKey.privKey)
+    pubKey:   codec.BufferToBase64ToBuffer(serialized.identityKey.pubKey), 
+    privKey:  codec.BufferToBase64ToBuffer(serialized.identityKey.privKey)
   }
   let prefix = '25519KeypreKey'
   let key = ''
@@ -324,8 +324,8 @@ omemo.restore = function (serialized) {
     res.store[prefix + keyId] =  { 
       keyId: keyId, 
       keyPair: {
-        pubKey:   codec.b64encodeToBuffer(key.pubKey), 
-        privKey:  codec.b64encodeToBuffer(key.privKey)
+        pubKey:   codec.BufferToBase64ToBuffer(key.pubKey), 
+        privKey:  codec.BufferToBase64ToBuffer(key.privKey)
       }
     }
   }

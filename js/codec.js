@@ -4,7 +4,7 @@ let base64 = require('./base64.js')
 var codec = {};
 
 codec = {
-  b64encode: function (buffer) {
+  BufferToBase64: function (buffer) {
     let binary = ''
     let bytes = new Uint8Array(buffer)
     let len = bytes.byteLength
@@ -13,7 +13,7 @@ codec = {
     }
     return btoa(binary)
   },
-  b64ToBuffer: function (base64) {
+  Base64ToBuffer: function (base64) {
     var binary_string =  window.atob(base64);
     var len = binary_string.length
     var bytes = new Uint8Array( len )
@@ -22,9 +22,15 @@ codec = {
     }
     return bytes.buffer
   },
+  Base64ToUint8: function(base64string) {
+    return new Uint8Array(this.Base64ToBuffer(base64string))
+  },
   StringToUint8: function (string) {
     let enc = new TextEncoder("utf-8")
     return enc.encode(string)
+  },
+  Uint8ToString: function (buffer) {
+    return String.fromCharCode.apply(null, buffer)
   },
   BufferToString: function (buffer) {
     let enc = new TextDecoder()
@@ -32,9 +38,6 @@ codec = {
   },
   StringToBuffer: function (string) {
    return Buffer.from(string, 'utf8')
-  },
-  Uint8ToString: function (buffer) {
-    return String.fromCharCode.apply(null, buffer)
   },
   type: function (obj){
     return Object.prototype.toString.call(obj).slice(8, -1);
@@ -44,6 +47,13 @@ codec = {
   },
   Base64ToString: function (base64string) {
     return Base64.decode(base64string)
+  },
+  enforceBase64ForSending: function (omemoEncrypted, libsignalEncrypted) {
+    return {
+      cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
+      iv: this.BufferToBase64(aliceFirstMsgObj.OMMSG.iv)
+
+    }
   }
 }
 

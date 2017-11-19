@@ -224,7 +224,9 @@ let am1dec = ''
 //bob receives alice's first message, decrypts it as a prekey whisper message
 function establish() {
   bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
-  bobSessionCipher.decryptPreKeyWhisperMessage(am1enc.body, 'binary').then(res => {
+  let ls64 = alice._codec.StringToBase64(am1enc.body) // checking to see if base64 payload gets decrypted well
+  let lsnorm = alice._codec.Base64ToString(ls64) //aught to turn this into an assert
+  bobSessionCipher.decryptPreKeyWhisperMessage(lsnorm, 'binary').then(res => {
     let decoder = new TextDecoder()
     pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
     return Promise.resolve(am1dec = decoder.decode(res))
