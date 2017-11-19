@@ -33,8 +33,8 @@ codec = {
     return String.fromCharCode.apply(null, buffer)
   },
   BufferToString: function (buffer) {
-    let enc = new TextDecoder()
-    return enc.encode(buffer)
+    let dec = new TextDecoder()
+    return dec.decode(buffer)
   },
   StringToBuffer: function (string) {
    return Buffer.from(string, 'utf8')

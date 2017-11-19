@@ -1931,11 +1931,11 @@ function encrypt(key, text) {
   //after ecnrypting, we dont need to keep the key
   const data = codec.StringToUint8(text)
   const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
-  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
+//  const aad =  codec.StringToUint8("fetch from libsignal rid store here")
   const alg = {
     name: "AES-GCM",
     iv: temp_iv, //uint8 buffer
-    additionalData: aad, //uint8 buffer
+ //   additionalData: aad, //uint8 buffer
     tagLength: 128
   }
   return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
@@ -1947,7 +1947,7 @@ function encrypt(key, text) {
         key: key,
         cipherText: cipherText,
         iv: temp_iv,
-        aad: aad,
+  //      aad: aad,
         tag: gettag(cipherText, 128)
       }
       //OMMSG: omemo msg
@@ -1958,14 +1958,14 @@ function encrypt(key, text) {
   })
 }
 
-function decrypt(key, cipherText, iv, aad) {
+function decrypt(key, cipherText, iv) {
   let enc = new TextDecoder()
   let out = ''
   return window.crypto.subtle.decrypt(
     {
       name: "AES-GCM",
       iv: iv,
-      additionalData: aad,
+      //additionalData: aad,
       tagLength: 128,
     },
     key,
@@ -1988,9 +1988,9 @@ gcm = {
       return encrypt(key, text)
     })
   },
-  decrypt: function (key, cipherText, iv, aad) {
+  decrypt: function (key, cipherText, iv) {
     return restoreKey(key).then(res => {
-      return decrypt(res, cipherText,iv, aad).then(decrypt_out => {
+      return decrypt(res, cipherText,iv).then(decrypt_out => {
         let decoder = new TextDecoder()
         return decoder.decode(decrypt_out)
       })
@@ -2003,6 +2003,12 @@ gcm = {
   },
   restoreKey: function(key) {
     return restoreKey(key)
+  },
+  getKeyAndAADFromLibSignalDecrypt: function(string) {
+    return {
+      key: string.slice(0, 43), //256bit key
+      tag: string.slice(43, string.length) //rest is tag
+    }
   }
 }
 module.exports = gcm
@@ -2048,8 +2054,8 @@ codec = {
     return String.fromCharCode.apply(null, buffer)
   },
   BufferToString: function (buffer) {
-    let enc = new TextDecoder()
-    return enc.encode(buffer)
+    let dec = new TextDecoder()
+    return dec.decode(buffer)
   },
   StringToBuffer: function (string) {
    return Buffer.from(string, 'utf8')
@@ -2064,8 +2070,8 @@ codec = {
     return Base64.decode(base64string)
   },
   enforceBase64ForSending: function (omemoEncrypted, bodyEncrypted) {
-    //omemoenrypted = OMMSG
-    //libsignalEncrypted = libsig enc.body
+    //omemoEnrypted = OMMSG
+    //bodyEncrypted = libsig enc.body
     return {
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),

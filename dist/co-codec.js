@@ -1927,8 +1927,8 @@ codec = {
     return String.fromCharCode.apply(null, buffer)
   },
   BufferToString: function (buffer) {
-    let enc = new TextDecoder()
-    return enc.encode(buffer)
+    let dec = new TextDecoder()
+    return dec.decode(buffer)
   },
   StringToBuffer: function (string) {
    return Buffer.from(string, 'utf8')
@@ -1943,8 +1943,8 @@ codec = {
     return Base64.decode(base64string)
   },
   enforceBase64ForSending: function (omemoEncrypted, bodyEncrypted) {
-    //omemoenrypted = OMMSG
-    //libsignalEncrypted = libsig enc.body
+    //omemoEnrypted = OMMSG
+    //bodyEncrypted = libsig enc.body
     return {
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),
