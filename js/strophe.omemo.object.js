@@ -258,29 +258,27 @@ Omemo.prototype = {
   createEncryptedStanza: function(to, msgObj, keys) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
     let jidSessions = this._omemoStore.getSessions(to)
+    let parr = []
     if (jidSessions === undefined) {
       console.log("No sessions with " + to + " found.\nEstablish a session first.")
       return Promise.reject()
     } else {
-      return this._omemoStore.encryptPayloadsForSession(to, msgObj, this).then(jidSessions => {
-        let xml = $msg({to: to, from:self._jid, id1: 'send1'})
-        .c('encrypted', {xmlns: self._ns_main })
-        .c('header', {sid: self._deviceid })
-        for (let i = 0; i < jidSessions.length; i++)  {
-          let record = jidSessions[i]
-          return this._omemoStore.getPayload(to, i).then(payload => {
-            return xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(payload).up()
-          })
-        }
-
-        return Promise.resolve(xml)
-      })
+      let xml = $msg({to: to, from:self._jid, id1: 'send1'})
+      .c('encrypted', {xmlns: self._ns_main })
+      .c('header', {sid: self._deviceid })
+      parr.push(this._omemoStore.encryptPayloadsForSession(to, msgObj, this))
+      for (let i = 0; i < jidSessions.length; i++)  {
+        //let record = jidSessions[i]
+        parr.push(this._omemoStore.getPayload(to, i))
+        //return xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(payload).up()
+      }
     }
-  },
-  createPreKeyStanza: function(to, id) {
+    return Promise.all(parr)
+},
+createPreKeyStanza: function(to, id) {
 
-  },
-  createPreKeyStanza: function(to, id) {
+},
+createPreKeyStanza: function(to, id) {
   },
 
   createDeviceUpdateStanza: function(id) {
