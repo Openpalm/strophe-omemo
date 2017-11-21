@@ -258,61 +258,55 @@ Omemo.prototype = {
   createEncryptedStanza: function(to, msgObj, keys) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
     let jidSessions = this._omemoStore.Sessions[to]
-    if (jidSessions === undefined) {
-      console.log("No sessions with " + to + " found.\nEstablish a session first.")
-      Promise.reject()
-    } else {
-      return this.encryptPayloads(msgObj, jidSessions).then(enforced64 => {
-        let xml = $msg({to: to, from:self._jid, id1: 'send1'})
+    let xml = $msg({to: to, from:self._jid, id1: 'send1'})
         .c('encrypted', {xmlns: self._ns_main })
         .c('header', {sid: self._deviceid })
 
-        //console.log(keys)
-        let i  = this.encKeys(msgObj, jidSessions)
-        
-        return Promise.resolved(i)
+        if (jidSessions === undefined) {
+          console.log("No sessions with " + to + " found.\nEstablish a session first.")
+          Promise.reject()
+        } else {
+          return codec.enforceBase64ForSending(msgObj.OMMSG).then(enforced64 => {
+            return this.encKeysRec(msgObj, enforced64, jidSessions, xml, 0).then(res => {
+              return res
+            })
+          })
+        }
 
-        xml = xml.c('iv')
-        .t(enforced64.iv).up()
-        return enforced64
-      })
-    }
-
-      //      res = res.c('key', {prekey: record.prekeyFlag, rid: record.rid}).up()
+        //      res = res.c('key', {prekey: record.prekeyFlag, rid: record.rid}).up()
       //      res = res.t(record.payload).up()
-  },
+    },
 
- encKeys: function (msgObj, jidSessions) {
-    let keys = []
+    encKeys: function (msgObj, enforced64, jidSessions, xml) {
+      let keys = []
+      let b64 = this._codec.StringToBase64
       for (let k in jidSessions) {
+        console.log("loop twice")
         let record = jidSessions[k]
-        record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
-          keys[k] = {
-            payload64: this._codec.StringToBase64(enc.body),
-            rid: enc.registrationId,
-            preKey: record.preKeyFlag
-          }
+        record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then((xml, enc) =>
+          xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(b64(enc.body)).up
+        )
+      }
+      return Promise.resolve({xml, jidSessions})
+    },
+    createPreKeyStanza: function(to, id) {
+
+    },
+    encKeysRec: function (msgObj, enforced64, jidSessions, xml, ctr) {
+      let xml2 = xml
+      if (ctr > jidSessions.length) {
+        return Promise.resolve(xml2)
+      } else {
+        let record = jidSessions[ctr]
+        let b64 = this._codec.StringToBase64
+        return record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then((xml, enc) => {
+          xml2 = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(b64(enc.body)).up
+          ctr = ctr + 1
+          return Promise.resolve(this.encKeysRec(msgObj, enforced64, jidSessions, xml, ctr))
         })
       }
-      return keys
-  },
-  encryptPayloads: function (msgObj, jidSessions) {
-    return codec.enforceBase64ForSending(msgObj.OMMSG).then(enforced64 => {
-      for (let k in jidSessions) {
-        let record = jidSessions[k]
-        record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
-          return enforced64["keys"][k] = {
-            payload64: this._codec.StringToBase64(enc.body),
-            rid: enc.registrationId,
-            preKey: record.preKeyFlag
-          }
-        })
-      }
-      return enforced64
-    })
-  },
+    },
   createPreKeyStanza: function(to, id) {
-
   },
 
   createDeviceUpdateStanza: function(id) {

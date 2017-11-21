@@ -19,5 +19,21 @@ OmemoStore.prototype = {
 				preKeyFlag: flag
 			})
 		})
-	)}
+	)},
+	getSessions: function (jid) {
+		return this.Sessions[jid]
+	},
+	getSessionsCount: function (jid) {
+		return this.Sessions[jid].length
+	},
+	dropSessions: function (jid) {
+		this.Sessions[jid] = []
+	},
+	encryptPayloadsForSession: function (jid, msgObj, ctxt) {
+		for (let k in this.Sessions[jid]) {
+			this.Sessions[jid][k].cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
+				this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
+			})
+		}
+	}
 }
