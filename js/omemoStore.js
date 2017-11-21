@@ -21,13 +21,13 @@ OmemoStore.prototype = {
 		})
 	)},
 	getSessions: function (jid) {
-		return this.Sessions[jid]
+		return Promise.resolve(this.Sessions[jid])
 	},
 	getSessionsCount: function (jid) {
-		return this.Sessions[jid].length
+		return Promise.resolve(this.Sessions[jid].length)
 	},
 	dropSessions: function (jid) {
-		this.Sessions[jid] = []
+		Promise.resolve(this.Sessions[jid] = [])
 	},
 	encryptPayloadsForSession: function (jid, msgObj, ctxt) {
 		for (let k in this.Sessions[jid]) {
@@ -35,5 +35,9 @@ OmemoStore.prototype = {
 				this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
 			})
 		}
+		return Promise.resolve(this.Sessions[jid])
+	},
+	getPayload: function (jid, index) {
+		return Promise.resolve(this.Sessions[jid][index].payload)
 	}
 }

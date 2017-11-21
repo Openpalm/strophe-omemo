@@ -2045,9 +2045,9 @@ Omemo.prototype = {
           context._store.identifier = context._jid
           context._store.saveIdentity(context._jid, result[0])
           context._store.loadIdentityKey(context._jid).then((ikey) =>
-            context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-              context._store.storeSignedPreKey(1, skey)
-            })
+          context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
+            context._store.storeSignedPreKey(1, skey)
+          })
           context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
           pprint("libsignal armed for " + context._jid + '.' + context._store.get('registrationId'))
         })
@@ -2055,7 +2055,7 @@ Omemo.prototype = {
       }
     )
   },
-    gen100PreKeys: function (start, finish, context, counter) {
+  gen100PreKeys: function (start, finish, context, counter) {
     if (start == finish+1)  {
       return Promise.resolve(true)
     }
@@ -2073,8 +2073,8 @@ Omemo.prototype = {
     pprint("refreshing one time PreKeys")
     for (let i = 0; i < 100; i++) {
       context._keyhelper.generatePreKey(i)
-        .then((keyPair) => context._store.storePreKey(i, keyPair))
-        .then("one time key generation completed")
+      .then((keyPair) => context._store.storePreKey(i, keyPair))
+      .then("one time key generation completed")
     }
     return Promise.resolve(true)
   },
@@ -2184,11 +2184,11 @@ Omemo.prototype = {
     return "no serialized store for " + context._jid + " found to return"
   },
   createFetchBundleStanza: function(to, device, context) {
-   let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
-            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-            .c('items', {node: context._ns_bundles + ":" + device})
+    let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
+    .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+    .c('items', {node: context._ns_bundles + ":" + device})
 
-   return Promise.resolve(res)
+    return Promise.resolve(res)
   },
   createAnnounceBundleStanza: function (context) {
     let store = context._store
@@ -2202,14 +2202,14 @@ Omemo.prototype = {
           let ik64 = codec.BufferToBase64(ikp.pubKey)
           console.log(sk.id)
           let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
-            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-            .c('publish', {node: this._ns_bundles + ":" + context._store.get('registrationId')})
-            .c('item')
-            .c('bundle', {xmlns: this._ns_main})
-            .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
-            .c('signedPreKeySignature').t(signature64).up()
-            .c('identityKey').t(ik64).up()
-            .c('prekeys')
+          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+          .c('publish', {node: this._ns_bundles + ":" + context._store.get('registrationId')})
+          .c('item')
+          .c('bundle', {xmlns: this._ns_main})
+          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+          .c('signedPreKeySignature').t(signature64).up()
+          .c('identityKey').t(ik64).up()
+          .c('prekeys')
 
           let keys = context._store.getPreKeyBundle(context)
           keys.forEach(function(key) {
@@ -2223,55 +2223,30 @@ Omemo.prototype = {
 
   createEncryptedStanza: function(to, msgObj, keys) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
-    let jidSessions = this._omemoStore.Sessions[to]
-    let xml = $msg({to: to, from:self._jid, id1: 'send1'})
+    let jidSessions = this._omemoStore.getSessions(to)
+    if (jidSessions === undefined) {
+      console.log("No sessions with " + to + " found.\nEstablish a session first.")
+      Promise.reject()
+    } else {
+      return this._omemoStore.encryptPayloadsForSession(to, msgObj, this).then(jidSessions => {
+        let xml = $msg({to: to, from:self._jid, id1: 'send1'})
         .c('encrypted', {xmlns: self._ns_main })
         .c('header', {sid: self._deviceid })
-
-        if (jidSessions === undefined) {
-          console.log("No sessions with " + to + " found.\nEstablish a session first.")
-          Promise.reject()
-        } else {
-          return codec.enforceBase64ForSending(msgObj.OMMSG).then(enforced64 => {
-            return this.encKeysRec(msgObj, enforced64, jidSessions, xml, 0).then(res => {
-              return res
-            })
+        for (let i = 0; i < jidSessions.length; i++)  {
+          let record = jidSessions[i]
+          return this._omemoStore.getPayload(to, i).then(payload => {
+            console.log(to, i, payload)
+            return xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(payload).up()
           })
         }
 
-        //      res = res.c('key', {prekey: record.prekeyFlag, rid: record.rid}).up()
-      //      res = res.t(record.payload).up()
-    },
+        return Promise.resolve(xml)
+      })
+    }
+  },
+  createPreKeyStanza: function(to, id) {
 
-    encKeys: function (msgObj, enforced64, jidSessions, xml) {
-      let keys = []
-      let b64 = this._codec.StringToBase64
-      for (let k in jidSessions) {
-        console.log("loop twice")
-        let record = jidSessions[k]
-        record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then((xml, enc) =>
-          xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(b64(enc.body)).up
-        )
-      }
-      return Promise.resolve({xml, jidSessions})
-    },
-    createPreKeyStanza: function(to, id) {
-
-    },
-    encKeysRec: function (msgObj, enforced64, jidSessions, xml, ctr) {
-      let xml2 = xml
-      if (ctr > jidSessions.length) {
-        return Promise.resolve(xml2)
-      } else {
-        let record = jidSessions[ctr]
-        let b64 = this._codec.StringToBase64
-        return record.cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then((xml, enc) => {
-          xml2 = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(b64(enc.body)).up
-          ctr = ctr + 1
-          return Promise.resolve(this.encKeysRec(msgObj, enforced64, jidSessions, xml, ctr))
-        })
-      }
-    },
+  },
   createPreKeyStanza: function(to, id) {
   },
 
@@ -2284,7 +2259,7 @@ Omemo.prototype = {
   },
 
   OmemoBundleXMLToSTore: function (receivedBundleMsg) {
-	  //omemo store out or directly serialize to localStorage
+    //omemo store out or directly serialize to localStorage
 
   },
 
@@ -13169,9 +13144,25 @@ OmemoStore.prototype = {
 			})
 		})
 	)},
-	encrypt: function (jid, OMMSG, LSPLD) {
-			let ctr = this.Sessions[jid].length
-			console.log(ctr)
+	getSessions: function (jid) {
+		return Promise.resolve(this.Sessions[jid])
+	},
+	getSessionsCount: function (jid) {
+		return Promise.resolve(this.Sessions[jid].length)
+	},
+	dropSessions: function (jid) {
+		Promise.resolve(this.Sessions[jid] = [])
+	},
+	encryptPayloadsForSession: function (jid, msgObj, ctxt) {
+		for (let k in this.Sessions[jid]) {
+			this.Sessions[jid][k].cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
+				this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
+			})
+		}
+		return Promise.resolve(this.Sessions[jid])
+	},
+	getPayload: function (jid, index) {
+		return Promise.resolve(this.Sessions[jid][index].payload)
 	}
 }
 
