@@ -2247,8 +2247,10 @@ Omemo.prototype = {
         }
 
         xml.c('iv').t(msgObj.ENFORCED.iv).up()
-        xml.cnode('payload').t(msgObj.ENFORCED.cipherText)
-        xml.cnode('store', {xmlns: 'urn:xmpp:hints'})
+        xml.up()
+        xml.c('payload').t(msgObj.ENFORCED.cipherText)
+        xml.up().up()
+        xml.c('store', {xmlns: 'urn:xmpp:hints'})
 
         return xml
         //end promise block
@@ -2258,7 +2260,7 @@ Omemo.prototype = {
       //end else
     }
     return Promise.all(promises).then(xml_out =>{
-      return [xml_out[0], enforced64]
+      return xml_out[0]
     })
   },
   createPreKeyStanza: function(to, id) {
