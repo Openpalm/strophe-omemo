@@ -1949,7 +1949,8 @@ function encrypt(key, text) {
       }
       //OMMSG: omemo msg
       //LSPLD: Libsignal payload
-      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
+      let enforced64 = codec.enforceBase64ForSending(gcm_out)
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, ENFORCED: enforced64}
       return Promise.resolve(out)
     })
   })
@@ -2068,13 +2069,11 @@ codec = {
   enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
     //bodyEncrypted = libsig enc.body
-    return Promise.resolve({
+    return {
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),
-      tag: this.BufferToBase64(omemoEncrypted.tag),
-     keys: []
-    })
-
+      tag: this.BufferToBase64(omemoEncrypted.tag)
+    }
   }
 }
 

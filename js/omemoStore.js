@@ -21,23 +21,30 @@ OmemoStore.prototype = {
 		})
 	)},
 	getSessions: function (jid) {
-		return Promise.resolve(this.Sessions[jid])
+		return this.Sessions[jid]
 	},
 	getSessionsCount: function (jid) {
-		return Promise.resolve(this.Sessions[jid].length)
+		return this.Sessions[jid].length
 	},
 	dropSessions: function (jid) {
-		Promise.resolve(this.Sessions[jid] = [])
+		this.Sessions[jid] = []
 	},
-	encryptPayloadsForSession: function (jid, msgObj, ctxt) {
+	encryptPayloadsForSession: function (jid, keyCipherText, tag , ctxt) {
+		let promises = []
+
 		for (let k in this.Sessions[jid]) {
-			this.Sessions[jid][k].cipher.encrypt(msgObj.LSPLD + msgObj.OMMSG.tag).then(enc => {
+			promises.push(
+				this.Sessions[jid][k].cipher.encrypt(keyCipherText + tag).then(enc => {
 				this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
 			})
-		}
-		return Promise.resolve(this.Sessions[jid])
+		)
+	}
+
+		return Promise.all(promises).then(o => {
+			return Promise.resolve(this.Sessions[jid])
+		})
 	},
 	getPayload: function (jid, index) {
-		return Promise.resolve(this.Sessions[jid][index].payload)
+		return this.Sessions[jid][index].payload
 	}
 }

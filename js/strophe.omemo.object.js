@@ -255,30 +255,53 @@ Omemo.prototype = {
     )
   },
 
-  createEncryptedStanza: function(to, msgObj, keys) {
+  createEncryptedStanza: function(to, msgObj, ctxt = this) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
-    let jidSessions = this._omemoStore.getSessions(to)
-    let parr = []
+    let tag = msgObj.ENFORCED.tag
+    let keyCipherText = msgObj.LSPLD
+    let promises = []
+    let jidSessions = ctxt._omemoStore.getSessions(to)
+    let record, xml, enforced64
+    xml = $msg({to: to, from: ctxt._jid, id1: 'send1'})
+    xml.c('encrypted', {xmlns: ctxt._ns_main })
+    xml.c('header', {sid: ctxt._deviceid })
+
     if (jidSessions === undefined) {
       console.log("No sessions with " + to + " found.\nEstablish a session first.")
       return Promise.reject()
     } else {
-      let xml = $msg({to: to, from:self._jid, id1: 'send1'})
-      .c('encrypted', {xmlns: self._ns_main })
-      .c('header', {sid: self._deviceid })
-      parr.push(this._omemoStore.encryptPayloadsForSession(to, msgObj, this))
-      for (let i = 0; i < jidSessions.length; i++)  {
-        //let record = jidSessions[i]
-        parr.push(this._omemoStore.getPayload(to, i))
-        //return xml = xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(payload).up()
-      }
-    }
-    return Promise.all(parr)
-},
-createPreKeyStanza: function(to, id) {
+      //start else
+      //msgObj should already be enforced since it's passed on to encryptPayloadsForSessions
+      //encrying a byte array tag is nonsensical.
+      promises.push(
+        ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
+        //start promise block
 
-},
-createPreKeyStanza: function(to, id) {
+        for (let i = 0; i < jidSessions.length; i++)  {
+          record = jidSessions[i]
+          xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(record.payload).up()
+        }
+
+        xml.c('iv').t(msgObj.ENFORCED.iv).up()
+        
+        xml.c('payload').t(msgObj.ENFORCED.cipherText)
+        xml.c('store', {xmlns: 'urn:xmpp:hints'})
+
+        return xml
+        //end promise block
+      })
+      //promises.push end
+    )
+      //end else
+    }
+    return Promise.all(promises).then(xml_out =>{
+      return [xml_out[0], enforced64]
+    })
+  },
+  createPreKeyStanza: function(to, id) {
+
+  },
+  createPreKeyStanza: function(to, id) {
   },
 
   createDeviceUpdateStanza: function(id) {

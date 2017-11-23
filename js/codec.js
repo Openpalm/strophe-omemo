@@ -51,13 +51,11 @@ codec = {
   enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
     //bodyEncrypted = libsig enc.body
-    return Promise.resolve({
+    return {
       cipherText: this.BufferToBase64(omemoEncrypted.cipherText),
       iv: this.BufferToBase64(omemoEncrypted.iv),
-      tag: this.BufferToBase64(omemoEncrypted.tag),
-     keys: []
-    })
-
+      tag: this.BufferToBase64(omemoEncrypted.tag)
+    }
   }
 }
 

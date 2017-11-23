@@ -55,7 +55,8 @@ function encrypt(key, text) {
       }
       //OMMSG: omemo msg
       //LSPLD: Libsignal payload
-      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text}
+      let enforced64 = codec.enforceBase64ForSending(gcm_out)
+      let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, ENFORCED: enforced64}
       return Promise.resolve(out)
     })
   })
