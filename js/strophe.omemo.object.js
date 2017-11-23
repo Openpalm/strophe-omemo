@@ -220,15 +220,7 @@ Omemo.prototype = {
   createFetchBundleStanza: function(to, device, context) {
     let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-    .c('items', {node: context._ns_bundles + ":" + device})
-
-    return Promise.resolve(res)
-  },
-
-  createFetchDevicesStanza: function(to, context) {
-    let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
-    .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-    .c('items', {node: context._ns_bundles + ":" + device})
+    .c('items', {node: context._ns_bundles + ":" + device}) // could consider to as an array of friends afterwards.
 
     return Promise.resolve(res)
   },
@@ -263,7 +255,7 @@ Omemo.prototype = {
     )
   },
 
-  createEncryptedStanza: function(to, msgObj, ctxt = this) {
+  createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
     let tag = msgObj.ENFORCED.tag
     let keyCipherText = msgObj.LSPLD
@@ -291,10 +283,16 @@ Omemo.prototype = {
         }
 
         xml.c('iv').t(msgObj.ENFORCED.iv).up()
-        xml.up()
-        xml.c('payload').t(msgObj.ENFORCED.cipherText)
-        xml.up().up()
-        xml.c('store', {xmlns: 'urn:xmpp:hints'})
+
+        if (!keyMessage) {
+          xml.up()
+          xml.c('payload').t(msgObj.ENFORCED.cipherText)
+          xml.up().up()
+          xml.c('store', {xmlns: 'urn:xmpp:hints'})
+        } else {
+          xml.up().up()
+          xml.c('store', {xmlns: 'urn:xmpp:hints'})
+        }
 
         return xml
         //end promise block
@@ -315,6 +313,7 @@ Omemo.prototype = {
   receive: function(xml) {
     let parsed = $.parseXML(xml)
   },
+
   createPreKeyStanza: function(to, id) {
 
   },
