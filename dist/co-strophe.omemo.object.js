@@ -2226,6 +2226,7 @@ Omemo.prototype = {
     let promises = []
     let jidSessions = ctxt._omemoStore.getSessions(to)
     let record, xml, enforced64
+
     xml = $msg({to: to, from: ctxt._jid, id1: 'send1'})
     xml.c('encrypted', {xmlns: ctxt._ns_main })
     xml.c('header', {sid: ctxt._deviceid })
@@ -2235,8 +2236,7 @@ Omemo.prototype = {
       return Promise.reject()
     } else {
       //start else
-      //msgObj should already be enforced since it's passed on to encryptPayloadsForSessions
-      //encrying a byte array tag is nonsensical.
+
       promises.push(
         ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
         //start promise block
@@ -2259,14 +2259,20 @@ Omemo.prototype = {
     )
       //end else
     }
+    //final return
     return Promise.all(promises).then(xml_out =>{
       return xml_out[0]
     })
   },
-  createPreKeyStanza: function(to, id) {
-
+  handleEncryptedStanza: function (xml) { //object
+    let parsed = $.parseXML(xml)
+    return parsed
+  },
+  receive: function(xml) {
+    let parsed = $.parseXML(xml)
   },
   createPreKeyStanza: function(to, id) {
+
   },
 
   createDeviceUpdateStanza: function(id) {

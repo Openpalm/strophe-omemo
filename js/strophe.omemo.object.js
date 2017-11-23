@@ -224,6 +224,14 @@ Omemo.prototype = {
 
     return Promise.resolve(res)
   },
+
+  createFetchDevicesStanza: function(to, context) {
+    let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
+    .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+    .c('items', {node: context._ns_bundles + ":" + device})
+
+    return Promise.resolve(res)
+  },
   createAnnounceBundleStanza: function (context) {
     let store = context._store
     let sk_id = store.currentSignedPreKeyId
@@ -272,8 +280,7 @@ Omemo.prototype = {
       return Promise.reject()
     } else {
       //start else
-      //msgObj should already be enforced since it's passed on to encryptPayloadsForSessions
-      //encrying a byte array tag is nonsensical.
+
       promises.push(
         ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
         //start promise block
@@ -296,17 +303,18 @@ Omemo.prototype = {
     )
       //end else
     }
+    //final return
     return Promise.all(promises).then(xml_out =>{
       return xml_out[0]
     })
   },
-  handleEncryptedStanza: function (xml) {
-    console.log(xml)
+  handleEncryptedStanza: function (xml) { //object
+    let parsed = $.parseXML(xml)
+    return parsed
   },
   receive: function(xml) {
-    return handleEncryptedStanza(xml)
+    let parsed = $.parseXML(xml)
   },
-
   createPreKeyStanza: function(to, id) {
 
   },
