@@ -262,6 +262,7 @@ Omemo.prototype = {
     let promises = []
     let jidSessions = ctxt._omemoStore.getSessions(to)
     let record, xml, enforced64
+
     xml = $msg({to: to, from: ctxt._jid, id1: 'send1'})
     xml.c('encrypted', {xmlns: ctxt._ns_main })
     xml.c('header', {sid: ctxt._deviceid })
@@ -299,10 +300,15 @@ Omemo.prototype = {
       return xml_out[0]
     })
   },
+  handleEncryptedStanza: function (xml) {
+    console.log(xml)
+  },
+  receive: function(xml) {
+    return handleEncryptedStanza(xml)
+  },
+
   createPreKeyStanza: function(to, id) {
 
-  },
-  createPreKeyStanza: function(to, id) {
   },
 
   createDeviceUpdateStanza: function(id) {
