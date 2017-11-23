@@ -284,6 +284,7 @@ Omemo.prototype = {
 
         xml.c('iv').t(msgObj.ENFORCED.iv).up()
 
+        //are we sending keying material or text messages?
         if (!keyMessage) {
           xml.up()
           xml.c('payload').t(msgObj.ENFORCED.cipherText)
@@ -307,22 +308,14 @@ Omemo.prototype = {
     })
   },
   handleEncryptedStanza: function (xml) { //object
-    let parsed = $.parseXML(xml)
-    return parsed
   },
-  receive: function(xml) {
-    let parsed = $.parseXML(xml)
-  },
-
-  createPreKeyStanza: function(to, id) {
-
-  },
-
-  createDeviceUpdateStanza: function(id) {
+  createDeviceUpdateStanza: function(id, fetched) {
     //fetch device list and concat. needs debugger
+
   },
 
-  handleDeviceUpdate: function(id) {
+  handleDeviceUpdate: function(deviceid, sentUpdateXml) {
+    //fetch updated and compare with sent
 
   },
 
@@ -331,22 +324,26 @@ Omemo.prototype = {
 
   },
 
-  receive: function (encXML) {
+  receive: function (xml) {
 
+    let parsed = $.parseXML(xml)
+    //if iq, detect and send to appropraite handler
+
+    //id = announce2 = bundle
+    //id = update_01 = received buddy device update, own included
+    //id = send1 = received message
+
+    //if message
+    _onMessage(xml)
   },
   _onMessage: function(stanza) {
+
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
 
-  OmemoBundleMsgToSTore: function (receivedBundleMsg) {
-
-  }
 }
 
 Strophe.addNamespace(protocol, this._ns_main);
 Strophe.addConnectionPlugin('omemo', Omemo);
-pprint("namespace loaded")
 
 window.Omemo = Omemo
-
-pprint("loaded the testing version of omemo")
