@@ -309,6 +309,7 @@ Omemo.prototype = {
   },
 
   createDeviceStanza: function(ctxt = this) {
+    //initial add. all other additions happen on receiving device updates.
     let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce1'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
     .c('publish', {node: ctxt._ns_devices})
@@ -317,7 +318,6 @@ Omemo.prototype = {
     .c('device', {id: ctxt._deviceid  }).up()
 
     return res
-    // must plan handelling the first device update.
   },
 
 // receive should be handeled by the clients, not this library. the library
@@ -338,21 +338,21 @@ Omemo.prototype = {
 //  },
 
   _onDevice: function(stanza) {
-  //creates an OmemoBundle instance for a received bundle
+    //handles device updates. adds devices to omemoStore, establishes ? consult richard.
     console.log(stanza.childNodes[0].nodeName)
-    let decryptedMessage = ""
   },
   _onBundle: function(stanza) {
   //creates an OmemoBundle instance for a received bundle
     console.log(stanza.childNodes[0].nodeName)
-    let decryptedMessage = ""
   },
 
   _onMessage: function(stanza) {
+    // handles receiving <message> xmpp messages.
+    // advances the chains by calling decrypt
+    // deciphers if payload exists
     console.log(stanza.childNodes[0].nodeName)
     let decryptedMessage = ""
-    //new handleEncryptedStanza
-    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+//    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
 
 }
