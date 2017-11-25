@@ -33,17 +33,17 @@ let Omemo = function (jid, deviceid, libsig, store, omemoStore) { //deviceid = r
   this._omemoStore =  omemoStore
 }
 Omemo.prototype = {
-  init: function(context) {
-    if (context._storage.getItem('OMEMO'+ context._jid) != null) {
+  init: function(ctxt) {
+    if (ctxt._storage.getItem('OMEMO'+ ctxt._jid) != null) {
       pprint("pre-existing store found. restoring ...")
-      context._store = context.restore(context._storage.getItem('OMEMO'+ context._jid))
-      context._address = new context._libsignal.SignalProtocolAddress(context._jid, context._store.get("registrationId"))
+      ctxt._store = ctxt.restore(ctxt._storage.getItem('OMEMO'+ ctxt._jid))
+      ctxt._address = new ctxt._libsignal.SignalProtocolAddress(ctxt._jid, ctxt._store.get("registrationId"))
       return Promise.resolve(true)
     }
-    context.gen100PreKeys(1,100, context).then(
-      context.armLibsignal(context)
+    ctxt.gen100PreKeys(1,100, ctxt).then(
+      ctxt.armLibsignal(ctxt)
     )
-    context._ready = true
+    ctxt._ready = true
     return Promise.resolve(true)
     //conn.addHandler(this._onMessage.bind(this), null, 'message');
   },
@@ -52,87 +52,87 @@ Omemo.prototype = {
     let maxDeviceId = 2147483647
     let diff = (maxDeviceId - minDeviceId)
     let res = Math.floor(Math.random() * diff  + minDeviceId)
-    context._deviceid = res
-    context._store.put('sid', res)
+    ctxt._deviceid = res
+    ctxt._store.put('sid', res)
     return Promise.resolve(res)
   },
-  armLibsignal: function(context) {
+  armLibsignal: function(ctxt) {
     new Promise (
       function (resolve, reject) {
         pprint("first use! arming libsignal with fresh keys... ")
-        if (context._store == null) {
+        if (ctxt._store == null) {
           throw new Error("no store set, terminating.")
         }
-        let KeyHelper = context._keyhelper
+        let KeyHelper = ctxt._keyhelper
         let registrationId = ''
         Promise.all([
           KeyHelper.generateIdentityKeyPair(),
           KeyHelper.generateRegistrationId(), //supply manually.
         ]).then(function(result) {
           let identity = result[0];
-          if (context._deviceid === undefined) {
+          if (ctxt._deviceid === undefined) {
             registrationId = result[1]
           } else {
-            registrationId = context._deviceid
+            registrationId = ctxt._deviceid
           }
-          context._store.put('registrationId', registrationId)
-          context._store.identifier = context._jid
-          context._store.saveIdentity(context._jid, result[0])
-          context._store.loadIdentityKey(context._jid).then((ikey) =>
-          context._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-            context._store.storeSignedPreKey(1, skey)
+          ctxt._store.put('registrationId', registrationId)
+          ctxt._store.identifier = ctxt._jid
+          ctxt._store.saveIdentity(ctxt._jid, result[0])
+          ctxt._store.loadIdentityKey(ctxt._jid).then((ikey) =>
+          ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
+            ctxt._store.storeSignedPreKey(1, skey)
           })
-          context._address = new libsignal.SignalProtocolAddress(context._jid, context._store.get('registrationId'));
-          pprint("libsignal armed for " + context._jid + '.' + context._store.get('registrationId'))
+          ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt._store.get('registrationId'));
+          pprint("libsignal armed for " + ctxt._jid + '.' + ctxt._store.get('registrationId'))
         })
         resolve(true)
       }
     )
   },
-  gen100PreKeys: function (start, finish, context, counter) {
+  gen100PreKeys: function (start, finish, ctxt, counter) {
     if (start == finish+1)  {
       return Promise.resolve(true)
     }
     let index = start
-    context._keyhelper.generatePreKey(index).then((k) =>  {
-      context._store.storePreKey(index,k)
+    ctxt._keyhelper.generatePreKey(index).then((k) =>  {
+      ctxt._store.storePreKey(index,k)
     })
     start++
-    return Promise.resolve(context.gen100PreKeys(start, finish, context))
+    return Promise.resolve(ctxt.gen100PreKeys(start, finish, ctxt))
   },
-  refreshPreKeys: function(context) {
-    if (context._store == null) {
+  refreshPreKeys: function(ctxt) {
+    if (ctxt._store == null) {
       throw Exception("no store set, can not refresh.")
     }
     pprint("refreshing one time PreKeys")
     for (let i = 0; i < 100; i++) {
-      context._keyhelper.generatePreKey(i)
-      .then((keyPair) => context._store.storePreKey(i, keyPair))
+      ctxt._keyhelper.generatePreKey(i)
+      .then((keyPair) => ctxt._store.storePreKey(i, keyPair))
       .then("one time key generation completed")
     }
     return Promise.resolve(true)
   },
-  serialize: function(context) {
-    let sk_id = context._store.currentSignedPreKeyId
+  serialize: function(ctxt) {
+    let sk_id = ctxt._store.currentSignedPreKeyId
     let sk_prefix = '25519KeysignedKey'
     let res = {}
-    res.usedPreKeyCounter = context._store.usedPreKeyCounter
-    res.currentSignedPreKeyId = context._store.currentSignedPreKeyId
-    res.jid = context._jid
-    res.registrationId = context._store.get("registrationId")
+    res.usedPreKeyCounter = ctxt._store.usedPreKeyCounter
+    res.currentSignedPreKeyId = ctxt._store.currentSignedPreKeyId
+    res.jid = ctxt._jid
+    res.registrationId = ctxt._store.get("registrationId")
     res[sk_prefix + sk_id] = {
       keyId: sk_id,
       keyPair: {
-        pubKey: codec.BufferToBase64(context._store.get(sk_prefix + sk_id).keyPair.pubKey),
-        privKey: codec.BufferToBase64(context._store.get(sk_prefix + sk_id).keyPair.privKey)
+        pubKey: codec.BufferToBase64(ctxt._store.get(sk_prefix + sk_id).keyPair.pubKey),
+        privKey: codec.BufferToBase64(ctxt._store.get(sk_prefix + sk_id).keyPair.privKey)
       },
-      signature:  codec.BufferToBase64(context._store.get(sk_prefix + sk_id).signature)
+      signature:  codec.BufferToBase64(ctxt._store.get(sk_prefix + sk_id).signature)
     }
     res.identityKey =  {
-      pubKey: codec.BufferToBase64(context._store.get('identityKey').pubKey),
-      privKey: codec.BufferToBase64(context._store.get('identityKey').privKey)
+      pubKey: codec.BufferToBase64(ctxt._store.get('identityKey').pubKey),
+      privKey: codec.BufferToBase64(ctxt._store.get('identityKey').privKey)
     }
-    let keys = context._store.getPreKeys(context)
+    let keys = ctxt._store.getPreKeys(ctxt)
     keys.forEach(function(key) {
       res['25519KeypreKey' + key.keyId] =  {
         pubKey: codec.BufferToBase64(key.keyPair.pubKey),
@@ -140,8 +140,8 @@ Omemo.prototype = {
       }
     })
     res = JSON.stringify(res)
-    let me = 'OMEMO' + context._jid
-    context._storage.setItem(me, res)
+    let me = 'OMEMO' + ctxt._jid
+    ctxt._storage.setItem(me, res)
   },
   restore: function (serialized) {
     //secondary priority, get decrypt to work.
@@ -192,10 +192,10 @@ Omemo.prototype = {
     });
     return encryptedStanza;
   },
-  buildSession: function (theirPublicBundle, theirJid, context) {
-    let myStore = context._store
-    let theirAddress = new context._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
-    let myBuilder = new context._libsignal.SessionBuilder(context._store, theirAddress)
+  buildSession: function (theirPublicBundle, theirJid, ctxt) {
+    let myStore = ctxt._store
+    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
+    let myBuilder = new ctxt._libsignal.SessionBuilder(ctxt._store, theirAddress)
     let cipher = ''
 
     let session = myBuilder.processPreKey(theirPublicBundle)
@@ -206,26 +206,26 @@ Omemo.prototype = {
       pprint('there was an error establishing the session')
     })
 
-    cipher = new context._libsignal.SessionCipher(myStore, theirAddress)
-    context._omemoStore.add(theirJid, cipher, true)
+    cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
+    ctxt._omemoStore.add(theirJid, cipher, true)
     return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
   },
-  getSerialized: function(context) {
-    let res = context._storage.getItem('OMEMO'+context._jid)
+  getSerialized: function(ctxt) {
+    let res = ctxt._storage.getItem('OMEMO'+ctxt._jid)
     if (res != null) {
       return res
     }
-    return "no serialized store for " + context._jid + " found to return"
+    return "no serialized store for " + ctxt._jid + " found to return"
   },
-  createFetchBundleStanza: function(to, device, context) {
-    let res = $iq({type: 'get', from: context._jid, to: to, id: 'fetch1'})
+  createFetchBundleStanza: function(to, device, ctxt) {
+    let res = $iq({type: 'get', from: ctxt._jid, to: to, id: 'fetch1'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-    .c('items', {node: context._ns_bundles + ":" + device}) // could consider to as an array of friends afterwards.
+    .c('items', {node: ctxt._ns_bundles + ":" + device}) // could consider to as an array of friends afterwards.
 
     return Promise.resolve(res)
   },
-  createAnnounceBundleStanza: function (context) {
-    let store = context._store
+  createAnnounceBundleStanza: function (ctxt) {
+    let store = ctxt._store
     let sk_id = store.currentSignedPreKeyId
 
     return store.loadSignedPreKey(sk_id).then(sk =>
@@ -235,17 +235,17 @@ Omemo.prototype = {
           let sk64 = codec.BufferToBase64(sk.pubKey)
           let ik64 = codec.BufferToBase64(ikp.pubKey)
           console.log(sk.id)
-          let res = $iq({type: 'set', from: context._jid, id: 'anounce2'})
+          let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
           .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-          .c('publish', {node: this._ns_bundles + ":" + context._store.get('registrationId')})
+          .c('publish', {node: ctxt._ns_bundles + ":" + ctxt._store.get('registrationId')})
           .c('item')
-          .c('bundle', {xmlns: this._ns_main})
+          .c('bundle', {xmlns: ctxt._ns_main})
           .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
           .c('signedPreKeySignature').t(signature64).up()
           .c('identityKey').t(ik64).up()
           .c('prekeys')
 
-          let keys = context._store.getPreKeyBundle(context)
+          let keys = ctxt._store.getPreKeyBundle(ctxt)
           keys.forEach(function(key) {
             res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
           })
@@ -275,31 +275,31 @@ Omemo.prototype = {
 
       promises.push(
         ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
-        //start promise block
+          //start promise block
 
-        for (let i = 0; i < jidSessions.length; i++)  {
-          record = jidSessions[i]
-          xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(record.payload).up()
-        }
+          for (let i = 0; i < jidSessions.length; i++)  {
+            record = jidSessions[i]
+            xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(record.payload).up()
+          }
 
-        xml.c('iv').t(msgObj.ENFORCED.iv).up()
+          xml.c('iv').t(msgObj.ENFORCED.iv).up()
 
-        //are we sending keying material or text messages?
-        if (!keyMessage) {
-          xml.up()
-          xml.c('payload').t(msgObj.ENFORCED.cipherText)
-          xml.up().up()
-          xml.c('store', {xmlns: 'urn:xmpp:hints'})
-        } else {
-          xml.up().up()
-          xml.c('store', {xmlns: 'urn:xmpp:hints'})
-        }
+          //are we sending keying material or text messages?
+          if (!keyMessage) {
+            xml.up()
+            xml.c('payload').t(msgObj.ENFORCED.cipherText)
+            xml.up().up()
+            xml.c('store', {xmlns: 'urn:xmpp:hints'})
+          } else {
+            xml.up().up()
+            xml.c('store', {xmlns: 'urn:xmpp:hints'})
+          }
 
-        return xml
-        //end promise block
-      })
-      //promises.push end
-    )
+          return xml
+          //end promise block
+        })
+        //promises.push end
+      )
       //end else
     }
     //final return
@@ -307,37 +307,51 @@ Omemo.prototype = {
       return xml_out[0]
     })
   },
-  handleEncryptedStanza: function (xml) { //object
-  },
-  createDeviceUpdateStanza: function(id, fetched) {
-    //fetch device list and concat. needs debugger
 
-  },
+  createDeviceStanza: function(ctxt = this) {
+    let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce1'})
+    .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+    .c('publish', {node: ctxt._ns_devices})
+    .c('item')
+    .c('list', {xmlns: ctxt._ns_main})
+    .c('device', {id: ctxt._deviceid  }).up()
 
-  handleDeviceUpdate: function(deviceid, sentUpdateXml) {
-    //fetch updated and compare with sent
-
-  },
-
-  OmemoBundleXMLToSTore: function (receivedBundleMsg) {
-    //omemo store out or directly serialize to localStorage
-
+    return res
+    // must plan handelling the first device update.
   },
 
-  receive: function (xml) {
+// receive should be handeled by the clients, not this library. the library
+//should handle the messages. discuss this with klaus.
+//  receive: function (xml) {
+//
+//    let parsed = $.parseXML(xml)
+//    if (parsed.childNodes[0].nodeName === "message") {
+//      this._onMessage(parsed)
+//    } else {
+//      //grab iq here, check attributes.
+//
+//      //type = set          id = announce2 = bundle
+//      //type = headline     id = update_01 = received buddy device update, own included
+//      //type = no type      id = send1 = received message
+//
+//    }
+//  },
 
-    let parsed = $.parseXML(xml)
-    //if iq, detect and send to appropraite handler
-
-    //id = announce2 = bundle
-    //id = update_01 = received buddy device update, own included
-    //id = send1 = received message
-
-    //if message
-    _onMessage(xml)
+  _onDevice: function(stanza) {
+  //creates an OmemoBundle instance for a received bundle
+    console.log(stanza.childNodes[0].nodeName)
+    let decryptedMessage = ""
   },
+  _onBundle: function(stanza) {
+  //creates an OmemoBundle instance for a received bundle
+    console.log(stanza.childNodes[0].nodeName)
+    let decryptedMessage = ""
+  },
+
   _onMessage: function(stanza) {
-
+    console.log(stanza.childNodes[0].nodeName)
+    let decryptedMessage = ""
+    //new handleEncryptedStanza
     $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
 
