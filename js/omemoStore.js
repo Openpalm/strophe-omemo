@@ -13,7 +13,7 @@ function publicOmemoStore () {
 	},
 	this.IdentityKey = null,
 	this.getPublicBundle = function () {
-		let prk = this.getRandomPreKey()
+		let prk = this.selectRandomPreKey()
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
