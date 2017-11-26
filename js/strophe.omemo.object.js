@@ -339,6 +339,8 @@ Omemo.prototype = {
 
   _onDevice: function(stanza) {
     //handles device updates. adds devices to omemoStore, establishes ? consult richard.
+    let parsed = $.parseXML(stanza)
+
     console.log(stanza.childNodes[0].nodeName)
   },
   _onBundle: function(stanza) {
@@ -350,6 +352,7 @@ Omemo.prototype = {
     // handles receiving <message> xmpp messages.
     // advances the chains by calling decrypt
     // deciphers if payload exists
+    // republishes bundle on prekeymessages
     console.log(stanza.childNodes[0].nodeName)
     let decryptedMessage = ""
 //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);

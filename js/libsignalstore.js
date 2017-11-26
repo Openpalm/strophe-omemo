@@ -2,6 +2,7 @@
 
 function SignalProtocolStore() {
   this.store = {}
+  this.lastUsedPreKeyId = 0
   this.usedPreKeyCounter = 0
   this.currentSignedPreKeyId = 0
   this.identifier = ''
