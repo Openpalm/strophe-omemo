@@ -212,6 +212,7 @@ OmemoStore.prototype = {
 			return undefined
 		}
 	},
+	
 	putBundle: function (jid, rid, bundle) {
 		try {
 			if (this.Sessions[jid] === undefined) {
