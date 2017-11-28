@@ -360,8 +360,14 @@ Omemo.prototype = {
     $(parsed).find('identityKey').each(function () {
       bundle.idk = codec.Base64ToBuffer($(this).text())
     })
-    
-  return bundle
+
+    //instead of checking if an OmemoStore bundle exists, we'll generate a new one
+
+    let obundle = new OmemoBundle()
+
+
+
+    return obundle
 
 
   },
