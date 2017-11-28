@@ -2272,7 +2272,8 @@ Omemo.prototype = {
     })
   },
 
-  createDeviceUpdateStanza: function(ctxt = this) {
+  createDeviceStanza: function(ctxt = this) {
+    //initial add. all other additions happen on receiving device updates.
     let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce1'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
     .c('publish', {node: ctxt._ns_devices})
@@ -2280,45 +2281,39 @@ Omemo.prototype = {
     .c('list', {xmlns: ctxt._ns_main})
     .c('device', {id: ctxt._deviceid  }).up()
 
-    return res
-    // must plan handelling the first device update.
+    return Promise.resolve(res)
   },
 
-// receive should be handeled by the clients, not this library. the library
-//should handle the messages. discuss this with klaus.
-//  receive: function (xml) {
-//
-//    let parsed = $.parseXML(xml)
-//    if (parsed.childNodes[0].nodeName === "message") {
-//      this._onMessage(parsed)
-//    } else {
-//      //grab iq here, check attributes.
-//
-//      //type = set          id = announce2 = bundle
-//      //type = headline     id = update_01 = received buddy device update, own included
-//      //type = no type      id = send1 = received message
-//
-//    }
-//  },
+  _onDevice: function(stanza, ctxt = this) {
+    //handles device updates. adds devices to omemoStore,
+    // fetches bundle if not ours, and is not already there.
+    // establishes ? consult richard.
+    let parsed = $.parseXML(stanza)
 
-  _onDevice: function(stanza) {
-  //creates an OmemoBundle instance for a received bundle
-    console.log(stanza.childNodes[0].nodeName)
-    let decryptedMessage = ""
+    console.log(parsed.childNodes[0].nodeName)
   },
   _onBundle: function(stanza) {
   //creates an OmemoBundle instance for a received bundle
-    console.log(stanza.childNodes[0].nodeName)
-    let decryptedMessage = ""
-  },
 
+    let exists = false
+    let parsed = $.parseXML(stanza)
+      $(parsed).find('iq').each(function () {
+          let from = $(this).attr('from')
+
+          exists = ctxt._omemoStore[from] ==
+          console.log(from)
+      })
+  },
   _onMessage: function(stanza) {
-    console.log(stanza.childNodes[0].nodeName)
+    // handles receiving <message> xmpp messages.
+    // advances the chains by calling decrypt
+    // deciphers if payload exists
+    // republishes bundle on prekeymessages
+    let parsed = $.parseXML(stanza)
+    console.log(parsed.childNodes[0].nodeName)
     let decryptedMessage = ""
-    //new handleEncryptedStanza
-    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+//    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
-
 }
 
 Strophe.addNamespace(protocol, this._ns_main);
@@ -13167,9 +13162,117 @@ module.exports = gcm
 
 "use strict";
 
+// todo have this pickle into localStorage directly.
 
+//Klaus code
+//put: function(key, value) {
+//        if (key === undefined || value === undefined || key === null || value === null)
+//            throw new Error("Tried to store undefined/null");
+//
+//        var stringified = JSON.stringify(value, function(key, value) {
+//            if (value instanceof ArrayBuffer) {
+//                return arrayBufferToArray(value)
+//            }
+//
+//            return value;
+//        });
+//
+//        // this.store[key] = value;
+//        localStorage.setItem(this.prefix + ':' + key, stringified);
+//    },
+//    get: function(key, defaultValue) {
+//        if (key === null || key === undefined)
+//            throw new Error("Tried to get value for undefined/null key");
+//        if (this.prefix + ':' + key in localStorage) {
+//            // return this.store[key];
+//            return JSON.parse(localStorage.getItem(this.prefix + ':' + key), function(key, value) {
+//                if (/Key$/.test(key)) {
+//                    return ArrayToArrayBuffer(value);
+//                }
+//
+//                return value;
+//            });
+//        } else {
+//            return defaultValue;
+//        }
+//    },
+//
+//function arrayBufferToArray(buffer) { return Array.apply([], new Uint8Array(buffer)); }
+//
+//function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 function OmemoStore () {
 	this.Sessions 	= {}
+}
+
+function publicOmemoStore () {
+	//the following definitions serve as an interface
+	this.rids = [] //all devices belonging to a jid
+	this.rid = 0
+	this.jid = null
+	this.signedPreKey = {
+		//slightly different than LibsignalStore with the signature included in the tupel.
+		publicKey: null,
+		keyId: null,
+		signature: null,
+	},
+	this.IdentityKey = null,
+	this.getPublicBundle = function () {
+		let prk = this.selectRandomPreKey()
+		return {
+			registrationId: this.rid,
+			identityKey: this.identityKey,
+			signedPreKey: {
+				keyId     : this.keyId,
+				publicKey : this.publicKey,
+				signature : this.signature
+			},
+			preKey: {
+				keyId     : prk.keyId,
+				publicKey : prk.pubKey
+			}
+		}
+	},
+	this.selectRandomPreKey =  function() {
+		//track key # here
+		let range = 100
+		let id = 1
+		let key = undefined
+		while (key == undefined) {
+			id = Math.floor(Math.random() * range) + 1
+			key = this.getPreKey(id)
+		}
+		return key
+	},
+	this.putPreKey = function (jid, rid, keyId, key) {
+		this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
+	},
+	this.getPreKey = function(jid, rid, keyId) {
+		let res = this.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
+		if (res !== undefined) {
+			return res
+		}
+		// should never happen. should still be handeled.
+		return undefined
+	},
+	this.put = function(jid, rid, key, value) {
+		if (key === undefined || value === undefined || key === null || value === null)
+		throw new Error("Tried to store undefined/null");
+		this[jid + ":" + rid + ":" + key] = value;
+	},
+	this.get = function(jid, rid, key, defaultValue = undefined) {
+		if (key === null || key === undefined)
+		throw new Error("Tried to get value for undefined/null key");
+		if (key in this) {
+			return this[jid + ":" + rid + ":" + key];
+		} else {
+			return defaultValue;
+		}
+	},
+	this.remove = function(key) {
+		if (key === null || key === undefined)
+		throw new Error("Tried to remove value for undefined/null key");
+		delete this[jid + ":" + rid + ":" +key];
+	}
 }
 
 // OmemoStore per jid with ids => flag?
@@ -13177,17 +13280,22 @@ OmemoStore.prototype = {
 	add: function (jid, cipher, flag) {
 		Promise.resolve(cipher.getRemoteRegistrationId().then(id => {
 			if (this.Sessions[jid] === undefined) {
-				this.Sessions[jid] = []
+				this.Sessions[jid] = {}
 			}
-			this.Sessions[jid].push({
-				publicBundle: null, // created from received bundle
-				jid: jid,
-				rid: id,
+			let record =  {
+				bundle: new publicOmemoStore(), // created from received bundle
+				//this does not work.
 				cipher: cipher, //can first be empty
-				preKeyFlag: flag
-			})
+				preKeyFlag: flag,
+			}
+
+			record["bundle"]["jid"] = jid
+			record["bundle"]["rid"] = id
+
+			this.Sessions[jid][id] = record
 		})
 	)},
+
 	getSessions: function (jid) {
 		return this.Sessions[jid]
 	},
@@ -13203,17 +13311,46 @@ OmemoStore.prototype = {
 		for (let k in this.Sessions[jid]) {
 			promises.push(
 				this.Sessions[jid][k].cipher.encrypt(keyCipherText + tag).then(enc => {
-				this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
-			})
-		)
-	}
+					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
+				})
+			)
+		}
 
 		return Promise.all(promises).then(o => {
 			return Promise.resolve(this.Sessions[jid])
 		})
 	},
+	getRecord: function(jid, rid) {
+		let isEqual = function (o) {
+			return o.bundle.rid == rid
+		}
+		return Promise.resolve(this.Sessions[jid].filter(isEqual))
+	},
 	getPayload: function (jid, index) {
-		return this.Sessions[jid][index].payload
+		//future serves constructEncryptedStanza
+		return Promise.resolve(this.Sessions[jid][index].payload)
+	},
+	hasSession: function (jid) {
+		let records = this.getSessions(jid)
+		if (records == undefined) { return false }
+		else { return true }
+	},
+	hasSessionForRid: function (jid, rid) {
+		let records = this.getSessions(jid)
+		for (let i in records) {
+			records[i].cipher
+		}
+	},
+	hasBundle: function(jid, rid) {
+
+	},
+	getBundle: function (jid, rid) {
+
+	},
+	getCipher: function (jid, rid) {
+			let out = this.Sessions[jid][rid].cipher
+			if(out == undefined) { return false }
+			return out 
 	}
 }
 

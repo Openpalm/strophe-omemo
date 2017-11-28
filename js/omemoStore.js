@@ -1,14 +1,55 @@
 'use strict';
+// todo have this pickle into localStorage directly.
 
+//Klaus code
+//put: function(key, value) {
+//        if (key === undefined || value === undefined || key === null || value === null)
+//            throw new Error("Tried to store undefined/null");
+//
+//        var stringified = JSON.stringify(value, function(key, value) {
+//            if (value instanceof ArrayBuffer) {
+//                return arrayBufferToArray(value)
+//            }
+//
+//            return value;
+//        });
+//
+//        // this.store[key] = value;
+//        localStorage.setItem(this.prefix + ':' + key, stringified);
+//    },
+//    get: function(key, defaultValue) {
+//        if (key === null || key === undefined)
+//            throw new Error("Tried to get value for undefined/null key");
+//        if (this.prefix + ':' + key in localStorage) {
+//            // return this.store[key];
+//            return JSON.parse(localStorage.getItem(this.prefix + ':' + key), function(key, value) {
+//                if (/Key$/.test(key)) {
+//                    return ArrayToArrayBuffer(value);
+//                }
+//
+//                return value;
+//            });
+//        } else {
+//            return defaultValue;
+//        }
+//    },
+//
+//function arrayBufferToArray(buffer) { return Array.apply([], new Uint8Array(buffer)); }
+//
+//function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 function OmemoStore () {
 	this.Sessions 	= {}
 }
 
 function publicOmemoStore () {
 	//the following definitions serve as an interface
+	this.rids = [] //all devices belonging to a jid
+	this.rid = 0
+	this.jid = null
 	this.signedPreKey = {
+		//slightly different than LibsignalStore with the signature included in the tupel.
 		publicKey: null,
-		id: null,
+		keyId: null,
 		signature: null,
 	},
 	this.IdentityKey = null,
@@ -39,26 +80,27 @@ function publicOmemoStore () {
 		}
 		return key
 	},
-	this.getPreKey = function(keyId) {
-		let res = this.preKeys.get('25519KeypreKey' + keyId);
+	this.putPreKey = function (jid, rid, keyId, key) {
+		this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
+	},
+	this.getPreKey = function(jid, rid, keyId) {
+		let res = this.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
 		if (res !== undefined) {
 			return res
 		}
+		// should never happen. should still be handeled.
 		return undefined
 	},
-	this.put = function(key, value) {
+	this.put = function(jid, rid, key, value) {
 		if (key === undefined || value === undefined || key === null || value === null)
 		throw new Error("Tried to store undefined/null");
-		this[key] = value;
+		this[jid + ":" + rid + ":" + key] = value;
 	},
-	this.putPreKey = function (id, key) {
-		this.put('25519KeypreKey' + id, key);
-	},
-	this.get = function(key, defaultValue = undefined) {
+	this.get = function(jid, rid, key, defaultValue = undefined) {
 		if (key === null || key === undefined)
 		throw new Error("Tried to get value for undefined/null key");
 		if (key in this) {
-			return this[key];
+			return this[jid + ":" + rid + ":" + key];
 		} else {
 			return defaultValue;
 		}
@@ -66,7 +108,7 @@ function publicOmemoStore () {
 	this.remove = function(key) {
 		if (key === null || key === undefined)
 		throw new Error("Tried to remove value for undefined/null key");
-		delete this[key];
+		delete this[jid + ":" + rid + ":" +key];
 	}
 }
 
@@ -75,19 +117,22 @@ OmemoStore.prototype = {
 	add: function (jid, cipher, flag) {
 		Promise.resolve(cipher.getRemoteRegistrationId().then(id => {
 			if (this.Sessions[jid] === undefined) {
-				this.Sessions[jid] = []
+				this.Sessions[jid] = {}
 			}
 			let record =  {
 				bundle: new publicOmemoStore(), // created from received bundle
-				jid: jid,
-				rid: id,
+				//this does not work.
 				cipher: cipher, //can first be empty
 				preKeyFlag: flag,
-
 			}
-			this.Sessions[jid].push(record)
+
+			record["bundle"]["jid"] = jid
+			record["bundle"]["rid"] = id
+
+			this.Sessions[jid][id] = record
 		})
 	)},
+
 	getSessions: function (jid) {
 		return this.Sessions[jid]
 	},
@@ -114,12 +159,52 @@ OmemoStore.prototype = {
 	},
 	getRecord: function(jid, rid) {
 		let isEqual = function (o) {
-			return o.rid == rid
+			return o.bundle.rid == rid
 		}
 		return Promise.resolve(this.Sessions[jid].filter(isEqual))
 	},
 	getPayload: function (jid, index) {
-		//serves constructEncryptedStanza
+		//future serves constructEncryptedStanza
 		return Promise.resolve(this.Sessions[jid][index].payload)
+	},
+	hasSession: function (jid) {
+		let records = this.getSessions(jid)
+		if (records == undefined) { return false }
+		else { return true }
+	},
+	hasSessionForRid: function (jid, rid) {
+		let records = this.getSessions(jid)
+		for (let i in records) {
+			records[i].cipher
+		}
+	},
+	getDeviceIdList: function (jid) {
+		let res = []
+		for (let i in this.Sessions[jid]) {
+				res.push(i)
+		}
+		return res
+	},
+	hasBundle: function(jid, rid) {
+		//should check identityKey and signedKey,
+		//devices are initiated with an empty bundle
+		return this.getBundle(jid, rid)  != undefined
+	},
+	hasCipher: function(jid, rid) {
+		return this.getCipher(jid, rid)  != undefined
+	},
+	getBundle: function (jid, rid) {
+		try {
+			return this.Sessions[jid][rid].bundle
+		} catch(e) {
+			return undefined
+		}
+	},
+	getCipher: function (jid, rid) {
+		try {
+			return this.Sessions[jid][rid].cipher
+		} catch(e) {
+			return undefined
+		}
 	}
 }

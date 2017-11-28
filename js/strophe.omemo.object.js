@@ -317,47 +317,39 @@ Omemo.prototype = {
     .c('list', {xmlns: ctxt._ns_main})
     .c('device', {id: ctxt._deviceid  }).up()
 
-    return res
+    return Promise.resolve(res)
   },
 
-// receive should be handeled by the clients, not this library. the library
-//should handle the messages. discuss this with klaus.
-//  receive: function (xml) {
-//
-//    let parsed = $.parseXML(xml)
-//    if (parsed.childNodes[0].nodeName === "message") {
-//      this._onMessage(parsed)
-//    } else {
-//      //grab iq here, check attributes.
-//
-//      //type = set          id = announce2 = bundle
-//      //type = headline     id = update_01 = received buddy device update, own included
-//      //type = no type      id = send1 = received message
-//
-//    }
-//  },
-
-  _onDevice: function(stanza) {
-    //handles device updates. adds devices to omemoStore, establishes ? consult richard.
+  _onDevice: function(stanza, ctxt = this) {
+    //handles device updates. adds devices to omemoStore,
+    // fetches bundle if not ours, and is not already there.
+    // establishes ? consult richard.
     let parsed = $.parseXML(stanza)
 
-    console.log(stanza.childNodes[0].nodeName)
+    console.log(parsed.childNodes[0].nodeName)
   },
   _onBundle: function(stanza) {
   //creates an OmemoBundle instance for a received bundle
-    console.log(stanza.childNodes[0].nodeName)
-  },
 
+    let exists = false
+    let parsed = $.parseXML(stanza)
+      $(parsed).find('iq').each(function () {
+          let from = $(this).attr('from')
+
+          exists = ctxt._omemoStore[from] ==
+          console.log(from)
+      })
+  },
   _onMessage: function(stanza) {
     // handles receiving <message> xmpp messages.
     // advances the chains by calling decrypt
     // deciphers if payload exists
     // republishes bundle on prekeymessages
-    console.log(stanza.childNodes[0].nodeName)
+    let parsed = $.parseXML(stanza)
+    console.log(parsed.childNodes[0].nodeName)
     let decryptedMessage = ""
 //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
-
 }
 
 Strophe.addNamespace(protocol, this._ns_main);
