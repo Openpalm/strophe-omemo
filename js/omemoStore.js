@@ -152,19 +152,20 @@ OmemoStore.prototype = {
 				})
 			)
 		}
-
 		return Promise.all(promises).then(o => {
 			return Promise.resolve(this.Sessions[jid])
 		})
 	},
 	getRecord: function(jid, rid) {
+		// {cipher, bundle}
 		let isEqual = function (o) {
 			return o.bundle.rid == rid
 		}
 		return Promise.resolve(this.Sessions[jid].filter(isEqual))
 	},
 	getPayload: function (jid, index) {
-		//future serves constructEncryptedStanza
+		// base64 payload
+		// future serves constructEncryptedStanza
 		return Promise.resolve(this.Sessions[jid][index].payload)
 	},
 	hasSession: function (jid) {
@@ -173,25 +174,32 @@ OmemoStore.prototype = {
 		else { return true }
 	},
 	hasSessionForRid: function (jid, rid) {
-		let records = this.getSessions(jid)
-		for (let i in records) {
-			records[i].cipher
+		try {
+			if (this.getCipher(jid, rid) != undefined) {
+				return true
+			}
+		} catch(e) {
+			return false
 		}
 	},
 	getDeviceIdList: function (jid) {
-		let res = []
-		for (let i in this.Sessions[jid]) {
+		try {
+			let res = []
+			for (let i in this.Sessions[jid]) {
 				res.push(i)
+			}
+			return res
+		} catch (e) {
+			return []
 		}
-		return res
 	},
 	hasBundle: function(jid, rid) {
 		//should check identityKey and signedKey,
 		//devices are initiated with an empty bundle
-		return this.getBundle(jid, rid)  != undefined
+		return this.getBundle(jid, rid).IdentityKey != undefined
 	},
 	hasCipher: function(jid, rid) {
-		return this.getCipher(jid, rid)  != undefined
+		return this.getCipher(jid, rid) != undefined
 	},
 	getBundle: function (jid, rid) {
 		try {

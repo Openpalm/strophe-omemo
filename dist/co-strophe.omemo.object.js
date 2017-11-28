@@ -1997,7 +1997,7 @@ let Omemo = function (jid, deviceid, libsig, store, omemoStore) { //deviceid = r
   this._omemoStore =  omemoStore
 }
 Omemo.prototype = {
-  init: function(ctxt) {
+  init: function(ctxt = this) {
     if (ctxt._storage.getItem('OMEMO'+ ctxt._jid) != null) {
       pprint("pre-existing store found. restoring ...")
       ctxt._store = ctxt.restore(ctxt._storage.getItem('OMEMO'+ ctxt._jid))
@@ -2020,7 +2020,7 @@ Omemo.prototype = {
     ctxt._store.put('sid', res)
     return Promise.resolve(res)
   },
-  armLibsignal: function(ctxt) {
+  armLibsignal: function(ctxt = this) {
     new Promise (
       function (resolve, reject) {
         pprint("first use! arming libsignal with fresh keys... ")
@@ -2064,7 +2064,7 @@ Omemo.prototype = {
     start++
     return Promise.resolve(ctxt.gen100PreKeys(start, finish, ctxt))
   },
-  refreshPreKeys: function(ctxt) {
+  refreshPreKeys: function(ctxt = this) {
     if (ctxt._store == null) {
       throw Exception("no store set, can not refresh.")
     }
@@ -2076,7 +2076,7 @@ Omemo.prototype = {
     }
     return Promise.resolve(true)
   },
-  serialize: function(ctxt) {
+  serialize: function(ctxt = this) {
     let sk_id = ctxt._store.currentSignedPreKeyId
     let sk_prefix = '25519KeysignedKey'
     let res = {}
@@ -2096,7 +2096,7 @@ Omemo.prototype = {
       pubKey: codec.BufferToBase64(ctxt._store.get('identityKey').pubKey),
       privKey: codec.BufferToBase64(ctxt._store.get('identityKey').privKey)
     }
-    let keys = ctxt._store.getPreKeys(ctxt)
+    let keys = ctxt._store.getPreKeys(ctxt= this)
     keys.forEach(function(key) {
       res['25519KeypreKey' + key.keyId] =  {
         pubKey: codec.BufferToBase64(key.keyPair.pubKey),
@@ -2150,13 +2150,7 @@ Omemo.prototype = {
     pprint("libsignal store for " + res.store.jid + " recreated")
     return res
   },
-  createEncryptedStanza: function(to, plaintext) {
-    let encryptedStanza = new Strophe.Builder('encrypted', {
-      xmlns: Strophe.NS.OMEMO
-    });
-    return encryptedStanza;
-  },
-  buildSession: function (theirPublicBundle, theirJid, ctxt) {
+  buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
     let myStore = ctxt._store
     let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
     let myBuilder = new ctxt._libsignal.SessionBuilder(ctxt._store, theirAddress)
@@ -2181,14 +2175,14 @@ Omemo.prototype = {
     }
     return "no serialized store for " + ctxt._jid + " found to return"
   },
-  createFetchBundleStanza: function(to, device, ctxt) {
+  createFetchBundleStanza: function(to, device, ctxt = this) {
     let res = $iq({type: 'get', from: ctxt._jid, to: to, id: 'fetch1'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
     .c('items', {node: ctxt._ns_bundles + ":" + device}) // could consider to as an array of friends afterwards.
 
     return Promise.resolve(res)
   },
-  createAnnounceBundleStanza: function (ctxt) {
+  createAnnounceBundleStanza: function (ctxt = this) {
     let store = ctxt._store
     let sk_id = store.currentSignedPreKeyId
 
@@ -2241,9 +2235,9 @@ Omemo.prototype = {
         ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
           //start promise block
 
-          for (let i = 0; i < jidSessions.length; i++)  {
-            record = jidSessions[i]
-            xml.c('key', {prekey: record.preKeyFlag, rid: record.rid}).t(record.payload).up()
+          for (let rid in jidSessions)  {
+            record = jidSessions[rid]
+            xml.c('key', {prekey: record.preKeyFlag, rid: rid}).t(record.payload).up()
           }
 
           xml.c('iv').t(msgObj.ENFORCED.iv).up()
@@ -13315,19 +13309,20 @@ OmemoStore.prototype = {
 				})
 			)
 		}
-
 		return Promise.all(promises).then(o => {
 			return Promise.resolve(this.Sessions[jid])
 		})
 	},
 	getRecord: function(jid, rid) {
+		// {cipher, bundle}
 		let isEqual = function (o) {
 			return o.bundle.rid == rid
 		}
 		return Promise.resolve(this.Sessions[jid].filter(isEqual))
 	},
 	getPayload: function (jid, index) {
-		//future serves constructEncryptedStanza
+		// base64 payload
+		// future serves constructEncryptedStanza
 		return Promise.resolve(this.Sessions[jid][index].payload)
 	},
 	hasSession: function (jid) {
@@ -13336,21 +13331,46 @@ OmemoStore.prototype = {
 		else { return true }
 	},
 	hasSessionForRid: function (jid, rid) {
-		let records = this.getSessions(jid)
-		for (let i in records) {
-			records[i].cipher
+		try {
+			if (this.getCipher(jid, rid) != undefined) {
+				return true
+			}
+		} catch(e) {
+			return false
+		}
+	},
+	getDeviceIdList: function (jid) {
+		try {
+			let res = []
+			for (let i in this.Sessions[jid]) {
+				res.push(i)
+			}
+			return res
+		} catch (e) {
+			return []
 		}
 	},
 	hasBundle: function(jid, rid) {
-
+		//should check identityKey and signedKey,
+		//devices are initiated with an empty bundle
+		return this.getBundle(jid, rid).IdentityKey != undefined
+	},
+	hasCipher: function(jid, rid) {
+		return this.getCipher(jid, rid) != undefined
 	},
 	getBundle: function (jid, rid) {
-
+		try {
+			return this.Sessions[jid][rid].bundle
+		} catch(e) {
+			return undefined
+		}
 	},
 	getCipher: function (jid, rid) {
-			let out = this.Sessions[jid][rid].cipher
-			if(out == undefined) { return false }
-			return out 
+		try {
+			return this.Sessions[jid][rid].cipher
+		} catch(e) {
+			return undefined
+		}
 	}
 }
 
