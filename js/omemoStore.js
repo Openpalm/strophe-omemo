@@ -41,7 +41,7 @@ function OmemoStore () {
 	this.Sessions 	= {}
 }
 
-function publicOmemoStore () {
+function PublicOmemoStore () {
 	//the following definitions serve as an interface
 	this.rids = [] //all devices belonging to a jid
 	this.rid = 0
@@ -80,35 +80,39 @@ function publicOmemoStore () {
 		}
 		return key
 	},
-	this.putPreKey = function (jid, rid, keyId, key) {
-		this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
+	this.putPreKey = function (keyId, value) {
+		//this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
+		this.put("preKeyPub" + keyId, value);
 	},
-	this.getPreKey = function(jid, rid, keyId) {
-		let res = this.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
+	this.getPreKey = function(keyId) {
+//		let res = thi	s.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
+
+		let res = this.get("preKeyPub" + keyId);
 		if (res !== undefined) {
 			return res
 		}
 		// should never happen. should still be handeled.
 		return undefined
 	},
-	this.put = function(jid, rid, key, value) {
-		if (key === undefined || value === undefined || key === null || value === null)
+	this.put = function(keyId, value) {
+		if (keyId === undefined || value === undefined || keyId === null || value === null)
 		throw new Error("Tried to store undefined/null");
-		this[jid + ":" + rid + ":" + key] = value;
+		this[this.jid + ":" + this.rid + ":" + keyId] = value;
 	},
-	this.get = function(jid, rid, key, defaultValue = undefined) {
-		if (key === null || key === undefined)
+	this.get = function(keyId, defaultValue = undefined) {
+		keyId = this.jid + ":" + this.rid + ":" + keyId
+		if (keyId === null || keyId === undefined)
 		throw new Error("Tried to get value for undefined/null key");
-		if (key in this) {
-			return this[jid + ":" + rid + ":" + key];
+		if (keyId in this) {
+			return this[keyId];
 		} else {
 			return defaultValue;
 		}
 	},
-	this.remove = function(key) {
-		if (key === null || key === undefined)
+	this.remove = function(keyId) {
+		if (keyId === null || keyId === undefined)
 		throw new Error("Tried to remove value for undefined/null key");
-		delete this[jid + ":" + rid + ":" +key];
+		delete this[jid + ":" + rid + ":" + keyId];
 	}
 }
 
@@ -120,7 +124,7 @@ OmemoStore.prototype = {
 				this.Sessions[jid] = {}
 			}
 			let record =  {
-				bundle: new publicOmemoStore(), // created from received bundle
+				bundle: new PublicOmemoStore(), // created from received bundle
 				//this does not work.
 				cipher: cipher, //can first be empty
 				preKeyFlag: flag,
@@ -206,6 +210,17 @@ OmemoStore.prototype = {
 			return this.Sessions[jid][rid].bundle
 		} catch(e) {
 			return undefined
+		}
+	},
+	putBundle: function (jid, rid, bundle) {
+		try {
+			if (this.Sessions[jid] === undefined) {
+				this.Sessions[jid] = {}
+			}
+			this.Sessions[jid][rid].bundle = bundle
+			return true
+		} catch(e) {
+			return false
 		}
 	},
 	getCipher: function (jid, rid) {

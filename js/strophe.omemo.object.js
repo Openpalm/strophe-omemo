@@ -331,43 +331,38 @@ Omemo.prototype = {
     let codec = ctxt._codec
     let exists = false
     let parsed = $.parseXML(stanza)
-    let bundle = {
-      spk: null,
-      spk_id: null,
-      spk_sig: null,
-      idk: null,
-      device_id: null,
-      jid: null,
-      keys: []
-    }
+
+    let bundle = new PublicOmemoStore()
+
+    let keys = {}
 
     $(parsed).find('iq').each(function () {
       bundle.jid = $(this).attr('from')
     })
     $(parsed).find('signedPreKeyPublic').each(function () {
-      bundle.spk_id = $(this).attr('signedPreKeyId')
-      bundle.spk = codec.Base64ToBuffer($(this).text())
+      bundle.signedPreKey.keyId = $(this).attr('signedPreKeyId')
+      bundle.signedPreKey.publicKey = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('signedPreKeySignature').each(function () {
-      bundle.spk_sig = codec.Base64ToBuffer($(this).text())
+      bundle.signedPreKey.signature = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('publish').each(function () {
-      bundle.device_id = $(this).attr('node').split(":")[1]
+      bundle.rid = $(this).attr('node').split(":")[1]
     })
     $(parsed).find('preKeyPub').each(function () {
-      bundle.keys.push({key: codec.Base64ToBuffer($(this).text()), id: $(this).attr('keyId')})
+      let key = codec.Base64ToBuffer($(this).text())
+      let id = $(this).attr('keyId')
+//      keys.push({key: key , id: id})
+      bundle.putPreKey(
+                  id,
+                  key
+                )
     })
     $(parsed).find('identityKey').each(function () {
-      bundle.idk = codec.Base64ToBuffer($(this).text())
+      bundle.IdentityKey = codec.Base64ToBuffer($(this).text())
     })
 
-    //instead of checking if an OmemoStore bundle exists, we'll generate a new one
-
-    let obundle = new OmemoBundle()
-
-
-
-    return obundle
+    return bundle
 
 
   },
