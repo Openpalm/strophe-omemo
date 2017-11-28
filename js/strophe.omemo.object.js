@@ -250,7 +250,10 @@ Omemo.prototype = {
   },
 
   createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
-    //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res= o)
+    //if keyMessage is true, then the message is a key-material transport message
+    //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res = o)
+    //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj, true).then(o => res = o)
+
     let tag = msgObj.ENFORCED.tag
     let keyCipherText = msgObj.LSPLD
     let promises = []
@@ -322,17 +325,45 @@ Omemo.prototype = {
 
     console.log(parsed.childNodes[0].nodeName)
   },
-  _onBundle: function(stanza) {
-  //creates an OmemoBundle instance for a received bundle
+  _onBundle: function(stanza, ctxt = this) {
+    //creates an OmemoBundle instance for a received bundle
 
+    let codec = ctxt._codec
     let exists = false
     let parsed = $.parseXML(stanza)
-      $(parsed).find('iq').each(function () {
-          let from = $(this).attr('from')
+    let bundle = {
+      spk: null,
+      spk_id: null,
+      spk_sig: null,
+      idk: null,
+      device_id: null,
+      jid: null,
+      keys: []
+    }
 
-          exists = ctxt._omemoStore[from] ==
-          console.log(from)
-      })
+    $(parsed).find('iq').each(function () {
+      bundle.jid = $(this).attr('from')
+    })
+    $(parsed).find('signedPreKeyPublic').each(function () {
+      bundle.spk_id = $(this).attr('signedPreKeyId')
+      bundle.spk = codec.Base64ToBuffer($(this).text())
+    })
+    $(parsed).find('signedPreKeySignature').each(function () {
+      bundle.spk_sig = codec.Base64ToBuffer($(this).text())
+    })
+    $(parsed).find('publish').each(function () {
+      bundle.device_id = $(this).attr('node').split(":")[1]
+    })
+    $(parsed).find('preKeyPub').each(function () {
+      bundle.keys.push({key: codec.Base64ToBuffer($(this).text()), id: $(this).attr('keyId')})
+    })
+    $(parsed).find('identityKey').each(function () {
+      bundle.idk = codec.Base64ToBuffer($(this).text())
+    })
+    
+  return bundle
+
+
   },
   _onMessage: function(stanza) {
     // handles receiving <message> xmpp messages.
