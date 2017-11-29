@@ -52,21 +52,16 @@ function PublicOmemoStore () {
 		keyId: null,
 		signature: null,
 	},
-	this.IdentityKey = null,
+	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
+		console.log(prk)
+		this.removePreKey(prk.keyId)
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
-			signedPreKey: {
-				keyId     : this.keyId,
-				publicKey : this.publicKey,
-				signature : this.signature
-			},
-			preKey: {
-				keyId     : prk.keyId,
-				publicKey : prk.pubKey
-			}
+			signedPreKey: this.signedPreKey,
+			preKey: prk
 		}
 	},
 	this.selectRandomPreKey =  function() {
@@ -81,18 +76,20 @@ function PublicOmemoStore () {
 		return key
 	},
 	this.putPreKey = function (keyId, value) {
-		//this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
 		this.put("preKeyPub" + keyId, value);
 	},
 	this.getPreKey = function(keyId) {
-//		let res = thi	s.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
-
 		let res = this.get("preKeyPub" + keyId);
 		if (res !== undefined) {
-			return res
+			return { publicKey: res , keyId: keyId	}
 		}
 		// should never happen. should still be handeled.
 		return undefined
+	},
+	this.removePreKey = function(keyId) {
+		if (keyId === null || keyId === undefined)
+		throw new Error("Tried to remove value for undefined/null key");
+		delete this[this.jid + ":" + this.rid + ":" + "preKeyPub" + keyId];
 	},
 	this.put = function(keyId, value) {
 		if (keyId === undefined || value === undefined || keyId === null || value === null)
@@ -112,7 +109,7 @@ function PublicOmemoStore () {
 	this.remove = function(keyId) {
 		if (keyId === null || keyId === undefined)
 		throw new Error("Tried to remove value for undefined/null key");
-		delete this[jid + ":" + rid + ":" + keyId];
+		delete this[this.jid + ":" + this.rid + ":" + keyId];
 	}
 }
 
@@ -212,7 +209,7 @@ OmemoStore.prototype = {
 			return undefined
 		}
 	},
-	
+
 	putBundle: function (jid, rid, bundle) {
 		try {
 			if (this.Sessions[jid] === undefined) {

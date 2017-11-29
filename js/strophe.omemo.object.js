@@ -340,30 +340,53 @@ Omemo.prototype = {
       bundle.jid = $(this).attr('from')
     })
     $(parsed).find('signedPreKeyPublic').each(function () {
-      bundle.signedPreKey.keyId = $(this).attr('signedPreKeyId')
+      bundle.signedPreKey.keyId = parseInt($(this).attr('signedPreKeyId'))
       bundle.signedPreKey.publicKey = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('signedPreKeySignature').each(function () {
       bundle.signedPreKey.signature = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('publish').each(function () {
-      bundle.rid = $(this).attr('node').split(":")[1]
+      bundle.rid = parseInt($(this).attr('node').split(":")[1])
     })
     $(parsed).find('preKeyPub').each(function () {
       let key = codec.Base64ToBuffer($(this).text())
       let id = $(this).attr('keyId')
 //      keys.push({key: key , id: id})
-      bundle.putPreKey(
-                  id,
-                  key
-                )
+      bundle.putPreKey(id,key)
     })
     $(parsed).find('identityKey').each(function () {
-      bundle.IdentityKey = codec.Base64ToBuffer($(this).text())
+      bundle.identityKey = codec.Base64ToBuffer($(this).text())
     })
 
-    return bundle
+    //bundle
+    let record = ctxt._omemoStore.Sessions[bundle.jid]
+    if (record === undefined ) {
+      console.log("bundle undefined")
+      ctxt._omemoStore.Sessions[bundle.jid] = {}
+      record[bundle.rid] = {}
+    }
+    // cipher
 
+    record[bundle.rid].bundle = bundle
+
+//    let cipher = ctxt._omemoStore[bundle.jid][bundle.rid].cipher
+//    let preKeyFlag = ctxt._omemoStore[bundle.jid][bundle.rid].preKeyFlag
+//
+//    if (cipher === undefined ) {
+//      //establish a connection
+//    record[bundle.rid].preKeyFlag = true
+//    } else {
+//      //cipher already exists. it's a preKeyUpdate
+//      // we keep the old cipher until it's torn down.
+//      cipher = record[bundle.rid].cipher
+//      record[bundle.rid].preKeyFlag = preKeyFlag
+//    }
+//
+//
+//    record[bundle.rid].cipher = cipher
+
+    return  record
 
   },
   _onMessage: function(stanza) {

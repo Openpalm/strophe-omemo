@@ -2304,30 +2304,53 @@ Omemo.prototype = {
       bundle.jid = $(this).attr('from')
     })
     $(parsed).find('signedPreKeyPublic').each(function () {
-      bundle.signedPreKey.keyId = $(this).attr('signedPreKeyId')
+      bundle.signedPreKey.keyId = parseInt($(this).attr('signedPreKeyId'))
       bundle.signedPreKey.publicKey = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('signedPreKeySignature').each(function () {
       bundle.signedPreKey.signature = codec.Base64ToBuffer($(this).text())
     })
     $(parsed).find('publish').each(function () {
-      bundle.rid = $(this).attr('node').split(":")[1]
+      bundle.rid = parseInt($(this).attr('node').split(":")[1])
     })
     $(parsed).find('preKeyPub').each(function () {
       let key = codec.Base64ToBuffer($(this).text())
       let id = $(this).attr('keyId')
 //      keys.push({key: key , id: id})
-      bundle.putPreKey(
-                  id,
-                  key
-                )
+      bundle.putPreKey(id,key)
     })
     $(parsed).find('identityKey').each(function () {
-      bundle.IdentityKey = codec.Base64ToBuffer($(this).text())
+      bundle.identityKey = codec.Base64ToBuffer($(this).text())
     })
 
-    return bundle
+    //bundle
+    let record = ctxt._omemoStore.Sessions[bundle.jid]
+    if (record === undefined ) {
+      console.log("bundle undefined")
+      ctxt._omemoStore.Sessions[bundle.jid] = {}
+      record[bundle.rid] = {}
+    }
+    // cipher
 
+    record[bundle.rid] = bundle
+
+    let cipher = ctxt._omemoStore[bundle.jid][bundle.rid].cipher
+    let preKeyFlag = ctxt._omemoStore[bundle.jid][bundle.rid].preKeyFlag
+
+    if (cipher === undefined ) {
+      //establish a connection
+    record[bundle.rid].preKeyFlag = true
+    } else {
+      //cipher already exists. it's a preKeyUpdate
+      // we keep the old cipher until it's torn down.
+      cipher = record[bundle.rid].cipher
+      record[bundle.rid].preKeyFlag = preKeyFlag
+    }
+
+
+    record[bundle.rid].cipher = cipher
+
+    return  record
 
   },
   _onMessage: function(stanza) {
@@ -13241,21 +13264,16 @@ function PublicOmemoStore () {
 		keyId: null,
 		signature: null,
 	},
-	this.IdentityKey = null,
+	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
+		console.log(prk)
+		this.removePreKey(prk.keyId)
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
-			signedPreKey: {
-				keyId     : this.keyId,
-				publicKey : this.publicKey,
-				signature : this.signature
-			},
-			preKey: {
-				keyId     : prk.keyId,
-				publicKey : prk.pubKey
-			}
+			signedPreKey: this.signedPreKey,
+			preKey: prk
 		}
 	},
 	this.selectRandomPreKey =  function() {
@@ -13270,18 +13288,20 @@ function PublicOmemoStore () {
 		return key
 	},
 	this.putPreKey = function (keyId, value) {
-		//this.put(jid + ":" + rid + ":" + "preKeyPub" + keyId, key);
 		this.put("preKeyPub" + keyId, value);
 	},
 	this.getPreKey = function(keyId) {
-//		let res = thi	s.get(jid + ":" + rid + ":" + "preKeyPub" + keyId);
-
 		let res = this.get("preKeyPub" + keyId);
 		if (res !== undefined) {
-			return res
+			return { publicKey: res , keyId: keyId	}
 		}
 		// should never happen. should still be handeled.
 		return undefined
+	},
+	this.removePreKey = function(keyId) {
+		if (keyId === null || keyId === undefined)
+		throw new Error("Tried to remove value for undefined/null key");
+		delete this[this.jid + ":" + this.rid + ":" + "preKeyPub" + keyId];
 	},
 	this.put = function(keyId, value) {
 		if (keyId === undefined || value === undefined || keyId === null || value === null)
@@ -13301,7 +13321,7 @@ function PublicOmemoStore () {
 	this.remove = function(keyId) {
 		if (keyId === null || keyId === undefined)
 		throw new Error("Tried to remove value for undefined/null key");
-		delete this[jid + ":" + rid + ":" + keyId];
+		delete this[this.jid + ":" + this.rid + ":" + keyId];
 	}
 }
 
@@ -13401,6 +13421,7 @@ OmemoStore.prototype = {
 			return undefined
 		}
 	},
+
 	putBundle: function (jid, rid, bundle) {
 		try {
 			if (this.Sessions[jid] === undefined) {
