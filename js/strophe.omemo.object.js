@@ -380,7 +380,7 @@ Omemo.prototype = {
       console.log("record exists")
       let c = record[bundle.rid].getCipher()
       console.log(c)
-  //    bundle.putCipher(bundle.getCipher())
+      bundle.putCipher(c)
     }
   //  console.log("rid")
   //  console.log(rid)
@@ -388,9 +388,7 @@ Omemo.prototype = {
   //  console.log(record)
   //  console.log("bundle")
   //  console.log(bundle)
-
     record[rid] = bundle
-
 //    if (cipher === undefined ) {
 //      //establish a connection
 //    record[bundle.rid].preKeyFlag = true
