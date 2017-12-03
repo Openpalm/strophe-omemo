@@ -55,7 +55,6 @@ function PublicOmemoStore () {
 	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
-		console.log(prk)
 		this.removePreKey(prk.keyId)
 		return {
 			registrationId: this.rid,
@@ -81,7 +80,7 @@ function PublicOmemoStore () {
 	this.getPreKey = function(keyId) {
 		let res = this.get("preKeyPub" + keyId);
 		if (res !== undefined) {
-			return { publicKey: res , keyId: keyId	}
+			return { pubKey: res , keyId: keyId	}
 		}
 		// should never happen. should still be handeled.
 		return undefined
@@ -90,6 +89,22 @@ function PublicOmemoStore () {
 		if (keyId === null || keyId === undefined)
 		throw new Error("Tried to remove value for undefined/null key");
 		delete this[this.jid + ":" + this.rid + ":" + "preKeyPub" + keyId];
+	},
+	this.putCipher = function (cipher) {
+		this.put("cipher", cipher);
+	},
+	this.getCipher = function() {
+		let res = this.get("cipher");
+		if (res !== undefined) {
+			return res
+		}
+		// should never happen. should still be handeled.
+		return undefined
+	},
+	this.removeCipher= function() {
+		if (keyId === null || keyId === undefined)
+		throw new Error("Tried to remove value for undefined/null key");
+		delete this[this.jid + ":" + this.rid + ":" + "cipher"];
 	},
 	this.put = function(keyId, value) {
 		if (keyId === undefined || value === undefined || keyId === null || value === null)
@@ -121,14 +136,9 @@ OmemoStore.prototype = {
 				this.Sessions[jid] = {}
 			}
 			let record =  {
-				bundle: new PublicOmemoStore(), // created from received bundle
-				//this does not work.
-				cipher: cipher, //can first be empty
+				cipher: cipher,
 				preKeyFlag: flag,
 			}
-
-			record["bundle"]["jid"] = jid
-			record["bundle"]["rid"] = id
 
 			this.Sessions[jid][id] = record
 		})

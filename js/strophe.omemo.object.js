@@ -158,7 +158,6 @@ Omemo.prototype = {
     res.currentSignedPreKeyId = serialized.currentSignedPreKeyId
     res.store.jid = serialized.jid
     res.store.registrationId = serialized.registrationId
-    console.log(sk_record)
     res.store[sk_record] = {
       keyId: serialized[sk_record].keyId,
       keyPair: {
@@ -188,7 +187,8 @@ Omemo.prototype = {
   },
   buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
     let myStore = ctxt._store
-    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, theirPublicBundle.registrationId)
+    let deviceId = theirPublicBundle.registrationId
+    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, deviceId)
     let myBuilder = new ctxt._libsignal.SessionBuilder(ctxt._store, theirAddress)
     let cipher = ''
 
@@ -201,8 +201,7 @@ Omemo.prototype = {
     })
 
     cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
-    ctxt._omemoStore.add(theirJid, cipher, true)
-    return Promise.resolve({ SessionCipher: cipher, preKeyId: theirPublicBundle.preKey.keyId })
+    return Promise.resolve(cipher)
   },
   getSerialized: function(ctxt) {
     let res = ctxt._storage.getItem('OMEMO'+ctxt._jid)
@@ -228,7 +227,6 @@ Omemo.prototype = {
           let signature64 = codec.BufferToBase64(signature)
           let sk64 = codec.BufferToBase64(sk.pubKey)
           let ik64 = codec.BufferToBase64(ikp.pubKey)
-          console.log(sk.id)
           let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
           .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
           .c('publish', {node: ctxt._ns_bundles + ":" + ctxt._store.get('registrationId')})
@@ -331,10 +329,20 @@ Omemo.prototype = {
     let codec = ctxt._codec
     let exists = false
     let parsed = $.parseXML(stanza)
+    let promise = []
+    let rid, bundle
 
-    let bundle = new PublicOmemoStore()
+    $(parsed).find('publish').each(function () {
+      rid = parseInt($(this).attr('node').split(":")[1])
+    })
 
-    let keys = {}
+    try {
+      bundle = ctxt._omemoStore.Sessions[bundle.jid][rid]
+    } catch (e) {
+      bundle = new PublicOmemoStore()
+    }
+
+    bundle.rid = rid
 
     $(parsed).find('iq').each(function () {
       bundle.jid = $(this).attr('from')
@@ -346,33 +354,43 @@ Omemo.prototype = {
     $(parsed).find('signedPreKeySignature').each(function () {
       bundle.signedPreKey.signature = codec.Base64ToBuffer($(this).text())
     })
-    $(parsed).find('publish').each(function () {
-      bundle.rid = parseInt($(this).attr('node').split(":")[1])
-    })
     $(parsed).find('preKeyPub').each(function () {
       let key = codec.Base64ToBuffer($(this).text())
       let id = $(this).attr('keyId')
-//      keys.push({key: key , id: id})
+
       bundle.putPreKey(id,key)
     })
     $(parsed).find('identityKey').each(function () {
       bundle.identityKey = codec.Base64ToBuffer($(this).text())
     })
-
     //bundle
     let record = ctxt._omemoStore.Sessions[bundle.jid]
     if (record === undefined ) {
-      console.log("bundle undefined")
+      console.log("new bundle")
       ctxt._omemoStore.Sessions[bundle.jid] = {}
-      record[bundle.rid] = {}
+      record = ctxt._omemoStore.Sessions[bundle.jid]
+      bundle.put("preKeyFlag", true)
+      record[bundle.rid] = bundle
+      let publicBundle = record[bundle.rid].getPublicBundle()
+      ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
+        record[bundle.rid].putCipher(cipher)
+        bundle.put("preKeyFlag", true)
+      })
+    } else {
+      console.log("record exists")
+      let c = record[bundle.rid].getCipher()
+      console.log(c)
+  //    bundle.putCipher(bundle.getCipher())
     }
-    // cipher
+  //  console.log("rid")
+  //  console.log(rid)
+  //  console.log("record")
+  //  console.log(record)
+  //  console.log("bundle")
+  //  console.log(bundle)
 
-    record[bundle.rid].bundle = bundle
+    record[rid] = bundle
 
-//    let cipher = ctxt._omemoStore[bundle.jid][bundle.rid].cipher
-//    let preKeyFlag = ctxt._omemoStore[bundle.jid][bundle.rid].preKeyFlag
-//
 //    if (cipher === undefined ) {
 //      //establish a connection
 //    record[bundle.rid].preKeyFlag = true
@@ -386,7 +404,8 @@ Omemo.prototype = {
 //
 //    record[bundle.rid].cipher = cipher
 
-    return  record
+
+    return Promise.resolve()
 
   },
   _onMessage: function(stanza) {
