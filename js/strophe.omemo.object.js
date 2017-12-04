@@ -189,13 +189,13 @@ Omemo.prototype = {
     session.then( function onsuccess(){
       pprint('session successfully established')
       cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
-      return Promise.resolve(cipher)
     })
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
       return Promise.reject()
     })
 
+      return Promise.resolve(cipher)
   },
   getSerialized: function(ctxt) {
     let res = ctxt._storage.getItem('OMEMO'+ctxt._jid)
