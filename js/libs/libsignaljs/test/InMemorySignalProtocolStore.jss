@@ -9,42 +9,20 @@ SignalProtocolStore.prototype = {
 	getLocalRegistrationId: function() {
 		return Promise.resolve(this.get('registrationId'));
 	},
-
-put: function(key, value) {
-        if (key === undefined || value === undefined || key === null || value === null)
-            throw new Error("Tried to store undefined/null");
-
-        var stringified = JSON.stringify(value, function(key, value) {
-            if (value instanceof ArrayBuffer) {
-                return arrayBufferToArray(value)
-            }
-
-            return value;
-        });
-
-        // this.store[key] = value;
-        localStorage.setItem(this.prefix + ':' + key, stringified);
-    },
-    get: function(key, defaultValue) {
-        if (key === null || key === undefined)
-            throw new Error("Tried to get value for undefined/null key");
-        if (this.prefix + ':' + key in localStorage) {
-            // return this.store[key];
-            return JSON.parse(localStorage.getItem(this.prefix + ':' + key), function(key, value) {
-                if (/Key$/.test(key)) {
-                    return ArrayToArrayBuffer(value);
-                }
-
-                return value;
-            });
-        } else {
-            return defaultValue;
-        }
-    },
-
-function arrayBufferToArray(buffer) { return Array.apply([], new Uint8Array(buffer)); }
-
-function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
+	put: function(key, value) {
+		if (key === undefined || value === undefined || key === null || value === null)
+			throw new Error("Tried to store undefined/null");
+		this.store[key] = value;
+	},
+	get: function(key, defaultValue) {
+		if (key === null || key === undefined)
+			throw new Error("Tried to get value for undefined/null key");
+		if (key in this.store) {
+			return this.store[key];
+		} else {
+			return defaultValue;
+		}
+	},
 	remove: function(key) {
 		if (key === null || key === undefined)
 			throw new Error("Tried to remove value for undefined/null key");

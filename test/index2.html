@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../js/libs/strophejs/strophe.js"></script>
+    <script type="text/javascript" src="../js/libs/libsignaljs/dist/libsignal-protocol.js"></script>
+    <script type="text/javascript" src="../js/libsignalstore.js"></script>
+    <script type="text/javascript" src="../js/base64.js"></script>
+    <script type="text/javascript" src="../js/omemoStore.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../dist/co-strophe.omemo.object.js"></script>
+
+    <style>
+.pass:before {
+  content: 'PASS: ';
+  color:  blue;
+  font-weight: bold;
+}
+
+    .fail:before {
+      content: 'FAIL: ';
+      color: red;
+      font-weight: bold;
+
+    }
+    </style>
+  </head>
+  <body>
+
+    <ul id="output"></ul>
+    <script>
+var output = document.getElementById('output');
+
+function assert( outcome, description ) {
+  var li = document.createElement('li');
+  li.className = outcome ? 'pass' : 'fail'; li.appendChild( document.createTextNode( description ) );
+
+  output.appendChild(li);
+};
+    </script>
+  </body>
+  <script>
+
+//**
+//tests start here.
+//**
+
+function add(num1, num2) {
+  return num1 + num2;
+}
+
+let result = add(2, 2);
+
+assert( result == 4, 'Checking the add function');
+assert( result == 8, 'Checking the add function');
+
+function pprint(s) {
+  console.log(s)
+}
+
+/*
+
+before asserts/tests can be sanely implemented, the main file has be to
+rewritten in Promise format.
+
+store/gcm/codec asserts on types can be safely implemented beforehand.
+
+usage tests cases are half way done
+
+xmpp tests due after re-write as Promise based.
+
+ */
+
+
+//store function return type asserts here
+
+
+//bundle creation asserts here
+
+
+//inner omemo object instantiation asserts here
+
+
+//codec asserts here
+
+
+//gcm asserts here
+
+
+//session asserts here
+
+
+//initial msg assersts here
+
+
+//non prekey message asserts here
+
+
+//usage tests. need to add assert statements and introduce static tupels for
+//static tests. current tests generate new gcm keys on each refresh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

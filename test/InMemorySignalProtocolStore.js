@@ -1,8 +1,8 @@
-function SignalProtocolStore() {
+function ts() {
 	this.store = {};
 }
 
-SignalProtocolStore.prototype = {
+ts.prototype = {
 	getIdentityKeyPair: function() {
 		return Promise.resolve(this.get('identityKey'));
 	},
@@ -10,41 +10,42 @@ SignalProtocolStore.prototype = {
 		return Promise.resolve(this.get('registrationId'));
 	},
 
-put: function(key, value) {
-        if (key === undefined || value === undefined || key === null || value === null)
-            throw new Error("Tried to store undefined/null");
+	put: function(key, value) {
+		if (key === undefined || value === undefined || key === null || value === null)
+			throw new Error("Tried to store undefined/null");
 
-        var stringified = JSON.stringify(value, function(key, value) {
-            if (value instanceof ArrayBuffer) {
-                return arrayBufferToArray(value)
-            }
+		var stringified = JSON.stringify(value, function(key, value) {
+			if (value instanceof ArrayBuffer) {
+				return arrayBufferToArray(value)
+			}
 
-            return value;
-        });
+			return value;
+		});
 
-        // this.store[key] = value;
-        localStorage.setItem(this.prefix + ':' + key, stringified);
-    },
-    get: function(key, defaultValue) {
-        if (key === null || key === undefined)
-            throw new Error("Tried to get value for undefined/null key");
-        if (this.prefix + ':' + key in localStorage) {
-            // return this.store[key];
-            return JSON.parse(localStorage.getItem(this.prefix + ':' + key), function(key, value) {
-                if (/Key$/.test(key)) {
-                    return ArrayToArrayBuffer(value);
-                }
+		// this.store[key] = value;
+		localStorage.setItem(this.prefix + ':' + key, stringified);
+	},
+	get: function(key, defaultValue) {
+		if (key === null || key === undefined)
+			throw new Error("Tried to get value for undefined/null key");
+		if (this.prefix + ':' + key in localStorage) {
+			// return this.store[key];
+			return JSON.parse(localStorage.getItem(this.prefix + ':' + key), function(key, value) {
+				if (/Key$/.test(key)) {
+					return ArrayToArrayBuffer(value);
+				}
 
-                return value;
-            });
-        } else {
-            return defaultValue;
-        }
-    },
+				return value;
+			});
+		} else {
+			return defaultValue;
+		}
+	},
 
-function arrayBufferToArray(buffer) { return Array.apply([], new Uint8Array(buffer)); }
+	function arrayBufferToArray(buffer) { return Array.apply([], new Uint8Array(buffer)); }
 
-function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
+	function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
+
 	remove: function(key) {
 		if (key === null || key === undefined)
 			throw new Error("Tried to remove value for undefined/null key");
@@ -54,15 +55,15 @@ function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 	isTrustedIdentity: function(identifier, identityKey) {
 		if (identifier === null || identifier === undefined) {
 			throw new Error("tried to check identity key for undefined/null key");
-    }
+		}
 		if (!(identityKey instanceof ArrayBuffer)) {
 			throw new Error("Expected identityKey to be an ArrayBuffer");
-    }
+		}
 		var trusted = this.get('identityKey' + identifier);
-    if (trusted === undefined) {
-      return Promise.resolve(true);
-    }
-    return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
+		if (trusted === undefined) {
+			return Promise.resolve(true);
+		}
+		return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
 	},
 	loadIdentityKey: function(identifier) {
 		if (identifier === null || identifier === undefined)
@@ -77,11 +78,11 @@ function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 
 	/* Returns a prekeypair object or undefined */
 	loadPreKey: function(keyId) {
-    var res = this.get('25519KeypreKey' + keyId);
-    if (res !== undefined) {
-      res = { pubKey: res.pubKey, privKey: res.privKey };
-    }
-    return Promise.resolve(res);
+		var res = this.get('25519KeypreKey' + keyId);
+		if (res !== undefined) {
+			res = { pubKey: res.pubKey, privKey: res.privKey };
+		}
+		return Promise.resolve(res);
 	},
 	storePreKey: function(keyId, keyPair) {
 		return Promise.resolve(this.put('25519KeypreKey' + keyId, keyPair));
@@ -92,11 +93,11 @@ function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 
 	/* Returns a signed keypair object or undefined */
 	loadSignedPreKey: function(keyId) {
-    var res = this.get('25519KeysignedKey' + keyId);
-    if (res !== undefined) {
-      res = { pubKey: res.pubKey, privKey: res.privKey };
-    }
-    return Promise.resolve(res);
+		var res = this.get('25519KeysignedKey' + keyId);
+		if (res !== undefined) {
+			res = { pubKey: res.pubKey, privKey: res.privKey };
+		}
+		return Promise.resolve(res);
 	},
 	storeSignedPreKey: function(keyId, keyPair) {
 		return Promise.resolve(this.put('25519KeysignedKey' + keyId, keyPair));
@@ -111,15 +112,15 @@ function ArrayToArrayBuffer(array) { return new Uint8Array(array).buffer }
 	storeSession: function(identifier, record) {
 		return Promise.resolve(this.put('session' + identifier, record));
 	},
-  removeSession: function(identifier) {
+	removeSession: function(identifier) {
 		return Promise.resolve(this.remove('session' + identifier));
-  },
-  removeAllSessions: function(identifier) {
-    for (var id in this.store) {
-      if (id.startsWith('session' + identifier)) {
-        delete this.store[id];
-      }
-    }
-    return Promise.resolve();
-  }
+	},
+	removeAllSessions: function(identifier) {
+		for (var id in this.store) {
+			if (id.startsWith('session' + identifier)) {
+				delete this.store[id];
+			}
+		}
+		return Promise.resolve();
+	}
 };

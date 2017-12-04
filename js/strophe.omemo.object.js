@@ -16,7 +16,6 @@ function pprint(t) {
 
 let Omemo = function (jid, deviceid, libsig, store, omemoStore) { //deviceid = registration id.
   this._jid = jid
-  this._storage = window.localStorage
   this._address = null
   this._gcm = gcm
   this._codec = codec
@@ -34,12 +33,6 @@ let Omemo = function (jid, deviceid, libsig, store, omemoStore) { //deviceid = r
 }
 Omemo.prototype = {
   init: function(ctxt = this) {
-    if (ctxt._storage.getItem('OMEMO'+ ctxt._jid) != null) {
-      pprint("pre-existing store found. restoring ...")
-      ctxt._store = ctxt.restore(ctxt._storage.getItem('OMEMO'+ ctxt._jid))
-      ctxt._address = new ctxt._libsignal.SignalProtocolAddress(ctxt._jid, ctxt._store.get("registrationId"))
-      return Promise.resolve(true)
-    }
     ctxt.gen100PreKeys(1,100, ctxt).then(
       ctxt.armLibsignal(ctxt)
     )
@@ -76,7 +69,6 @@ Omemo.prototype = {
             registrationId = ctxt._deviceid
           }
           ctxt._store.put('registrationId', registrationId)
-          ctxt._store.identifier = ctxt._jid
           ctxt._store.saveIdentity(ctxt._jid, result[0])
           ctxt._store.loadIdentityKey(ctxt._jid).then((ikey) =>
           ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
@@ -186,22 +178,24 @@ Omemo.prototype = {
     return res
   },
   buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
+    console.log(theirPublicBundle)
     let myStore = ctxt._store
     let deviceId = theirPublicBundle.registrationId
     let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, deviceId)
-    let myBuilder = new ctxt._libsignal.SessionBuilder(ctxt._store, theirAddress)
+    let myBuilder = new ctxt._libsignal.SessionBuilder(myStore, theirAddress)
     let cipher = ''
 
     let session = myBuilder.processPreKey(theirPublicBundle)
     session.then( function onsuccess(){
       pprint('session successfully established')
+      cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
+      return Promise.resolve(cipher)
     })
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
+      return Promise.reject()
     })
 
-    cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
-    return Promise.resolve(cipher)
   },
   getSerialized: function(ctxt) {
     let res = ctxt._storage.getItem('OMEMO'+ctxt._jid)
@@ -219,7 +213,7 @@ Omemo.prototype = {
   },
   createAnnounceBundleStanza: function (ctxt = this) {
     let store = ctxt._store
-    let sk_id = store.currentSignedPreKeyId
+    let sk_id = 1
 
     return store.loadSignedPreKey(sk_id).then(sk =>
       store.getIdentityKeyPair().then(ikp =>
@@ -330,7 +324,7 @@ Omemo.prototype = {
     let exists = false
     let parsed = $.parseXML(stanza)
     let promise = []
-    let rid, bundle
+    let rid, bundle, publicBundle
 
     $(parsed).find('publish').each(function () {
       rid = parseInt($(this).attr('node').split(":")[1])
@@ -371,38 +365,43 @@ Omemo.prototype = {
       record = ctxt._omemoStore.Sessions[bundle.jid]
       bundle.put("preKeyFlag", true)
       record[bundle.rid] = bundle
-      let publicBundle = record[bundle.rid].getPublicBundle()
+      publicBundle = bundle.getPublicBundle()
       ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
-        record[bundle.rid].putCipher(cipher)
+        bundle.putCipher(cipher)
         bundle.put("preKeyFlag", true)
+        record[rid] = bundle
       })
     } else {
-      console.log("record exists")
+      if (record[bundle.rid] == undefined) {
+
+        publicBundle = bundle.getPublicBundle()
+        bundle.put("preKeyFlag", true)
+        ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
+          return Promise.resolve(new function() {
+              bundle.putCipher(cipher)
+              bundle.put("preKeyFlag", true)
+              record[rid] = bundle
+          })
+
+        }).then(o => {
+          let c = record[bundle.rid].getCipher()
+          bundle.putCipher(c)
+          let pkf = record[bundle.rid].get("preKeyFlag")
+          bundle.put("preKeyFlag", pkf)
+          record[rid] = bundle
+        })
+
+      } else {
+      console.log("record exists, refreshing bundle for " + bundle.jid + ":" + bundle.rid)
+      //check if record [rid] exists
       let c = record[bundle.rid].getCipher()
-      console.log(c)
       bundle.putCipher(c)
+      let pkf = record[bundle.rid].get("preKeyFlag")
+      bundle.put("preKeyFlag", pkf)
+      record[rid] = bundle
     }
-  //  console.log("rid")
-  //  console.log(rid)
-  //  console.log("record")
-  //  console.log(record)
-  //  console.log("bundle")
-  //  console.log(bundle)
-    record[rid] = bundle
-//    if (cipher === undefined ) {
-//      //establish a connection
-//    record[bundle.rid].preKeyFlag = true
-//    } else {
-//      //cipher already exists. it's a preKeyUpdate
-//      // we keep the old cipher until it's torn down.
-//      cipher = record[bundle.rid].cipher
-//      record[bundle.rid].preKeyFlag = preKeyFlag
-//    }
-//
-//
-//    record[bundle.rid].cipher = cipher
 
-
+    }
     return Promise.resolve()
 
   },
