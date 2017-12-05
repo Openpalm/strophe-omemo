@@ -69,7 +69,7 @@ Omemo.prototype = {
             registrationId = ctxt._deviceid
           }
           ctxt._store.put('registrationId', registrationId)
-//          ctxt._store.saveIdentity(ctxt._jid, result[0])
+          //          ctxt._store.saveIdentity(ctxt._jid, result[0])
           ctxt._store.put('identityKey', result[0])
           ctxt._store.getIdentityKeyPair().then((ikey) =>
           ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
@@ -189,6 +189,7 @@ Omemo.prototype = {
     return session.then( function onsuccess(){
       pprint('session successfully established')
       cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
+      return cipher
     })
     session.catch( function onerror(error ){
       pprint('there was an error establishing the session')
@@ -226,51 +227,27 @@ Omemo.prototype = {
       let ikp = o[1]
       let signature = o[2]
       let rid = o[3]
-          let signature64 = codec.BufferToBase64(signature)
-          let sk64 = codec.BufferToBase64(sk.pubKey)
-          let ik64 = codec.BufferToBase64(ikp.pubKey)
-          let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
-          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-          .c('publish', {node: ctxt._ns_bundles + ":" + rid })
-          .c('item')
-          .c('bundle', {xmlns: ctxt._ns_main})
-          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
-          .c('signedPreKeySignature').t(signature64).up()
-          .c('identityKey').t(ik64).up()
-          .c('prekeys')
+      let signature64 = codec.BufferToBase64(signature)
+      let sk64 = codec.BufferToBase64(sk.pubKey)
+      let ik64 = codec.BufferToBase64(ikp.pubKey)
+      let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
+      .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+      .c('publish', {node: ctxt._ns_bundles + ":" + rid })
+      .c('item')
+      .c('bundle', {xmlns: ctxt._ns_main})
+      .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+      .c('signedPreKeySignature').t(signature64).up()
+      .c('identityKey').t(ik64).up()
+      .c('prekeys')
 
 
-  let keys = ctxt._store.getPreKeyBundle(ctxt)
-          keys.forEach(function(key) {
-            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
-          })
-          
-          return res
-    })
-    return ctxt._store.loadSignedPreKey(sk_id).then(sk =>
-      ctxt._store.getIdentityKeyPair().then(ikp => {
-        ctxt._store.loadSignedPreKeySignature(sk_id).then(signature => {
-          let signature64 = codec.BufferToBase64(signature)
-          let sk64 = codec.BufferToBase64(sk.pubKey)
-          let ik64 = codec.BufferToBase64(ikp.pubKey)
-          let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
-          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-          .c('publish', {node: ctxt._ns_bundles + ":" + rid })
-          .c('item')
-          .c('bundle', {xmlns: ctxt._ns_main})
-          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
-          .c('signedPreKeySignature').t(signature64).up()
-          .c('identityKey').t(ik64).up()
-          .c('prekeys')
-
-          let keys = ctxt._store.getPreKeyBundle(ctxt)
-          keys.forEach(function(key) {
-            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
-          })
-          return Promise.resolve(res)
-        })
+      let keys = ctxt._store.getPreKeyBundle(ctxt)
+      keys.forEach(function(key) {
+        res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
       })
-    )
+
+      return res
+    })
   },
 
   createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
@@ -296,7 +273,6 @@ Omemo.prototype = {
 
       promises.push(
         ctxt._omemoStore.encryptPayloadsForSession(to, keyCipherText, tag, ctxt).then(o => {
-          //start promise block
 
           for (let rid in jidSessions)  {
             record = jidSessions[rid]
@@ -315,7 +291,6 @@ Omemo.prototype = {
             xml.up().up()
             xml.c('store', {xmlns: 'urn:xmpp:hints'})
           }
-
           return xml
           //end promise block
         })
@@ -324,8 +299,8 @@ Omemo.prototype = {
       //end else
     }
     //final return
-    return Promise.all(promises).then(xml_out =>{
-      return xml_out[0]
+    return Promise.all(promises).then(out =>{
+      return out[0]
     })
   },
 
@@ -410,9 +385,9 @@ Omemo.prototype = {
         bundle.put("preKeyFlag", true)
         ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
           return Promise.resolve(new function() {
-              bundle.putCipher(cipher)
-              bundle.put("preKeyFlag", true)
-              record[rid] = bundle
+            bundle.putCipher(cipher)
+            bundle.put("preKeyFlag", true)
+            record[rid] = bundle
           })
 
         }).then(o => {
@@ -424,14 +399,14 @@ Omemo.prototype = {
         })
 
       } else {
-      console.log("record exists, refreshing bundle for " + bundle.jid + ":" + bundle.rid)
-      //check if record [rid] exists
-      let c = record[bundle.rid].getCipher()
-      bundle.putCipher(c)
-      let pkf = record[bundle.rid].get("preKeyFlag")
-      bundle.put("preKeyFlag", pkf)
-      record[rid] = bundle
-    }
+        console.log("record exists, refreshing bundle for " + bundle.jid + ":" + bundle.rid)
+        //check if record [rid] exists
+        let c = record[bundle.rid].getCipher()
+        bundle.putCipher(c)
+        let pkf = record[bundle.rid].get("preKeyFlag")
+        bundle.put("preKeyFlag", pkf)
+        record[rid] = bundle
+      }
 
     }
     return Promise.resolve()
@@ -445,7 +420,7 @@ Omemo.prototype = {
     let parsed = $.parseXML(stanza)
     console.log(parsed.childNodes[0].nodeName)
     let decryptedMessage = ""
-//    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+    //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
 }
 
