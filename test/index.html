@@ -222,29 +222,19 @@ function initiate() {
   bob.createAnnounceBundleStanza().then(bundle => {
     alice._onBundle(bundle.xml)
   })
-//    return alice.buildSession(res, bob._jid, alice).then(res =>  {
-//      aliceSessionCipher = res.SessionCipher
-//      doenc(aliceSessionCipher)
-//    })
 }
 
 
-
 function initiate2() {
-  bob.createAnnounceBundleStanza()
-  .then(xml => {
-    alice._onBundle(xml.toString())
+  bob.createAnnounceBundleStanza().then(bundle => {
+    alice._onBundle(bundle.xml)
   })
-//  bob._store.getPublicBundle(bob).then(bundle1 =>  {
-//    bob2._store.getPublicBundle(bob2).then (bundle2 => {
-//      alice.buildSession(bundle1, bob._jid, alice).then(session1 =>  {
-//        alice.buildSession(bundle2, bob2._jid, alice).then(session2 => {
-//          aliceSessionCipher1 = session1.SessionCipher
-//          aliceSessionCipher2 = session2.SessionCipher
-//        })
-//      })
-//    })
-//  })
+  bob2.createAnnounceBundleStanza().then(bundle => {
+    alice._onBundle(bundle.xml)
+  })
+  steve.createAnnounceBundleStanza().then(bundle => {
+    alice._onBundle(bundle.xml)
+  })
 }
 
 let am1enc = ''
