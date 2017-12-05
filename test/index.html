@@ -169,69 +169,74 @@ let am3 = "writing tests for a project"
 // so this func will fail if that happens.
 
 // => bob has to reply first.
-//function test_enc_step(out_cipher, in_cipher, gcm_enc_out) {
-//  let OMMSG = gcm_enc_out.OMMSG // => to assert
-//  let LSPLD = gcm_enc_out.LSPLD
-//  let ORIGSTR = gcm_enc_out.ORIGSTR //assert material
-//  let res = function () {
-//    return out_cipher.encrypt(LSPLD).then(res => {
-//      return in_cipher.decryptWhisperMessage(res.body, 'binary').then(res => {
-//        let decoder = new TextDecoder()
-//        return Promise.resolve("key: " + decoder.decode(res))
-//      })
-//    })
-//  }
-//  return Promise.resolve(res)
-//}
-//
-//gcm.encrypt(am1).then(res =>
-//  {
-//    console.log(res)
-//    aliceFirstMsg = res.OMMSG
-//    aliceFirstKey = res.LSPLD
-//    aliceFirstMsgObj = res
-//    pprint('first alice message key: ' + aliceFirstKey)
-//  })
-//gcm.encrypt(am2).then(res =>
-//  {
-//    console.log(res)
-//    aliceSecondMsg = res.OMMSG
-//    aliceSecondKey = res.LSPLD
-//    aliceSecondMsgObj = res
-//    pprint('second alice message key: ' + aliceSecondKey)
-//  })
-//gcm.encrypt(bm1).then(res =>
-//  {
-//    console.log(res)
-//    bobFirstMsg = res.OMMSG
-//    bobFirstKey = res.LSPLD
-//    bobFirstMsgObj = res
-//    pprint('first bob message key: ' + bobFirstKey)
-//  })
-//gcm.encrypt(bm2).then(res =>
-//  {
-//    console.log(res)
-//    bobSecondMsg = res.OMMSG
-//    bobSecondKey = res.LSPLD
-//    bobSecondMsgObj = res
-//    pprint('second bob message key: ' + bobSecondKey)
-//  })
-//
-//
-//let aliceSessionCipher, bobSessionCipher
-////alice estbalishes session
-//function initiate() {
-//  return bob._store.getPublicBundle(bob).then(res =>  {
+function test_enc_step(out_cipher, in_cipher, gcm_enc_out) {
+  let OMMSG = gcm_enc_out.OMMSG // => to assert
+  let LSPLD = gcm_enc_out.LSPLD
+  let ORIGSTR = gcm_enc_out.ORIGSTR //assert material
+  let res = function () {
+    return out_cipher.encrypt(LSPLD).then(res => {
+      return in_cipher.decryptWhisperMessage(res.body, 'binary').then(res => {
+        let decoder = new TextDecoder()
+        return Promise.resolve("key: " + decoder.decode(res))
+      })
+    })
+  }
+  return Promise.resolve(res)
+}
+
+gcm.encrypt(am1).then(res =>
+  {
+    console.log(res)
+    aliceFirstMsg = res.OMMSG
+    aliceFirstKey = res.LSPLD
+    aliceFirstMsgObj = res
+    pprint('first alice message key: ' + aliceFirstKey)
+  })
+gcm.encrypt(am2).then(res =>
+  {
+    console.log(res)
+    aliceSecondMsg = res.OMMSG
+    aliceSecondKey = res.LSPLD
+    aliceSecondMsgObj = res
+    pprint('second alice message key: ' + aliceSecondKey)
+  })
+gcm.encrypt(bm1).then(res =>
+  {
+    console.log(res)
+    bobFirstMsg = res.OMMSG
+    bobFirstKey = res.LSPLD
+    bobFirstMsgObj = res
+    pprint('first bob message key: ' + bobFirstKey)
+  })
+gcm.encrypt(bm2).then(res =>
+  {
+    console.log(res)
+    bobSecondMsg = res.OMMSG
+    bobSecondKey = res.LSPLD
+    bobSecondMsgObj = res
+    pprint('second bob message key: ' + bobSecondKey)
+  })
+
+
+let aliceSessionCipher, bobSessionCipher
+//alice estbalishes session
+function initiate() {
+  bob.createAnnounceBundleStanza().then(bundle => {
+    alice._onBundle(bundle.xml)
+  })
 //    return alice.buildSession(res, bob._jid, alice).then(res =>  {
 //      aliceSessionCipher = res.SessionCipher
 //      doenc(aliceSessionCipher)
 //    })
-//  })
-//}
-//
-//
-//
-//function initiate2() {
+}
+
+
+
+function initiate2() {
+  bob.createAnnounceBundleStanza()
+  .then(xml => {
+    alice._onBundle(xml.toString())
+  })
 //  bob._store.getPublicBundle(bob).then(bundle1 =>  {
 //    bob2._store.getPublicBundle(bob2).then (bundle2 => {
 //      alice.buildSession(bundle1, bob._jid, alice).then(session1 =>  {
@@ -242,64 +247,64 @@ let am3 = "writing tests for a project"
 //      })
 //    })
 //  })
-//}
-//
-//let am1enc = ''
-////alice encrypts her first message with the session, gets called in one.
-//function doenc() {
-//  return aliceSessionCipher.encrypt(aliceFirstKey).then(res => {
-//    am1enc = res
-//    pprint('result saved in am1enc')
-//  })
-//}
-//
-//
-//let am1dec = ''
-////bob receives alice's first message, decrypts it as a prekey whisper message
-//function establish() {
-//  bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
-//  let ls64 = alice._codec.StringToBase64(am1enc.body) // checking to see if base64 payload gets decrypted well
-//  let lsnorm = alice._codec.Base64ToString(ls64) //aught to turn this into an assert
-//  bobSessionCipher.decryptPreKeyWhisperMessage(lsnorm, 'binary').then(res => {
-//    let decoder = new TextDecoder()
-//    pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
-//    return Promise.resolve(am1dec = decoder.decode(res))
-//  })
-//  try {
-//    estabslish()
-//  } catch (err) {
-//    return
-//  }
-//}
-//
-////bob moves on to decrypt the output of step three, which is a decrypted gcm key
-//let firstMsgEndResult
-//function print() {
-//  let decoder = new TextDecoder()
-//  return gcm.decrypt(am1dec, aliceFirstMsg.cipherText, aliceFirstMsg.iv, aliceFirstMsg.aad).then(res => {
-//    firstMsgEndResult = res
-//    pprint("alice said: " + res)
-//    return res
-//  })
-//}
-//
-////alice and bob exchange messages,
-////bob replies and the exchange starts.
-////initial run fialure, debug with breakpoints
-////subsequent runs are fine
-//function exchange() {
-//  let a = bobSessionCipher
-//  let b = aliceSessionCipher
-//
-//  test_enc_step(a, b, bobFirstMsgObj).then(res1 =>  {
-//
-//    res1().then(o1 => console.log(o1))
-//  })
-//  test_enc_step(b, a, aliceSecondMsgObj).then(res1 =>  {
-//    res1().then(o2 => console.log(o2))
-//  })
-//}
-//
+}
+
+let am1enc = ''
+//alice encrypts her first message with the session, gets called in one.
+function doenc() {
+  return aliceSessionCipher.encrypt(aliceFirstKey).then(res => {
+    am1enc = res
+    pprint('result saved in am1enc')
+  })
+}
+
+
+let am1dec = ''
+//bob receives alice's first message, decrypts it as a prekey whisper message
+function establish() {
+  bobSessionCipher = new libsignal.SessionCipher(bob._store, alice._address)
+  let ls64 = alice._codec.StringToBase64(am1enc.body) // checking to see if base64 payload gets decrypted well
+  let lsnorm = alice._codec.Base64ToString(ls64) //aught to turn this into an assert
+  bobSessionCipher.decryptPreKeyWhisperMessage(lsnorm, 'binary').then(res => {
+    let decoder = new TextDecoder()
+    pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
+    return Promise.resolve(am1dec = decoder.decode(res))
+  })
+  try {
+    estabslish()
+  } catch (err) {
+    return
+  }
+}
+
+//bob moves on to decrypt the output of step three, which is a decrypted gcm key
+let firstMsgEndResult
+function print() {
+  let decoder = new TextDecoder()
+  return gcm.decrypt(am1dec, aliceFirstMsg.cipherText, aliceFirstMsg.iv, aliceFirstMsg.aad).then(res => {
+    firstMsgEndResult = res
+    pprint("alice said: " + res)
+    return res
+  })
+}
+
+//alice and bob exchange messages,
+//bob replies and the exchange starts.
+//initial run fialure, debug with breakpoints
+//subsequent runs are fine
+function exchange() {
+  let a = bobSessionCipher
+  let b = aliceSessionCipher
+
+  test_enc_step(a, b, bobFirstMsgObj).then(res1 =>  {
+
+    res1().then(o1 => console.log(o1))
+  })
+  test_enc_step(b, a, aliceSecondMsgObj).then(res1 =>  {
+    res1().then(o2 => console.log(o2))
+  })
+}
+
 //alice sends messages in a chain without bob replying, bob receives and decrypts
 
   </script>

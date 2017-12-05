@@ -9,6 +9,7 @@ describe('SessionBuilder', function() {
         ]).then(function(result) {
             store.put('identityKey', result[0]);
             store.put('registrationId', result[1]);
+		console.log(store)
         });
     }
 

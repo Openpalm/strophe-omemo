@@ -69,8 +69,9 @@ Omemo.prototype = {
             registrationId = ctxt._deviceid
           }
           ctxt._store.put('registrationId', registrationId)
-          ctxt._store.saveIdentity(ctxt._jid, result[0])
-          ctxt._store.loadIdentityKey(ctxt._jid).then((ikey) =>
+//          ctxt._store.saveIdentity(ctxt._jid, result[0])
+          ctxt._store.put('identityKey', result[0])
+          ctxt._store.getIdentityKeyPair().then((ikey) =>
           ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
             ctxt._store.storeSignedPreKey(1, skey)
           })
@@ -178,7 +179,6 @@ Omemo.prototype = {
     return res
   },
   buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
-    console.log(theirPublicBundle)
     let myStore = ctxt._store
     let deviceId = theirPublicBundle.registrationId
     let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, deviceId)
@@ -186,7 +186,7 @@ Omemo.prototype = {
     let cipher = ''
 
     let session = myBuilder.processPreKey(theirPublicBundle)
-    session.then( function onsuccess(){
+    return session.then( function onsuccess(){
       pprint('session successfully established')
       cipher = new ctxt._libsignal.SessionCipher(myStore, theirAddress)
     })
@@ -194,8 +194,8 @@ Omemo.prototype = {
       pprint('there was an error establishing the session')
       return Promise.reject()
     })
+    return Promise.resolve(cipher)
 
-      return Promise.resolve(cipher)
   },
   getSerialized: function(ctxt) {
     let res = ctxt._storage.getItem('OMEMO'+ctxt._jid)
@@ -215,15 +215,47 @@ Omemo.prototype = {
     let store = ctxt._store
     let sk_id = 1
 
-    return store.loadSignedPreKey(sk_id).then(sk =>
-      store.getIdentityKeyPair().then(ikp =>
-        store.loadSignedPreKeySignature(sk_id).then(signature => {
+    let promises = [
+      ctxt._store.getSignedPreKey(sk_id),
+      ctxt._store.getIdentityKeyPair(),
+      ctxt._store.loadSignedPreKeySignature(sk_id),
+      ctxt._store.getLocalRegistrationId()
+    ]
+    return Promise.all(promises).then(o => {
+      let sk = o[0]
+      let ikp = o[1]
+      let signature = o[2]
+      let rid = o[3]
           let signature64 = codec.BufferToBase64(signature)
           let sk64 = codec.BufferToBase64(sk.pubKey)
           let ik64 = codec.BufferToBase64(ikp.pubKey)
           let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
           .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-          .c('publish', {node: ctxt._ns_bundles + ":" + ctxt._store.get('registrationId')})
+          .c('publish', {node: ctxt._ns_bundles + ":" + rid })
+          .c('item')
+          .c('bundle', {xmlns: ctxt._ns_main})
+          .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+          .c('signedPreKeySignature').t(signature64).up()
+          .c('identityKey').t(ik64).up()
+          .c('prekeys')
+
+
+  let keys = ctxt._store.getPreKeyBundle(ctxt)
+          keys.forEach(function(key) {
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
+          })
+          
+          return res
+    })
+    return ctxt._store.loadSignedPreKey(sk_id).then(sk =>
+      ctxt._store.getIdentityKeyPair().then(ikp => {
+        ctxt._store.loadSignedPreKeySignature(sk_id).then(signature => {
+          let signature64 = codec.BufferToBase64(signature)
+          let sk64 = codec.BufferToBase64(sk.pubKey)
+          let ik64 = codec.BufferToBase64(ikp.pubKey)
+          let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
+          .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+          .c('publish', {node: ctxt._ns_bundles + ":" + rid })
           .c('item')
           .c('bundle', {xmlns: ctxt._ns_main})
           .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
@@ -235,9 +267,9 @@ Omemo.prototype = {
           keys.forEach(function(key) {
             res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
           })
-          return res
+          return Promise.resolve(res)
         })
-      )
+      })
     )
   },
 
