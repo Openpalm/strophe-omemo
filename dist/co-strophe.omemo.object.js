@@ -2240,7 +2240,7 @@ Omemo.prototype = {
 
           for (let rid in jidSessions)  {
             record = jidSessions[rid]
-            xml.c('key', {prekey: record.preKeyFlag, rid: rid}).t(record.payload).up()
+            xml.c('key', {prekey: record.get('preKeyFlag'), rid: rid}).t(record.payload).up()
           }
 
           xml.c('iv').t(msgObj.ENFORCED.iv).up()

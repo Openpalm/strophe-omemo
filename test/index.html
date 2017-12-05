@@ -102,33 +102,31 @@ let libsig = libsignal
 let util = new Omemo('dummy@util.com', 000, Object, Object)
 let gcm = util._gcm
 
-let arid  = 111
-let aliceStore = new SignalProtocolStore('alice@jiddy.jid', arid)
+rid  = 111
+let aliceStore = new SignalProtocolStore('alice@jiddy.jid', rid)
 let aliceOmemoStore = new OmemoStore()
-let alice = new Omemo('alice@jiddy.jid', arid, libsig, aliceStore, aliceOmemoStore)
+let alice = new Omemo('alice@jiddy.jid', rid, libsig, aliceStore, aliceOmemoStore)
 
-let brid = 222
-let bobStore = new SignalProtocolStore('bob@jiddy.jid', brid)
+rid = 222
+let bobStore = new SignalProtocolStore('bob@jiddy.jid', rid)
 let bobOmemoStore = new OmemoStore()
-let bob = new Omemo('bob@jiddy.jid', brid, libsig, bobStore, bobOmemoStore)
+let bob = new Omemo('bob@jiddy.jid', rid, libsig, bobStore, bobOmemoStore)
 
+rid = 333
+let bobStore2 = new SignalProtocolStore('bob@jiddy.jid', rid)
+let bobOmemoStore2 = new OmemoStore()
+let bob2 = new Omemo('bob@jiddy.jid', rid, libsig, bobStore2, bobOmemoStore2)
 
-
-//let bobStore2 = new SignalProtocolStore('alice@jiddy.jid', 123)
-//let bobOmemoStore2 = new OmemoStore()
-//let bob2 = new Omemo('bob@jiddy.jid', 322, libsig, bobStore2, bobOmemoStore2) //bob's second device
-//
-//
-//
-//let steveStore = new SignalProtocolStore()
-//let steveOmemoStore = new OmemoStore()
-//let steve = new Omemo('steve@jiddy.jid', 322, libsig, steveStore, steveOmemoStore) //steve's device
+rid = 444
+let steveStore = new SignalProtocolStore('steve@jiddy.jid', rid)
+let steveOmemoStore = new OmemoStore()
+let steve = new Omemo('steve@jiddy.jid', rid, libsig, steveStore, steveOmemoStore)
 
 
 alice.init(alice)
 bob.init(bob)
-//bob2.init(bob2)
-//steve.init(steve)
+bob2.init(bob2)
+steve.init(steve)
 
 
 
