@@ -215,25 +215,35 @@ gcm.encrypt(bm2).then(res =>
     pprint('second bob message key: ' + bobSecondKey)
   })
 
-
 let aliceSessionCipher, bobSessionCipher
 //alice estbalishes session
 function initiate() {
-  bob.createAnnounceBundleStanza().then(bundle => {
-    alice._onBundle(bundle.xml)
-  })
+
+      bob.createAnnounceBundleStanza().then(out => {
+        alice._onBundle(out.toString())
+      })
+
+//  let promises = [
+//      bob.createAnnounceBundleStanza(),
+//  ]
+//  Promise.all(promises).then(o => {
+//    console.log(o)
+//    for (let i in o) {
+//    alice._onBundle(o[i].toString())
+//    }
+//  })
 }
 
-
 function initiate2() {
-  bob.createAnnounceBundleStanza().then(bundle => {
-    alice._onBundle(bundle.xml)
-  })
-  bob2.createAnnounceBundleStanza().then(bundle => {
-    alice._onBundle(bundle.xml)
-  })
-  steve.createAnnounceBundleStanza().then(bundle => {
-    alice._onBundle(bundle.xml)
+  let promises = [
+      bob.createAnnounceBundleStanza(),
+      bob2.createAnnounceBundleStanza(),
+      steve.createAnnounceBundleStanza()
+  ]
+  Promise.all(promises).then(o => {
+    for (let i in o) {
+    alice._onBundle(o[i].toString())
+    }
   })
 }
 

@@ -179,6 +179,7 @@ Omemo.prototype = {
     return res
   },
   buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
+    console.log("building session with " + theirJid)
     let myStore = ctxt._store
     let deviceId = theirPublicBundle.registrationId
     let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, deviceId)
@@ -246,7 +247,7 @@ Omemo.prototype = {
         res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
       })
 
-      return res
+      return Promise.resolve(res)
     })
   },
 
@@ -326,7 +327,11 @@ Omemo.prototype = {
   },
   _onBundle: function(stanza, ctxt = this) {
     //creates an OmemoBundle instance for a received bundle
-
+    if (stanza === undefined) {
+      pprint("attempted to parse null stanza")
+      return
+    }
+    pprint("entering onBundle")
     let codec = ctxt._codec
     let exists = false
     let parsed = $.parseXML(stanza)
@@ -372,8 +377,13 @@ Omemo.prototype = {
       record = ctxt._omemoStore.Sessions[bundle.jid]
       bundle.put("preKeyFlag", true)
       record[bundle.rid] = bundle
+    pprint("getting publicBundle")
       publicBundle = bundle.getPublicBundle()
-      ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
+
+    pprint("attempting to build a session")
+      ctxt.buildSession(publicBundle, bundle.jid, ctxt).then(cipher => {
+    pprint("storing cipher")
+
         bundle.putCipher(cipher)
         bundle.put("preKeyFlag", true)
         record[rid] = bundle
@@ -383,7 +393,7 @@ Omemo.prototype = {
 
         publicBundle = bundle.getPublicBundle()
         bundle.put("preKeyFlag", true)
-        ctxt.buildSession(publicBundle, bundle.rid, ctxt).then(cipher => {
+        ctxt.buildSession(publicBundle, bundle.jid, ctxt).then(cipher => {
           return Promise.resolve(new function() {
             bundle.putCipher(cipher)
             bundle.put("preKeyFlag", true)
@@ -413,10 +423,6 @@ Omemo.prototype = {
 
   },
   _onMessage: function(stanza) {
-    // handles receiving <message> xmpp messages.
-    // advances the chains by calling decrypt
-    // deciphers if payload exists
-    // republishes bundle on prekeymessages
     let parsed = $.parseXML(stanza)
     console.log(parsed.childNodes[0].nodeName)
     let decryptedMessage = ""
