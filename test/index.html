@@ -221,7 +221,7 @@ function initiate() {
   bob.createAnnounceBundleStanza().then(out => {
     alice._onBundle(out.toString()).then(o => {
       alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => {
-        console.log(o.tree())
+        bob._onMessage(o.toString())
       })
     })
   })

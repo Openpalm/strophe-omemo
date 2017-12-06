@@ -377,6 +377,7 @@ Omemo.prototype = {
       return
     }
 
+    let parsed = $.parseXML(stanza)
     let rid, jid, sid, bundle, publicBundle
 
     $(parsed).find('message').each(function () {
