@@ -158,13 +158,14 @@ OmemoStore.prototype = {
 
 		for (let k in this.Sessions[jid]) {
 			let cipher = this.Sessions[jid][k].getCipher()
-			promises.push(
-				cipher.encrypt(keyCipherText + tag).then(enc => {
-					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(enc.body)
-				})
-			)
+			promises.push(cipher.encrypt(keyCipherText + tag))
 		}
-		return Promise.all(promises).then(o => {
+		return Promise.all(promises).then(res => {
+		let ctr = 0
+		for (let k in this.Sessions[jid]) {
+					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
+					ctr = ctr + 1
+		}
 			return Promise.resolve(this.Sessions[jid])
 		})
 	},

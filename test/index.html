@@ -218,20 +218,14 @@ gcm.encrypt(bm2).then(res =>
 let aliceSessionCipher, bobSessionCipher
 //alice estbalishes session
 function initiate() {
-
-      bob.createAnnounceBundleStanza().then(out => {
-        alice._onBundle(out.toString())
+  bob.createAnnounceBundleStanza().then(out => {
+    alice._onBundle(out.toString()).then(o => {
+      alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => {
+        console.log(o.tree())
       })
+    })
+  })
 
-//  let promises = [
-//      bob.createAnnounceBundleStanza(),
-//  ]
-//  Promise.all(promises).then(o => {
-//    console.log(o)
-//    for (let i in o) {
-//    alice._onBundle(o[i].toString())
-//    }
-//  })
 }
 
 function initiate2() {
