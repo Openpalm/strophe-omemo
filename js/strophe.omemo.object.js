@@ -378,17 +378,46 @@ Omemo.prototype = {
     }
 
     let parsed = $.parseXML(stanza)
-    let rid, jid, sid, bundle, publicBundle
+    let rid, jid, sid, bundle, publicBundle, temp_rid
+    let keyAndTag, iv, payload, preKeyFlag
 
     $(parsed).find('message').each(function () {
       jid = $(this).attr('from')
+    })
+
+    $(parsed).find('payload').each(function () {
+      payload = $(this).text()
     })
 
     $(parsed).find('header').each(function () {
       sid = parseInt($(this).attr('sid'))
     })
 
-    bundle.rid = rid
+    $(parsed).find('key').each(function () {
+      temp_rid = parseInt($(this).attr('rid'))
+      if (temp_rid == ctxt._deviceid) {
+        preKeyFlag = $(this).attr('prekey')
+        keyAndTag = $(this).text()
+      }
+    })
+
+    console.log(jid)
+    console.log(sid)
+    console.log(keyAndTag)
+    console.log(preKeyFlag)
+
+    if (preKeyFlag) {
+      //handle preKeyMessage,
+      //create omemoBundle entry if non exist,
+      //overwrite old cipher
+      //decryptPreKeyWhisperMessage
+
+    } else {
+      //grab cipher from omemoBundle
+      //decryptWhisperMessage
+
+    }
+
     let decryptedMessage = ""
     //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },

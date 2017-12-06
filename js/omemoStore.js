@@ -161,6 +161,8 @@ OmemoStore.prototype = {
 			promises.push(cipher.encrypt(keyCipherText + tag))
 		}
 		return Promise.all(promises).then(res => {
+			//the counter should work. promises are resolved in order
+			//of iteration, res will contain results in order too.
 		let ctr = 0
 		for (let k in this.Sessions[jid]) {
 					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)

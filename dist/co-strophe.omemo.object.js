@@ -2341,17 +2341,35 @@ Omemo.prototype = {
       return
     }
 
-    let rid, jid, sid, bundle, publicBundle
+    let parsed = $.parseXML(stanza)
+    let rid, jid, sid, bundle, publicBundle, temp_rid
+    let keyAndTag, iv, payload, preKeyFlag
 
     $(parsed).find('message').each(function () {
       jid = $(this).attr('from')
+    })
+
+    $(parsed).find('payload').each(function () {
+      payload = $(this).text()
     })
 
     $(parsed).find('header').each(function () {
       sid = parseInt($(this).attr('sid'))
     })
 
-    bundle.rid = rid
+    $(parsed).find('key').each(function () {
+      temp_rid = parseInt($(this).attr('rid'))
+      if (temp_rid == ctxt._deviceid) {
+        preKeyFlag = $(this).attr('prekey')
+        keyAndTag = $(this).text()
+      }
+    })
+
+    console.log(jid)
+    console.log(sid)
+    console.log(keyAndTag)
+    console.log(preKeyFlag)
+
     let decryptedMessage = ""
     //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
   },
@@ -13365,6 +13383,8 @@ OmemoStore.prototype = {
 			promises.push(cipher.encrypt(keyCipherText + tag))
 		}
 		return Promise.all(promises).then(res => {
+			//the counter should work. promises are resolved in order
+			//of iteration, res will contain results in order too.
 		let ctr = 0
 		for (let k in this.Sessions[jid]) {
 					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
