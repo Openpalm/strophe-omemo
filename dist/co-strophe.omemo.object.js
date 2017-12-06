@@ -2335,7 +2335,6 @@ Omemo.prototype = {
 
   },
   _onMessage: function(stanza, ctxt = this) {
-
     if (stanza === undefined) {
       pprint("attempted to parse null stanza")
       return
@@ -2365,10 +2364,32 @@ Omemo.prototype = {
       }
     })
 
+    $(parsed).find('iv').each(function () {
+        iv = $(this).text()
+    })
+
     console.log(jid)
     console.log(sid)
     console.log(keyAndTag)
     console.log(preKeyFlag)
+    console.log(iv)
+
+    if (preKeyFlag) {
+      //handle preKeyMessage,
+      //create omemoBundle entry if non exist,
+      //overwrite old cipher
+      //decryptPreKeyWhisperMessage
+    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
+    let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
+
+    let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
+    console.log(txtPayload)
+
+    } else {
+      //grab cipher from omemoBundle
+      //decryptWhisperMessage
+
+    }
 
     let decryptedMessage = ""
     //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
@@ -13369,9 +13390,6 @@ OmemoStore.prototype = {
 	getSessions: function (jid) {
 		return this.Sessions[jid]
 	},
-	getSessionsCount: function (jid) {
-		return this.Sessions[jid].length
-	},
 	dropSessions: function (jid) {
 		this.Sessions[jid] = []
 	},
@@ -13412,12 +13430,16 @@ OmemoStore.prototype = {
 	},
 	hasSessionForRid: function (jid, rid) {
 		try {
-			if (this.getCipher(jid, rid) != undefined) {
-				return true
+			if (this.getSessions(jid) !== undefined) {
+				let cipher  = this.getCipher(jid, rid)
+				if (cipher !== undefined) {
+					return cipher
+				}
 			}
 		} catch(e) {
-			return false
+			return undefined
 		}
+		return undefined
 	},
 	getDeviceIdList: function (jid) {
 		try {

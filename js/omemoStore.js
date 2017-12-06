@@ -147,9 +147,6 @@ OmemoStore.prototype = {
 	getSessions: function (jid) {
 		return this.Sessions[jid]
 	},
-	getSessionsCount: function (jid) {
-		return this.Sessions[jid].length
-	},
 	dropSessions: function (jid) {
 		this.Sessions[jid] = []
 	},
@@ -190,12 +187,16 @@ OmemoStore.prototype = {
 	},
 	hasSessionForRid: function (jid, rid) {
 		try {
-			if (this.getCipher(jid, rid) != undefined) {
-				return true
+			if (this.getSessions(jid) !== undefined) {
+				let cipher  = this.getCipher(jid, rid)
+				if (cipher !== undefined) {
+					return cipher
+				}
 			}
 		} catch(e) {
-			return false
+			return undefined
 		}
+		return undefined
 	},
 	getDeviceIdList: function (jid) {
 		try {
