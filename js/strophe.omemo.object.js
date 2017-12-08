@@ -211,11 +211,17 @@ Omemo.prototype = {
     //if keyMessage is true, then the message is a key-material transport message
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => res = o)
     //alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj, true).then(o => res = o)
+    let jidSessions = ctxt._omemoStore.getSessions(to)
+
+    if (jidSessions === undefined) {
+      return Promise.reject("no session exists for " + to)
+    }
 
     let tag = msgObj.ENFORCED.tag
     let keyCipherText = msgObj.LSPLD
     let promises = []
-    let jidSessions = ctxt._omemoStore.getSessions(to)
+
+
     let record, xml, enforced64
 
     xml = $msg({to: to, from: ctxt._jid, id1: 'send1'})
@@ -345,7 +351,7 @@ Omemo.prototype = {
       })
 
     } else {
-      if (record[bundle.rid] == undefined) {
+      if (record[bundle.rid] === undefined) {
 
         publicBundle = bundle.getPublicBundle()
         let p = ctxt.buildSession(publicBundle, bundle.jid, ctxt)
@@ -356,8 +362,10 @@ Omemo.prototype = {
           bundle.put("preKeyFlag", true)
           record[rid] = bundle
           return Promise.resolve(record[rid])
+
         })
       } else {
+
         console.log("record exists, refreshing bundle for " + bundle.jid + ":" + bundle.rid)
         //fetching here since we overwrite the whole bundle
         let cipher = record[bundle.rid].getCipher()
@@ -366,20 +374,24 @@ Omemo.prototype = {
         bundle.put("preKeyFlag", pkf)
         record[rid] = bundle
         return Promise.resolve(record[rid])
+
       }
     }
 
   },
+
   _onMessage: function(stanza, ctxt = this) {
     if (stanza === undefined) {
       pprint("attempted to parse null stanza")
       return
     }
 
+    let gcm = ctxt._gcm
     let parsed = $.parseXML(stanza)
     let promises = []
     let rid, jid, sid, bundle, publicBundle, temp_rid
     let keyAndTag, iv, payload, preKeyFlag
+    let decryptedMessage = ""
 
     $(parsed).find('message').each(function () {
       jid = $(this).attr('from')
@@ -405,33 +417,46 @@ Omemo.prototype = {
         iv = $(this).text()
     })
 
-    console.log(jid)
-    console.log(sid)
-    console.log(keyAndTag)
-    console.log(preKeyFlag)
-    console.log(iv)
+    //console.log(jid)
+    //console.log(sid)
+    //console.log(keyAndTag)
+    //console.log(preKeyFlag)
+    //console.log(iv)
 
     if (preKeyFlag) {
       //handle preKeyMessage,
       //create omemoBundle entry if non exist,
       //overwrite old cipher
       //decryptPreKeyWhisperMessage
+
+    console.log("in main")
+
     let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
     let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
 
     let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
     console.log(txtPayload)
-    promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload))
-    //store the cipher after using it, it advances the chains and has to be overwritten
+    promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload, 'binary'))
+    return Promise.all(promises).then(res => {
+      //extract tag, gcm decrypt and assign decryptedMessage
+      console.log("preKey message: " + res)
+      gcm.decrypt()
+    //return    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+    })
 
-    } else {
-      //grab cipher from omemoBundle
-      //decryptWhisperMessage
+  } else {
+    //grab cipher from omemoBundle
+    //decryptWhisperMessage
 
-    }
+    console.log("in else")
+    promises.push(cipher.decryptWhisperMessage(txtPayload))
 
-    let decryptedMessage = ""
-    //    $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+    Promise.all(promises).then(res => {
+      console.log("whisper message" + res)
+    })
+
+  }
+
   },
 }
 

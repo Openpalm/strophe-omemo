@@ -262,18 +262,16 @@ function establish() {
     pprint("initial session with alice complete - preKeyWhisperMessage success.\nResult saved in am1dec")
     return Promise.resolve(am1dec = decoder.decode(res))
   })
-  try {
-    estabslish()
-  } catch (err) {
-    return
-  }
 }
 
 //bob moves on to decrypt the output of step three, which is a decrypted gcm key
 let firstMsgEndResult
 function print() {
   let decoder = new TextDecoder()
-  return gcm.decrypt(am1dec, aliceFirstMsg.cipherText, aliceFirstMsg.iv, aliceFirstMsg.aad).then(res => {
+  return gcm.decrypt(am1dec,
+    aliceFirstMsg.cipherText,
+    aliceFirstMsg.iv,
+    aliceFirstMsg.aad).then(res => {
     firstMsgEndResult = res
     pprint("alice said: " + res)
     return res

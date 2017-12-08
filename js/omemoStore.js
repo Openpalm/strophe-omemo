@@ -161,6 +161,7 @@ OmemoStore.prototype = {
 			//the counter should work. promises are resolved in order
 			//of iteration, res will contain results in order too.
 		let ctr = 0
+		console.log(res)
 		for (let k in this.Sessions[jid]) {
 					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
 					ctr = ctr + 1
