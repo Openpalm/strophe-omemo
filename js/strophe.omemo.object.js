@@ -438,6 +438,7 @@ _onMessage: function(stanza, ctxt = this) {
     //let txtPayload = ctxt._omemoStore.Sessions["bob@jiddy.jid"][222].original
     promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload, 'binary'))
     return Promise.all(promises).then(res => {
+      console.log(res)
       // extract tag, gcm decrypt and assign decryptedMessage
       // console.log("preKey message: " + res)
       //  gcm.decrypt()
