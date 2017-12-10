@@ -136,7 +136,6 @@ SignalProtocolStore.prototype = {
 	removePreKey: function(keyId) {
 		return Promise.resolve(this.remove('25519KeypreKey' + keyId));
 	},
-
 	/* Returns a signed keypair object or undefined */
 	loadSignedPreKey: function(keyId) {
     var res = this.get('25519KeysignedKey' + keyId);
@@ -145,7 +144,6 @@ SignalProtocolStore.prototype = {
     }
     return Promise.resolve(res);
 	},
-
 	getSignedPreKey: function(keyId) {
     var res = this.get('25519KeysignedKey' + keyId);
     if (res !== undefined) {
@@ -159,15 +157,13 @@ SignalProtocolStore.prototype = {
 	removeSignedPreKey: function(keyId) {
 		return Promise.resolve(this.remove('25519KeysignedKey' + keyId));
 	},
-
-loadSignedPreKeySignature: function(keyId) {
+	loadSignedPreKeySignature: function(keyId) {
 		var res = this.get('25519KeysignedKey' + keyId).signature;
 		if (res !== undefined) {
 			res = { res };
 		}
 		return Promise.resolve(res.res);
 	},
-
 	loadSession: function(identifier) {
 		return Promise.resolve(this.get('session' + identifier));
 	},
@@ -186,25 +182,89 @@ loadSignedPreKeySignature: function(keyId) {
     return Promise.resolve();
   },
 	//mycode
+	getPreKeyBundle: function(context = this) {
+		let range = 101
+		let id = 1
+		let key = undefined
+		let keys = []
+		while (range) {
+			key = context._store.getPreKeyPub(id, context)
+			if (key != undefined) {
+				keys.push(key)
+			}
+			id++
+			range--
+		}
+		return keys
+	},
+
+	getPreKeyPub: function(keyId, context = this) {
+		let res = context._store.get('25519KeypreKey' + keyId);
+		if (res !== undefined) {
+			let pubRecord =  {
+				keyId: res.keyId,
+				pubKey: res.keyPair.pubKey
+			}
+			return  pubRecord
+		}
+		return undefined
+	},
 
 
-getPreKeyBundle: function(context = this) {
-        let range = 101
-        let id = 1
-        let key = undefined
-        let keys = []
-        while (range) {
-          key = context._store.getPreKeyPub(id, context)
-          if (key != undefined) {
-            keys.push(key)
+      getPublicBundle: function(context, keyId = 1) {
+				let promises = []
+				let signedKeyId = 1
+
+        promises.push(context._store.loadSignedPreKey(signedKeyId))
+				promises.push(context._store.loadSignedPreKeySignature(signedKeyId))
+				promises.push(context._store.getIdentityKeyPair())
+				promises.push(context._store.loadPreKey(keyId))
+
+				return Promise.all(promises).then(function (res) {
+				let sk = res[0]
+				let signature = res[1]
+				let ik = res[2]
+        let preKey =  res[3]
+          return {
+            registrationId: context._store.get("registrationId"),
+            identityKey: ik.pubKey,
+            signedPreKey: {
+              keyId     : signedKeyId,
+              publicKey : sk.pubKey,
+              signature : signature
+            },
+            preKey: {
+              keyId     : keyId,
+              publicKey : preKey.pubKey
+            }
           }
-          id++
-          range--
-        }
-        return keys
+				})
       },
 
-getPreKeyPub: function(keyId, context = this) {
+
+      selectRandomPreKey: function(context) {
+        //track key # here
+        let range = 100
+        let id = 1
+        let key = undefined
+        while (key == undefined) {
+          id = Math.floor(Math.random() * range) + 1
+          key = context._store.getPreKey(id, context)
+          //omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
+        }
+        context._store.usedPreKeyCounter++
+        return key
+      },
+
+
+			getPreKey: function(keyId, context) {
+        	let res = context._store.get('25519KeypreKey' + keyId);
+        	if (res !== undefined) {
+          	return res
+        	}
+        	return undefined
+      	},
+      getPreKeyPub: function(keyId, context) {
         let res = context._store.get('25519KeypreKey' + keyId);
         if (res !== undefined) {
           let pubRecord =  {
@@ -215,7 +275,6 @@ getPreKeyPub: function(keyId, context = this) {
         }
         return undefined
       },
-
 };
 
 

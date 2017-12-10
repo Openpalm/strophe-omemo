@@ -55,12 +55,16 @@ function PublicOmemoStore () {
 	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
-		this.removePreKey(prk.keyId)
+		//this.removePreKey(prk.keyId)
+		console.log("using preKey " + prk.keyId)
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
 			signedPreKey: this.signedPreKey,
-			preKey: prk
+			preKey: {
+				publicKey: prk.pubKey,
+				keyId: prk.keyId
+			}
 		}
 	},
 	this.selectRandomPreKey =  function() {
@@ -152,6 +156,7 @@ OmemoStore.prototype = {
 	},
 	encryptPayloadsForSession: function (jid, keyCipherText, tag , ctxt) {
 		let promises = []
+		let	codec = ctxt._codec
 
 		for (let k in this.Sessions[jid]) {
 			let cipher = this.Sessions[jid][k].getCipher()
@@ -161,9 +166,19 @@ OmemoStore.prototype = {
 			//the counter should work. promises are resolved in order
 			//of iteration, res will contain results in order too.
 		let ctr = 0
-		console.log(res)
+		//return res
 		for (let k in this.Sessions[jid]) {
 					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
+					this.Sessions[jid][k].original = res[ctr].body
+				assert(res[0].body === res[0].body, "binary body eq binary body")
+				assert(codec.StringToBase64(res[0].body) === this.Sessions[jid][k].payload, "b64 body equals payload")
+				let o = {
+					//original: res[ctr],
+					body: res[ctr].body,
+					shouldEqual	: codec.Base64ToString(this.Sessions[jid][k].payload),
+					payload: this.Sessions[jid][k].payload,
+				}
+				console.log(o)
 					ctr = ctr + 1
 		}
 			return Promise.resolve(this.Sessions[jid])
