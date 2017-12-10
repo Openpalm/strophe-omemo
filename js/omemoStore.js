@@ -55,7 +55,7 @@ function PublicOmemoStore () {
 	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
-		//this.removePreKey(prk.keyId)
+		this.removePreKey(prk.keyId)
 		console.log("using preKey " + prk.keyId)
 		return {
 			registrationId: this.rid,
