@@ -2001,7 +2001,7 @@ gcm = {
   restoreKey: function(key) {
     return restoreKey(key)
   },
-  getKeyAndAADFromLibSignalDecrypt: function(string) {
+  getKeyAndTag: function(string) {
     return {
       key: string.slice(0, 43), //256bit key
       tag: string.slice(43, string.length) //rest is tag

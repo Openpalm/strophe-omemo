@@ -218,14 +218,32 @@ gcm.encrypt(bm2).then(res =>
 
 let aliceSessionCipher, bobSessionCipher
 //alice estbalishes session
-function initiate() {
+function msg1() {
   bob.createAnnounceBundleStanza().then(out => {
     alice._onBundle(out.toString()).then(o => {
       alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => {
         bob._onMessage(o.toString())
+        .then(o => {
+          keytag = o
+        })
       })
     })
   })
+}
+
+function msg2() {
+  //bob.createAnnounceBundleStanza().then(out => {
+  //  alice._onBundle(out.toString()).then(o => {
+  alice.createEncryptedStanza("bob@jiddy.jid", aliceSecondMsgObj).then(o1 => {
+    bob._onMessage(o1.toString()).then(o1 => {
+      bob.createEncryptedStanza("alice@jiddy.jid", bobFirstMsgObj).then(o2 => {
+        alice._onMessage(o2.toString()).then(o3 => {
+        })
+      })
+    })
+  })
+  //   })
+  //  })
 }
 
 function encdec_me(a,b) {

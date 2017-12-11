@@ -172,14 +172,13 @@ OmemoStore.prototype = {
 					this.Sessions[jid][k].original = res[ctr].body
 				assert(res[0].body === res[0].body, "binary body eq binary body")
 				assert(codec.StringToBase64(res[0].body) === this.Sessions[jid][k].payload, "b64 body equals payload")
-				let o = {
-					//original: res[ctr],
-					body: res[ctr].body,
-					shouldEqual	: codec.Base64ToString(this.Sessions[jid][k].payload),
-					payload: this.Sessions[jid][k].payload,
-				}
-				console.log(o)
-					ctr = ctr + 1
+				//let o = {
+				//	//original: res[ctr],
+				//	body: res[ctr].body,
+				//	shouldEqual	: codec.Base64ToString(this.Sessions[jid][k].payload),
+				//	payload: this.Sessions[jid][k].payload,
+				//}
+				ctr = ctr + 1
 		}
 			return Promise.resolve(this.Sessions[jid])
 		})
@@ -254,9 +253,27 @@ OmemoStore.prototype = {
 	},
 	getCipher: function (jid, rid) {
 		try {
-			return this.Sessions[jid][rid].cipher
+			return this.Sessions[jid][rid].getCipher()
 		} catch(e) {
 			return undefined
+		}
+	},
+	putCipher: function (jid, sid, cipher, preKeyFlag = true) {
+		try {
+			if (this.Sessions[jid] === undefined) {
+				this.Sessions[jid] = {}
+			}
+			if (this.Sessions[jid][sid] === undefined) {
+				this.Sessions[jid][sid] = new PublicOmemoStore()
+			}
+			this.Sessions[jid][sid]["jid"] = jid
+			this.Sessions[jid][sid]["rid"] = sid
+			this.Sessions[jid][sid].putCipher(cipher)
+			this.Sessions[jid][sid].preKeyFlag = preKeyFlag
+			//could later modify putCipher to take preKeyFlag rather than hardcoding
+			return true
+		} catch(e) {
+			return false
 		}
 	}
 }

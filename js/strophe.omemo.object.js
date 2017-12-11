@@ -341,7 +341,6 @@ _onBundle: function(stanza, ctxt = this) {
     bundle.put("preKeyFlag", true)
     publicBundle = bundle.getPublicBundle()
     bundle.publicBundle = publicBundle
-    console.log(bundle)
     let p = ctxt.buildSession(publicBundle, bundle.jid, ctxt)
     promises.push(p)
     return Promise.all(promises).then(res => {
@@ -400,7 +399,6 @@ _onMessage: function(stanza, ctxt = this) {
   $(parsed).find('payload').each(function () {
     payload = $(this).text()
   })
-
   $(parsed).find('header').each(function () {
     sid = parseInt($(this).attr('sid'))
   })
@@ -417,28 +415,34 @@ _onMessage: function(stanza, ctxt = this) {
     iv = $(this).text()
   })
 
-  //console.log(jid)
-  //console.log(sid)
-  //console.log(keyAndTag)
-  //console.log(preKeyFlag)
-  //console.log(iv)
+  iv = codec.Base64ToBuffer(iv)
+  payload = codec.Base64ToBuffer(payload)
+//  console.log(iv)
+//  console.log(payload)
 
+  let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
+  let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
   if (preKeyFlag) {
-    //handle preKeyMessage,
+  let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
     //create omemoBundle entry if non exist,
-    //overwrite old cipher
     //decryptPreKeyWhisperMessage
 
-    console.log("in main")
-
-    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
-    let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
-
-    let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
     //let txtPayload = ctxt._omemoStore.Sessions["bob@jiddy.jid"][222].original
     promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload, 'binary'))
     return Promise.all(promises).then(res => {
-      console.log(res)
+      let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
+      let key = tuple.key
+      let tag = tuple.tag // might be useless.
+      //overwrite old cipher
+      //create new omemoBundle entry if none exists for both jid and rid
+
+      return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
+        console.log(decryptedMessage)
+        preKeyFlag = false
+        ctxt._omemoStore.putCipher(jid, sid, cipher, preKeyFlag)
+        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+      })
+
       // extract tag, gcm decrypt and assign decryptedMessage
       // console.log("preKey message: " + res)
       //  gcm.decrypt()
@@ -449,13 +453,23 @@ _onMessage: function(stanza, ctxt = this) {
     //grab cipher from omemoBundle
     //decryptWhisperMessage
 
+    let cipher = ctxt._omemoStore.getCipher(jid, sid)
+
     console.log("in else")
     promises.push(cipher.decryptWhisperMessage(txtPayload))
-
     Promise.all(promises).then(res => {
-      console.log("whisper message" + res)
-    })
+      let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
+      let key = tuple.key
+      let tag = tuple.tag // might be useless.
 
+      return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
+
+        preKeyFlag = false
+        ctxt._omemoStore.putCipher(jid, rid, cipher, preKeyFlag)
+        console.log(decryptedMessage)
+        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+      })
+    })
   }
 
 },

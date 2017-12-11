@@ -2316,7 +2316,6 @@ _onBundle: function(stanza, ctxt = this) {
     bundle.put("preKeyFlag", true)
     publicBundle = bundle.getPublicBundle()
     bundle.publicBundle = publicBundle
-    console.log(bundle)
     let p = ctxt.buildSession(publicBundle, bundle.jid, ctxt)
     promises.push(p)
     return Promise.all(promises).then(res => {
@@ -2375,7 +2374,6 @@ _onMessage: function(stanza, ctxt = this) {
   $(parsed).find('payload').each(function () {
     payload = $(this).text()
   })
-
   $(parsed).find('header').each(function () {
     sid = parseInt($(this).attr('sid'))
   })
@@ -2392,27 +2390,34 @@ _onMessage: function(stanza, ctxt = this) {
     iv = $(this).text()
   })
 
-  //console.log(jid)
-  //console.log(sid)
-  //console.log(keyAndTag)
-  //console.log(preKeyFlag)
-  //console.log(iv)
+  iv = codec.Base64ToBuffer(iv)
+  payload = codec.Base64ToBuffer(payload)
+//  console.log(iv)
+//  console.log(payload)
 
+  let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
+  let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
   if (preKeyFlag) {
-    //handle preKeyMessage,
+  let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
     //create omemoBundle entry if non exist,
-    //overwrite old cipher
     //decryptPreKeyWhisperMessage
 
-    console.log("in main")
-
-    let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
-    let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
-
-    let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
     //let txtPayload = ctxt._omemoStore.Sessions["bob@jiddy.jid"][222].original
     promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload, 'binary'))
     return Promise.all(promises).then(res => {
+      let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
+      let key = tuple.key
+      let tag = tuple.tag // might be useless.
+      //overwrite old cipher
+      //create new omemoBundle entry if none exists for both jid and rid
+
+      return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
+        console.log(decryptedMessage)
+        preKeyFlag = false
+        ctxt._omemoStore.putCipher(jid, sid, cipher, preKeyFlag)
+        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+      })
+
       // extract tag, gcm decrypt and assign decryptedMessage
       // console.log("preKey message: " + res)
       //  gcm.decrypt()
@@ -2423,13 +2428,23 @@ _onMessage: function(stanza, ctxt = this) {
     //grab cipher from omemoBundle
     //decryptWhisperMessage
 
+    let cipher = ctxt._omemoStore.getCipher(jid, sid)
+
     console.log("in else")
     promises.push(cipher.decryptWhisperMessage(txtPayload))
-
     Promise.all(promises).then(res => {
-      console.log("whisper message" + res)
-    })
+      let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
+      let key = tuple.key
+      let tag = tuple.tag // might be useless.
 
+      return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
+
+        preKeyFlag = false
+        ctxt._omemoStore.putCipher(jid, rid, cipher, preKeyFlag)
+        console.log(decryptedMessage)
+        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+      })
+    })
   }
 
 },
@@ -13265,7 +13280,7 @@ gcm = {
   restoreKey: function(key) {
     return restoreKey(key)
   },
-  getKeyAndAADFromLibSignalDecrypt: function(string) {
+  getKeyAndTag: function(string) {
     return {
       key: string.slice(0, 43), //256bit key
       tag: string.slice(43, string.length) //rest is tag
@@ -13337,7 +13352,7 @@ function PublicOmemoStore () {
 	this.identityKey = null,
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
-		//this.removePreKey(prk.keyId)
+		this.removePreKey(prk.keyId)
 		console.log("using preKey " + prk.keyId)
 		return {
 			registrationId: this.rid,
@@ -13454,14 +13469,13 @@ OmemoStore.prototype = {
 					this.Sessions[jid][k].original = res[ctr].body
 				assert(res[0].body === res[0].body, "binary body eq binary body")
 				assert(codec.StringToBase64(res[0].body) === this.Sessions[jid][k].payload, "b64 body equals payload")
-				let o = {
-					//original: res[ctr],
-					body: res[ctr].body,
-					shouldEqual	: codec.Base64ToString(this.Sessions[jid][k].payload),
-					payload: this.Sessions[jid][k].payload,
-				}
-				console.log(o)
-					ctr = ctr + 1
+				//let o = {
+				//	//original: res[ctr],
+				//	body: res[ctr].body,
+				//	shouldEqual	: codec.Base64ToString(this.Sessions[jid][k].payload),
+				//	payload: this.Sessions[jid][k].payload,
+				//}
+				ctr = ctr + 1
 		}
 			return Promise.resolve(this.Sessions[jid])
 		})
@@ -13536,9 +13550,27 @@ OmemoStore.prototype = {
 	},
 	getCipher: function (jid, rid) {
 		try {
-			return this.Sessions[jid][rid].cipher
+			return this.Sessions[jid][rid].getCipher()
 		} catch(e) {
 			return undefined
+		}
+	},
+	putCipher: function (jid, sid, cipher, preKeyFlag = true) {
+		try {
+			if (this.Sessions[jid] === undefined) {
+				this.Sessions[jid] = {}
+			}
+			if (this.Sessions[jid][sid] === undefined) {
+				this.Sessions[jid][sid] = new PublicOmemoStore()
+			}
+			this.Sessions[jid][sid]["jid"] = jid
+			this.Sessions[jid][sid]["rid"] = sid
+			this.Sessions[jid][sid].putCipher(cipher)
+			this.Sessions[jid][sid].preKeyFlag = preKeyFlag
+			//could later modify putCipher to take preKeyFlag rather than hardcoding
+			return true
+		} catch(e) {
+			return false
 		}
 	}
 }
