@@ -167,7 +167,7 @@ $(document).ready(function () {
 
 $(document).bind('connect', function (ev, data) {
     var conn = new Strophe.Connection(
-        "http://bosh.metajack.im:5280/xmpp-httpbind");
+       "https://together.uni-konstanz.de/http-bind/");
 
     conn.xmlInput = function (body) {
         Peek.show_traffic(body, 'incoming');

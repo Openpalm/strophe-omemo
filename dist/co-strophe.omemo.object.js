@@ -2041,7 +2041,14 @@ Omemo.prototype = {
       ctxt._store.put('identityKey', result[0])
       ctxt._store.getIdentityKeyPair().then((ikey) =>
       ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-        ctxt._store.storeSignedPreKey(1, skey)
+        console.log(skey)
+        let key = {
+          pubKey: skey.keyPair.pubKey,
+          privKey: skey.keyPair.privKey,
+          keyId: skey.keyId,
+          signature: skey.signature
+        }
+        ctxt._store.storeSignedPreKey(1, key)
       })
       ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt._store.get('registrationId'));
     }).then( console.log("done arming"))
@@ -2062,7 +2069,8 @@ Omemo.prototype = {
     let promises = []
     for (let i = 1; i < range + 1; i++ ) {
       promises.push(ctxt._keyhelper.generatePreKey(i).then((k) =>  {
-        ctxt._store.storePreKey(i,k)
+        let key = {pubKey: k.keyPair.pubKey, privKey: k.keyPair.privKey, keyId: k.keyId}
+        ctxt._store.storePreKey(i,key)
       })
     )
   }
@@ -2149,7 +2157,7 @@ createAnnounceBundleStanza: function (ctxt = this) {
   let sk_id = 1
 
   let promises = [
-    ctxt._store.getSignedPreKey(sk_id),
+    ctxt._store.loadSignedPreKey(sk_id),
     ctxt._store.getIdentityKeyPair(),
     ctxt._store.loadSignedPreKeySignature(sk_id),
     ctxt._store.getLocalRegistrationId()
@@ -2451,7 +2459,7 @@ _onMessage: function(stanza, ctxt = this) {
 }
 
 Strophe.addNamespace(protocol, this._ns_main);
-Strophe.addConnectionPlugin('omemo', Omemo);
+//Strophe.addConnectionPlugin('omemo', Omemo);
 
 window.Omemo = Omemo
 
