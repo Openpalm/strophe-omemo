@@ -159,7 +159,10 @@ OmemoStore.prototype = {
 		let	codec = ctxt._codec
 
 		for (let k in this.Sessions[jid]) {
-			let cipher = this.Sessions[jid][k].getCipher()
+			//let cipher = this.Sessions[jid][k].getCipher()
+			//let address =  this.Sessions[jid][k]["address"]
+      let address = new libsignal.SignalProtocolAddress(jid, k);
+			let cipher = new ctxt._libsignal.SessionCipher(ctxt._store, address)
 			promises.push(cipher.encrypt(keyCipherText + tag))
 		}
 		return Promise.all(promises).then(res => {

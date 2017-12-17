@@ -66,7 +66,6 @@ Omemo.prototype = {
       ctxt._store.put('identityKey', result[0])
       ctxt._store.getIdentityKeyPair().then((ikey) =>
       ctxt._keyhelper.generateSignedPreKey(ikey, 1)).then((skey) => {
-        console.log(skey)
         let key = {
           pubKey: skey.keyPair.pubKey,
           privKey: skey.keyPair.privKey,
@@ -78,17 +77,6 @@ Omemo.prototype = {
       ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt._store.get('registrationId'));
     }).then( console.log("done arming"))
   },
-  //  gen100PreKeys: function (start, finish, ctxt, counter) {
-  //    if (start == finish+1)  {
-  //      return Promise.resolve(true)
-  //    }
-  //    let index = start
-  //    ctxt._keyhelper.generatePreKey(index).then((k) =>  {
-  //      ctxt._store.storePreKey(index,k)
-  //    })
-  //    start++
-  //    return Promise.resolve(ctxt.gen100PreKeys(start, finish, ctxt))
-  //  },
 
   genPreKeys: function (range, ctxt = this) {
     let promises = []
@@ -307,19 +295,21 @@ _onBundle: function(stanza, ctxt = this) {
   let exists = false
   let parsed = $.parseXML(stanza)
   let promises = []
-  let rid, bundle, publicBundle, prekeyCount
+  let sid, rid, bundle, publicBundle, prekeyCount
 
   $(parsed).find('publish').each(function () {
     rid = parseInt($(this).attr('node').split(":")[1])
+    sid = parseInt($(this).attr('node').split(":")[1])
   })
 
   try {
-    bundle = ctxt._omemoStore.Sessions[bundle.jid][rid]
+    bundle = ctxt._omemoStore.Sessions[bundle.jid][sid]
   } catch (e) {
     bundle = new PublicOmemoStore()
   }
 
   bundle.rid = rid
+  bundle.sid = rid
 
   $(parsed).find('iq').each(function () {
     bundle.jid = $(this).attr('from')
@@ -341,7 +331,10 @@ _onBundle: function(stanza, ctxt = this) {
     bundle.identityKey = codec.Base64ToBuffer($(this).text())
   })
   //bundle
+  let address = new ctxt._libsignal.SignalProtocolAddress(bundle.jid, bundle.sid)
+  console.log(address.toString())
   let record = ctxt._omemoStore.Sessions[bundle.jid]
+  bundle.address = address
   if (record === undefined ) {
     console.log("new bundle")
     ctxt._omemoStore.Sessions[bundle.jid] = {}
@@ -464,8 +457,8 @@ _onMessage: function(stanza, ctxt = this) {
     let cipher = ctxt._omemoStore.getCipher(jid, sid)
 
     console.log("in else")
-    promises.push(cipher.decryptWhisperMessage(txtPayload))
-    Promise.all(promises).then(res => {
+    promises.push(cipher.decryptWhisperMessage(txtPayload, 'binary'))
+    return Promise.all(promises).then(res => {
       let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
       let key = tuple.key
       let tag = tuple.tag // might be useless.
@@ -475,11 +468,10 @@ _onMessage: function(stanza, ctxt = this) {
         preKeyFlag = false
         ctxt._omemoStore.putCipher(jid, rid, cipher, preKeyFlag)
         console.log(decryptedMessage)
-        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+        $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
       })
     })
   }
-
 },
 }
 

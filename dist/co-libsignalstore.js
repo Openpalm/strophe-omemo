@@ -269,7 +269,7 @@ SignalProtocolStore.prototype = {
         if (res !== undefined) {
           let pubRecord =  {
             keyId: res.keyId,
-            pubKey: res.keyPair.pubKey
+            pubKey: res.pubKey
           }
           return  pubRecord
         }
