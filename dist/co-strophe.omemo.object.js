@@ -2119,7 +2119,6 @@ buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
   let theirAddress = new ctxt._libsignal.SignalProtocolAddress(theirJid, deviceId)
   let myBuilder = new ctxt._libsignal.SessionBuilder(myStore, theirAddress)
   let cipher = ''
-
   let session = myBuilder.processPreKey(theirPublicBundle)
   return session.then( function onsuccess(){
     pprint('session successfully established')
@@ -2131,7 +2130,6 @@ buildSession: function (theirPublicBundle, theirJid, ctxt = this) {
     return Promise.reject()
   })
   return Promise.resolve(cipher)
-
 },
 createFetchBundleStanza: function(to, device, ctxt = this) {
   let res = $iq({type: 'get', from: ctxt._jid, to: to, id: 'fetch1'})
@@ -2154,9 +2152,9 @@ createAnnounceBundleStanza: function (ctxt = this) {
     let sk = o[0]
     let ikp = o[1]
     let signature = o[2]
-      let rid = o[3]
-      let signature64 = codec.BufferToBase64(signature)
-      let sk64 = codec.BufferToBase64(sk.pubKey)
+    let rid = o[3]
+    let signature64 = codec.BufferToBase64(signature)
+    let sk64 = codec.BufferToBase64(sk.pubKey)
     let ik64 = codec.BufferToBase64(ikp.pubKey)
     let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
     .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
@@ -2210,6 +2208,7 @@ createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
 
         for (let rid in jidSessions)  {
           record = jidSessions[rid]
+          //console.log(record)
           xml.c('key', {prekey: record.get('preKeyFlag'), rid: rid}).t(record.payload).up()
         }
 
@@ -2256,7 +2255,7 @@ _onDevice: function(stanza, ctxt = this) {
   // establishes ? consult richard.
   let parsed = $.parseXML(stanza)
 
-  console.log(parsed.childNodes[0].nodeName)
+  //console.log(parsed.childNodes[0].nodeName)
 },
 _onBundle: function(stanza, ctxt = this) {
   //TODO handle our own bundle. we need to update our prekeys
@@ -2283,8 +2282,8 @@ _onBundle: function(stanza, ctxt = this) {
     bundle = new PublicOmemoStore()
   }
 
-  bundle.rid = rid
-  bundle.sid = rid
+  bundle.rid = rid // bad.
+  bundle.sid = rid // bad.
 
   $(parsed).find('iq').each(function () {
     bundle.jid = $(this).attr('from')
@@ -2298,7 +2297,7 @@ _onBundle: function(stanza, ctxt = this) {
   })
   $(parsed).find('preKeyPub').each(function () {
     let key = codec.Base64ToBuffer($(this).text())
-    let id = $(this).attr('keyId')
+    let id  = $(this).attr('keyId')
 
     bundle.putPreKey(id,key)
   })
@@ -2307,7 +2306,7 @@ _onBundle: function(stanza, ctxt = this) {
   })
   //bundle
   let address = new ctxt._libsignal.SignalProtocolAddress(bundle.jid, bundle.sid)
-  console.log(address.toString())
+  //console.log(address.toString())
   let record = ctxt._omemoStore.Sessions[bundle.jid]
   bundle.address = address
   if (record === undefined ) {
@@ -2327,7 +2326,7 @@ _onBundle: function(stanza, ctxt = this) {
     })
   } else {
     if (record[bundle.rid] === undefined) {
-
+      console.log("bundle entry for " + bundle.jid + "." + rid + " is not defined")
       publicBundle = bundle.getPublicBundle()
       let p = ctxt.buildSession(publicBundle, bundle.jid, ctxt)
       promises.push(p)
@@ -2361,6 +2360,7 @@ _onMessage: function(stanza, ctxt = this) {
     return
   }
 
+  //console.log(stanza)
   let gcm = ctxt._gcm
   let parsed = $.parseXML(stanza)
   let promises = []
@@ -2370,6 +2370,7 @@ _onMessage: function(stanza, ctxt = this) {
 
   $(parsed).find('message').each(function () {
     jid = $(this).attr('from')
+    //console.log(jid)
   })
 
   $(parsed).find('payload').each(function () {
@@ -2377,6 +2378,7 @@ _onMessage: function(stanza, ctxt = this) {
   })
   $(parsed).find('header').each(function () {
     sid = parseInt($(this).attr('sid'))
+    //console.log(sid)
   })
 
   $(parsed).find('key').each(function () {
@@ -2393,18 +2395,21 @@ _onMessage: function(stanza, ctxt = this) {
 
   iv = codec.Base64ToBuffer(iv)
   payload = codec.Base64ToBuffer(payload)
-//  console.log(iv)
-//  console.log(payload)
+  //  console.log(iv)
+  //  console.log(payload)
 
   let theirAddress = new ctxt._libsignal.SignalProtocolAddress(jid, sid)
   let txtPayload = ctxt._codec.Base64ToString(keyAndTag) //aught to turn this into an assert
+  let libsigPayload = JSON.parse(txtPayload)
+  console.log(libsigPayload)
+  //receiver of prekeymessage
   if (preKeyFlag) {
-  let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
+    let cipher = new libsignal.SessionCipher(ctxt._store, theirAddress)
     //create omemoBundle entry if non exist,
     //decryptPreKeyWhisperMessage
 
     //let txtPayload = ctxt._omemoStore.Sessions["bob@jiddy.jid"][222].original
-    promises.push(cipher.decryptPreKeyWhisperMessage(txtPayload, 'binary'))
+    promises.push(cipher.decryptPreKeyWhisperMessage(libsigPayload.body, 'binary'))
     return Promise.all(promises).then(res => {
       let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
       let key = tuple.key
@@ -2414,9 +2419,12 @@ _onMessage: function(stanza, ctxt = this) {
 
       return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
         console.log(decryptedMessage)
-        preKeyFlag = false
-        ctxt._omemoStore.putCipher(jid, sid, cipher, preKeyFlag)
-        return  $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+        //preKeyFlag = false
+        // no need to store the cipher or create a record if we are the receiver
+        // the omemoBundle should be used for sending only.
+        //cipher.getRemoteRegistrationId().then(msid => {
+        $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
+        //})
       })
 
       // extract tag, gcm decrypt and assign decryptedMessage
@@ -2426,28 +2434,27 @@ _onMessage: function(stanza, ctxt = this) {
     })
 
   } else {
-    //grab cipher from omemoBundle
+    //sessions come from libsigstore
     //decryptWhisperMessage
 
-    let cipher = ctxt._omemoStore.getCipher(jid, sid)
 
-    console.log("in else")
+    let cipher = new ctxt._libsignal.SessionCipher(ctxt._store, theirAddress)
+
     promises.push(cipher.decryptWhisperMessage(txtPayload, 'binary'))
     return Promise.all(promises).then(res => {
       let tuple = gcm.getKeyAndTag(codec.BufferToString(res[0]))
-      let key = tuple.key
-      let tag = tuple.tag // might be useless.
+      let key   = tuple.key
+      let tag   = tuple.tag // might be useless.
 
       return gcm.decrypt(key, payload, iv).then(decryptedMessage => {
 
-        preKeyFlag = false
-        ctxt._omemoStore.putCipher(jid, rid, cipher, preKeyFlag)
+        preKeyFlag = true
+        ctxt._omemoStore.putCipher(jid, sid, cipher, preKeyFlag)
         console.log(decryptedMessage)
         $(document).trigger('msgreceived.omemo', [decryptedMessage, stanza]);
       })
     })
   }
-
 },
 }
 
@@ -13354,7 +13361,7 @@ function PublicOmemoStore () {
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
 		this.removePreKey(prk.keyId)
-		console.log("using preKey " + prk.keyId)
+//		console.log("using preKey " + prk.keyId)
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
@@ -13469,8 +13476,9 @@ OmemoStore.prototype = {
 		let ctr = 0
 		//return res
 		for (let k in this.Sessions[jid]) {
-					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
-					this.Sessions[jid][k].original = res[ctr].body
+					let strd = JSON.stringify(res[ctr])
+					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(strd)
+					this.Sessions[jid][k].original = strd
 				assert(res[0].body === res[0].body, "binary body eq binary body")
 				assert(codec.StringToBase64(res[0].body) === this.Sessions[jid][k].payload, "b64 body equals payload")
 				//let o = {
@@ -13570,7 +13578,7 @@ OmemoStore.prototype = {
 			this.Sessions[jid][sid]["jid"] = jid
 			this.Sessions[jid][sid]["rid"] = sid
 			this.Sessions[jid][sid].putCipher(cipher)
-			this.Sessions[jid][sid].preKeyFlag = preKeyFlag
+			this.Sessions[jid][sid].put('preKeyFlag',preKeyFlag)
 			//could later modify putCipher to take preKeyFlag rather than hardcoding
 			return true
 		} catch(e) {

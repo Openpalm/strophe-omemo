@@ -1,0 +1,1 @@
+/var/www/strophe-omemo/js/gcm.js

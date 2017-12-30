@@ -220,6 +220,7 @@ let aliceSessionCipher, bobSessionCipher
 //alice estbalishes session
 function msg1() {
   bob.createAnnounceBundleStanza().then(out => {
+//    console.log(out.tree())
     alice._onBundle(out.toString()).then(o => {
       alice.createEncryptedStanza("bob@jiddy.jid", aliceFirstMsgObj).then(o => {
         bob._onMessage(o.toString())
@@ -235,9 +236,9 @@ function msg2() {
   //bob.createAnnounceBundleStanza().then(out => {
   //  alice._onBundle(out.toString()).then(o => {
   alice.createEncryptedStanza("bob@jiddy.jid", aliceSecondMsgObj).then(o1 => {
-    bob._onMessage(o1.toString()).then(o1 => {
+    bob._onMessage(o1.toString()).then(o1 => { //still prekey
       bob.createEncryptedStanza("alice@jiddy.jid", bobFirstMsgObj).then(o2 => {
-        alice._onMessage(o2.toString()).then(o3 => {
+        alice._onMessage(o2.toString()).then(o3 => { //non prekey
         })
       })
     })

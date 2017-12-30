@@ -56,7 +56,7 @@ function PublicOmemoStore () {
 	this.getPublicBundle = function () {
 		let prk = this.selectRandomPreKey()
 		this.removePreKey(prk.keyId)
-		console.log("using preKey " + prk.keyId)
+//		console.log("using preKey " + prk.keyId)
 		return {
 			registrationId: this.rid,
 			identityKey: this.identityKey,
@@ -171,8 +171,9 @@ OmemoStore.prototype = {
 		let ctr = 0
 		//return res
 		for (let k in this.Sessions[jid]) {
-					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(res[ctr].body)
-					this.Sessions[jid][k].original = res[ctr].body
+					let strd = JSON.stringify(res[ctr])
+					this.Sessions[jid][k].payload = ctxt._codec.StringToBase64(strd)
+					this.Sessions[jid][k].original = strd
 				assert(res[0].body === res[0].body, "binary body eq binary body")
 				assert(codec.StringToBase64(res[0].body) === this.Sessions[jid][k].payload, "b64 body equals payload")
 				//let o = {
@@ -272,7 +273,7 @@ OmemoStore.prototype = {
 			this.Sessions[jid][sid]["jid"] = jid
 			this.Sessions[jid][sid]["rid"] = sid
 			this.Sessions[jid][sid].putCipher(cipher)
-			this.Sessions[jid][sid].preKeyFlag = preKeyFlag
+			this.Sessions[jid][sid].put('preKeyFlag',preKeyFlag)
 			//could later modify putCipher to take preKeyFlag rather than hardcoding
 			return true
 		} catch(e) {

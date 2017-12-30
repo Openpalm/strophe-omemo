@@ -3,4 +3,5 @@ webpack js/gcm.js dist/co-gcm.js
 webpack js/codec.js dist/co-codec.js
 webpack js/libsignalstore.js dist/co-libsignalstore.js
 
-echo "bundle the whole thing with rollup once done?"
+
+webpack js/rewrite.js dist/rewrite.js
