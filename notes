@@ -1,4 +1,0 @@
-bundle needs to follow libsig's tests
-bundle needs to take care of 100 prekeys
-bundle needs to refresh keys and refresh the signedpreKey
-
