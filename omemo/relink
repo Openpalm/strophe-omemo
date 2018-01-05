@@ -1,0 +1,3 @@
+ln -s ../js/gcm.js .
+ln -s ../js/libsignalstore.js .
+ln -s ../js/codec.js .

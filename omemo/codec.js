@@ -1,1 +1,1 @@
-/var/www/strophe-omemo/js/codec.js
+../js/codec.js

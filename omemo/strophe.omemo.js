@@ -2,7 +2,7 @@ let codec = require('./codec.js')
 let gcm = require('./gcm.js')
 
 
-let omemo_timing_helpers = function () { 
+let omemo_timing_helpers =  { 
 	//testing, thesis.
 
 }
@@ -12,7 +12,7 @@ let omemo_user = { // gets added to user roster
 	bundle: null, //omemoBundle
 }
 
-let omemo_helpers = function () {
+let omemo_helpers = {
 	generate_preKeys: function () {},
 	refresh_preKeys: function () {},
 	refresh_signedKey: function () {},

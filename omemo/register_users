@@ -1,0 +1,4 @@
+sudo prosodyctl register alice localhost alice
+sudo prosodyctl register bob localhost alice
+sudo prosodyctl register steve localhost alice
+
