@@ -8,7 +8,7 @@ function pprint(s) {
     console.log("gcm.js: " + s)
 }
 
-gcm = {
+gcm.prototype = {
     encrypt: function (text) {
         return window.crypto.subtle.generateKey(
             {
@@ -19,7 +19,7 @@ gcm = {
             ["encrypt", "decrypt"] //can "encrypt", "decrypt",
         ).then((key) => {
             const data = codec.StringToUint8(text)
-            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
+            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16)) // this can be hijacked.
             const alg = {
                 name: "AES-GCM",
                 iv: temp_iv, //uint8 buffer
@@ -28,8 +28,8 @@ gcm = {
             return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
                 let out = ''
                 let libsignalPayload = ''
-                return this.serializeKey(key).then(res => {
-                    libsignalPayload = res
+                return this.serializeKey(key).then(key_str => {
+                    libsignalPayload = key_str
                     let gcm_out = {
                         key: key,
                         cipherText: cipherText,
@@ -39,7 +39,7 @@ gcm = {
                     //OMMSG: omemo msg
                     //LSPLD: Libsignal payload
                     let enforced64 = codec.enforceBase64ForSending(gcm_out)
-                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, ENFORCED: enforced64}
+                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, BASE64: enforced64}
                     return Promise.resolve(out)
                 })
             })
@@ -98,4 +98,11 @@ gcm = {
         }
     }
 }
+
+var EAX = {}
+
+EAX.prototype = { 
+
+}
+
 module.exports = gcm
