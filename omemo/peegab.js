@@ -361,9 +361,18 @@ $(document).ready(function () {
                     password: $('#password').val()
                 });
 
+
+                $('#whoami').append(
+                    $('#jid').val().toLowerCase()
+                )
+
+
+
+
+
                 $('#password').val('');
                 $(this).dialog('close');
-            }
+                            }
         }
     });
 
@@ -514,6 +523,48 @@ $(document).ready(function () {
     $('#new-chat').click(function () {
         $('#chat_dialog').dialog('open');
     });
+
+////////////////////////////
+
+    $('#send_button').click(function () {
+        var input = $('#input').val();
+        var error = false;
+        if (input.length > 0) {
+            if (input[0] === '<') {
+                var xml = Gab.text_to_xml(input);
+                if (xml) {
+                    Gab.connection.send(Strophe.copyElement(xml));
+                    $('#input').val('');
+                } else {
+                    error = true;
+                }
+            } else if (input[0] === '$') {
+                try {
+                    var builder = eval(input);
+                    Gab.connection.send(builder);
+                    $('#input').val('');
+                } catch (e) {
+                    console.log(e);
+                    error = true;
+                }
+            } else {
+                error = true;
+            }
+        }
+
+        if (error) {
+            $('#input').animate({backgroundColor: "#faa"});
+        }
+    });
+
+    $('#input').keypress(function () {
+        $(this).css({backgroundColor: '#fff'});
+    });
+//////////////////////////////////
+
+
+
+
 });
 
 $(document).bind('connect', function (ev, data) {
@@ -546,6 +597,12 @@ $(document).bind('connect', function (ev, data) {
 
 $(document).bind('connected', function () {
     var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
+    ///////////////////
+
+    $('.button').removeAttr('disabled');
+    $('#input').removeClass('disabled').removeAttr('disabled');
+    ///////////////////
+
     Gab.connection.sendIQ(iq, Gab.on_roster);
 
     Gab.connection.addHandler(Gab.on_roster_changed,
@@ -553,6 +610,7 @@ $(document).bind('connected', function () {
 
     Gab.connection.addHandler(Gab.on_message,
                               null, "message", "chat");
+
 });
 
 $(document).bind('disconnected', function () {
@@ -562,8 +620,16 @@ $(document).bind('disconnected', function () {
     $('#roster-area ul').empty();
     $('#chat-area ul').empty();
     $('#chat-area div').remove();
-
     $('#login_dialog').dialog('open');
+
+
+
+    ///////////////////
+    $('.button').attr('disabled', 'disabled');
+    $('#input').addClass('disabled').attr('disabled', 'disabled');
+    ///////////////////
+
+
 });
 
 $(document).bind('contact_added', function (ev, data) {

@@ -1,7 +1,7 @@
 let codec = require('./codec.js')
 let gcm = require('./gcm.js')
 
-let omemo_timing_helpers =  { 
+let omemo_timing_helpers =  {
 	//testing, thesis.
     //jsperf stuff
 
@@ -14,19 +14,23 @@ let omemo_user = { // gets added to user roster
 }
 
 let omemo_helpers = {
-	generate_preKeys: function () { 
+	generate_preKeys: function () {
         console.log("hello") },
 	refresh_preKeys: function () {},
 	refresh_signedKey: function () {},
 	construct_bundle_stanza: function () {},
- 	construct_encrypted_stanza: function () {}, 
+ 	onstruct_encrypted_stanza: function () {},
 	if_first_use: function () {}
 }
 
 Strophe.addConnectionPlugin('omemo', {
-	init: function (connection) {
-		this.connection = connection;
+	init: function (conn) {
+		this.connection = conn;
 		omemo_helpers.if_first_use(); //arm if first use. looks in window.Storage.
+        this._ns_main = 'eu.siacs.conversations.axolotl'
+        this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
+        this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
+
 	},
 	on_bundle: function (xml_stanza) {},
 	on_message: function (xml_stanza) {},
@@ -35,3 +39,4 @@ Strophe.addConnectionPlugin('omemo', {
 	refresh_bundle: function () {},
 	announce_bundle: function () {}
 });
+
