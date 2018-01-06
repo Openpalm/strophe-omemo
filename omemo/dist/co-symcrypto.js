@@ -1895,7 +1895,7 @@ module.exports = g;
 
 
 var codec= __webpack_require__(3)
-var gcm = {};
+var GCM = {};
 
 
 function pprint(s) {
@@ -1904,7 +1904,7 @@ function pprint(s) {
 
 // AES GCM
 
-gcm = {
+GCM = {
     encrypt: function (text) {
         return window.crypto.subtle.generateKey(
             {
@@ -1996,7 +1996,17 @@ gcm = {
 }
 
 
-module.exports = gcm
+// AES EAX
+
+
+var EAX = {}
+
+EAX = { 
+
+}
+
+module.exports = GCM
+module.exports = EAX
 
 
 /***/ }),

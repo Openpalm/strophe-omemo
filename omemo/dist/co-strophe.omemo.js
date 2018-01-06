@@ -1981,7 +1981,7 @@ let omemo_timing_helpers =  {
 
 }
 
-//let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
+let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
 
 let omemo_user = { // gets added to user roster
 	trusted: false,
@@ -2482,7 +2482,9 @@ function pprint(s) {
     console.log("gcm.js: " + s)
 }
 
-gcm.prototype = {
+// AES GCM
+
+gcm = {
     encrypt: function (text) {
         return window.crypto.subtle.generateKey(
             {
@@ -2573,11 +2575,6 @@ gcm.prototype = {
     }
 }
 
-var EAX = {}
-
-EAX.prototype = { 
-
-}
 
 module.exports = gcm
 

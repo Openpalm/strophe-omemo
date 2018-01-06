@@ -7,7 +7,7 @@ let omemo_timing_helpers =  {
 
 }
 
-//let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
+let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
 
 let omemo_user = { // gets added to user roster
 	trusted: false,
