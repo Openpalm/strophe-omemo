@@ -1975,35 +1975,37 @@ module.exports = g;
 let codec = __webpack_require__(0)
 let gcm = __webpack_require__(8)
 
-//$.getScript("./dist/co-gcm.js", function () {
-//alert("gcm loaded")
-//})
-
-let omemo_timing_helpers =  { 
+let omemo_timing_helpers =  {
 	//testing, thesis.
+    //jsperf stuff
 
 }
 
-var encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
+//let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
+
 let omemo_user = { // gets added to user roster
 	trusted: false,
 	bundle: null, //omemoBundle
 }
 
 let omemo_helpers = {
-	generate_preKeys: function () { 
+	generate_preKeys: function () {
         console.log("hello") },
 	refresh_preKeys: function () {},
 	refresh_signedKey: function () {},
 	construct_bundle_stanza: function () {},
- 	construct_encrypted_stanza: function () {}, 
+ 	onstruct_encrypted_stanza: function () {},
 	if_first_use: function () {}
 }
 
 Strophe.addConnectionPlugin('omemo', {
-	init: function (connection) {
-		this.connection = connection;
+	init: function (conn) {
+		this.connection = conn;
 		omemo_helpers.if_first_use(); //arm if first use. looks in window.Storage.
+        this._ns_main = 'eu.siacs.conversations.axolotl'
+        this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
+        this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
+
 	},
 	on_bundle: function (xml_stanza) {},
 	on_message: function (xml_stanza) {},
@@ -2012,6 +2014,7 @@ Strophe.addConnectionPlugin('omemo', {
 	refresh_bundle: function () {},
 	announce_bundle: function () {}
 });
+
 
 
 /***/ }),
@@ -2479,7 +2482,7 @@ function pprint(s) {
     console.log("gcm.js: " + s)
 }
 
-gcm = {
+gcm.prototype = {
     encrypt: function (text) {
         return window.crypto.subtle.generateKey(
             {
@@ -2490,7 +2493,7 @@ gcm = {
             ["encrypt", "decrypt"] //can "encrypt", "decrypt",
         ).then((key) => {
             const data = codec.StringToUint8(text)
-            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16))
+            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16)) // this can be hijacked.
             const alg = {
                 name: "AES-GCM",
                 iv: temp_iv, //uint8 buffer
@@ -2499,8 +2502,8 @@ gcm = {
             return window.crypto.subtle.encrypt(alg, key, data).then((cipherText) => {
                 let out = ''
                 let libsignalPayload = ''
-                return this.serializeKey(key).then(res => {
-                    libsignalPayload = res
+                return this.serializeKey(key).then(key_str => {
+                    libsignalPayload = key_str
                     let gcm_out = {
                         key: key,
                         cipherText: cipherText,
@@ -2510,7 +2513,7 @@ gcm = {
                     //OMMSG: omemo msg
                     //LSPLD: Libsignal payload
                     let enforced64 = codec.enforceBase64ForSending(gcm_out)
-                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, ENFORCED: enforced64}
+                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, BASE64: enforced64}
                     return Promise.resolve(out)
                 })
             })
@@ -2568,6 +2571,12 @@ gcm = {
             tag: string.slice(43, string.length) //rest is tag
         }
     }
+}
+
+var EAX = {}
+
+EAX.prototype = { 
+
 }
 
 module.exports = gcm
