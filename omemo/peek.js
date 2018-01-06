@@ -4,11 +4,11 @@ var Peek = {
     show_traffic: function (body, type) {
         if (body.childNodes.length > 0) {
             var console = $('#console').get(0);
-            var at_bottom = console.scrollTop >= console.scrollHeight - 
+            var at_bottom = console.scrollTop >= console.scrollHeight -
                 console.clientHeight;;
 
             $.each(body.childNodes, function () {
-                $('#console').append("<div class='" + type + "'>" + 
+                $('#console').append("<div class='" + type + "'>" +
                                      Peek.pretty_xml(this) +
                                      "</div>");
             });
@@ -22,7 +22,7 @@ var Peek = {
     pretty_xml: function (xml, level) {
         var i, j;
         var result = [];
-        if (!level) { 
+        if (!level) {
             level = 0;
         }
 
@@ -64,13 +64,13 @@ var Peek = {
                 if (this.nodeType === 1) {
                     result.push(Peek.pretty_xml(this, level + 1));
                 } else if (this.nodeType === 3) {
-                    result.push("<div class='xml_text xml_level" + 
+                    result.push("<div class='xml_text xml_level" +
                                 (level + 1) + "'>");
                     result.push(this.nodeValue);
                     result.push("</div>");
                 }
             });
-            
+
             result.push("<div class='xml xml_level" + level + "'>");
             result.push("<span class='xml_punc'>&lt;/</span>");
             result.push("<span class='xml_tag'>");
@@ -78,7 +78,7 @@ var Peek = {
             result.push("</span>");
             result.push("<span class='xml_punc'>&gt;</span></div>");
         }
-        
+
         return result.join("");
     },
 
@@ -118,7 +118,7 @@ $(document).ready(function () {
                     jid: $('#jid').val().toLowerCase(),
                     password: $('#password').val()
                 });
-                
+
                 $('#password').val('');
                 $(this).dialog('close');
             }
@@ -168,7 +168,7 @@ $(document).ready(function () {
 $(document).bind('connect', function (ev, data) {
 //    var conn = new Strophe.Connection(
 //       "https://together.uni-konstanz.de/http-bind/");
-	
+
     var conn = new Strophe.Connection(
        "http://localhost:5280/http-bind");
 

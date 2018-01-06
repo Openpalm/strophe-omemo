@@ -1975,19 +1975,24 @@ module.exports = g;
 let codec = __webpack_require__(0)
 let gcm = __webpack_require__(8)
 
+//$.getScript("./dist/co-gcm.js", function () {
+//alert("gcm loaded")
+//})
 
 let omemo_timing_helpers =  { 
 	//testing, thesis.
 
 }
 
+var encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
 let omemo_user = { // gets added to user roster
 	trusted: false,
 	bundle: null, //omemoBundle
 }
 
 let omemo_helpers = {
-	generate_preKeys: function () {},
+	generate_preKeys: function () { 
+        console.log("hello") },
 	refresh_preKeys: function () {},
 	refresh_signedKey: function () {},
 	construct_bundle_stanza: function () {},
@@ -2564,6 +2569,7 @@ gcm = {
         }
     }
 }
+
 module.exports = gcm
 
 

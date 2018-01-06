@@ -1,6 +1,125 @@
 var Gab = {
     connection: null,
 
+/////////////////////
+
+
+
+    show_traffic: function (body, type) {
+        if (body.childNodes.length > 0) {
+            var console = $('#console').get(0);
+            var at_bottom = console.scrollTop >= console.scrollHeight -
+                console.clientHeight;;
+
+            $.each(body.childNodes, function () {
+                $('#console').append("<div class='" + type + "'>" +
+                                     Gab.pretty_xml(this) +
+                                     "</div>");
+            });
+
+            if (at_bottom) {
+                console.scrollTop = console.scrollHeight;
+            }
+        }
+    },
+
+    pretty_xml: function (xml, level) {
+        var i, j;
+        var result = [];
+        if (!level) {
+            level = 0;
+        }
+
+        result.push("<div class='xml_level" + level + "'>");
+        result.push("<span class='xml_punc'>&lt;</span>");
+        result.push("<span class='xml_tag'>");
+        result.push(xml.tagName);
+        result.push("</span>");
+
+        // attributes
+        var attrs = xml.attributes;
+        var attr_lead = []
+        for (i = 0; i < xml.tagName.length + 1; i++) {
+            attr_lead.push("&nbsp;");
+        }
+        attr_lead = attr_lead.join("");
+
+        for (i = 0; i < attrs.length; i++) {
+            result.push(" <span class='xml_aname'>");
+            result.push(attrs[i].nodeName);
+            result.push("</span><span class='xml_punc'>='</span>");
+            result.push("<span class='xml_avalue'>");
+            result.push(attrs[i].nodeValue);
+            result.push("</span><span class='xml_punc'>'</span>");
+
+            if (i !== attrs.length - 1) {
+                result.push("</div><div class='xml_level" + level + "'>");
+                result.push(attr_lead);
+            }
+        }
+
+        if (xml.childNodes.length === 0) {
+            result.push("<span class='xml_punc'>/&gt;</span></div>");
+        } else {
+            result.push("<span class='xml_punc'>&gt;</span></div>");
+
+            // children
+            $.each(xml.childNodes, function () {
+                if (this.nodeType === 1) {
+                    result.push(Gab.pretty_xml(this, level + 1));
+                } else if (this.nodeType === 3) {
+                    result.push("<div class='xml_text xml_level" +
+                                (level + 1) + "'>");
+                    result.push(this.nodeValue);
+                    result.push("</div>");
+                }
+            });
+
+            result.push("<div class='xml xml_level" + level + "'>");
+            result.push("<span class='xml_punc'>&lt;/</span>");
+            result.push("<span class='xml_tag'>");
+            result.push(xml.tagName);
+            result.push("</span>");
+            result.push("<span class='xml_punc'>&gt;</span></div>");
+        }
+
+        return result.join("");
+    },
+
+    text_to_xml: function (text) {
+        var doc = null;
+        if (window['DOMParser']) {
+            var parser = new DOMParser();
+            doc = parser.parseFromString(text, 'text/xml');
+        } else if (window['ActiveXObject']) {
+            var doc = new ActiveXObject("MSXML2.DOMDocument");
+            doc.async = false;
+            doc.loadXML(text);
+        } else {
+            throw {
+                type: 'PeekError',
+                message: 'No DOMParser object found.'
+            };
+        }
+
+        var elem = doc.documentElement;
+        if ($(elem).filter('parsererror').length > 0) {
+            return null;
+        }
+        return elem;
+    },
+
+
+
+
+
+
+
+
+
+
+
+////////////////////
     jid_to_id: function (jid) {
         return Strophe.getBareJidFromJid(jid)
             .replace(/@/g, "-")
@@ -85,7 +204,7 @@ var Gab = {
             } else {
                 // contact is being added or modified
                 var contact_html = "<li id='" + jid_id + "'>" +
-                    "<div class='" + 
+                    "<div class='" +
                     ($('#' + jid_id).attr('class') || "roster-contact offline") +
                     "'>" +
                     "<div class='roster-name'>" +
@@ -116,7 +235,7 @@ var Gab = {
                 "<div class='chat-messages'></div>" +
                 "<input type='text' class='chat-input'>");
         }
-        
+
         $('#chat-' + jid_id).data('jid', full_jid);
 
         $('#chat-area').tabs('select', '#chat-' + jid_id);
@@ -197,7 +316,7 @@ var Gab = {
     insert_contact: function (elem) {
         var jid = elem.find('.roster-jid').text();
         var pres = Gab.presence_value(elem.find('.roster-contact'));
-        
+
         var contacts = $('#roster-area li');
 
         if (contacts.length > 0) {
@@ -241,7 +360,7 @@ $(document).ready(function () {
                     jid: $('#jid').val().toLowerCase(),
                     password: $('#password').val()
                 });
-                
+
                 $('#password').val('');
                 $(this).dialog('close');
             }
@@ -262,7 +381,7 @@ $(document).ready(function () {
 
                 $('#contact-jid').val('');
                 $('#contact-name').val('');
-                
+
                 $(this).dialog('close');
             }
         }
@@ -295,7 +414,7 @@ $(document).ready(function () {
                 Gab.connection.send($pres({
                     to: Gab.pending_subscriber,
                     "type": "subscribe"}));
-                
+
                 Gab.pending_subscriber = null;
 
                 $(this).dialog('close');
@@ -338,7 +457,7 @@ $(document).ready(function () {
 
             $(this).parent().find('.chat-messages').append(
                 "<div class='chat-message'>&lt;" +
-                "<span class='chat-name me'>" + 
+                "<span class='chat-name me'>" +
                 Strophe.getNodeFromJid(Gab.connection.jid) +
                 "</span>&gt;<span class='chat-text'>" +
                 body +
@@ -378,15 +497,15 @@ $(document).ready(function () {
                 $('#chat-' + jid_id).append(
                     "<div class='chat-messages'></div>" +
                     "<input type='text' class='chat-input'>");
-            
+
                 $('#chat-' + jid_id).data('jid', jid);
-            
+
                 $('#chat-area').tabs('select', '#chat-' + jid_id);
                 $('#chat-' + jid_id + ' input').focus();
-            
-            
+
+
                 $('#chat-jid').val('');
-                
+
                 $(this).dialog('close');
             }
         }
@@ -401,6 +520,18 @@ $(document).bind('connect', function (ev, data) {
     var conn = new Strophe.Connection(
         'http://localhost:5280/http-bind');
 
+//////////////////////
+    conn.xmlInput = function (body) {
+        Gab.show_traffic(body, 'incoming');
+    };
+
+    conn.xmlOutput = function (body) {
+        Gab.show_traffic(body, 'outgoing');
+    };
+//////////////////////
+
+
+
     conn.connect(data.jid, data.password, function (status) {
         if (status === Strophe.Status.CONNECTED) {
             $(document).trigger('connected');
@@ -408,6 +539,7 @@ $(document).bind('connect', function (ev, data) {
             $(document).trigger('disconnected');
         }
     });
+
 
     Gab.connection = conn;
 });
@@ -438,7 +570,7 @@ $(document).bind('contact_added', function (ev, data) {
     var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"})
         .c("item", data);
     Gab.connection.sendIQ(iq);
-    
+
     var subscribe = $pres({to: data.jid, "type": "subscribe"});
     Gab.connection.send(subscribe);
 });
