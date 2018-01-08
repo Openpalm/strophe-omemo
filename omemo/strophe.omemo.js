@@ -7,7 +7,7 @@ let omemo_timing_helpers =  {
 
 }
 
-let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
+//let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
 
 let omemo_user = { // gets added to user roster
 	trusted: false,
@@ -40,8 +40,9 @@ Strophe.addConnectionPlugin('omemo', {
 	on_device: function (xml_stanza) {},
 	fetch_bundle: function (device_id) {},
 	refresh_bundle: function () {},
+	announce_bundle: function () {},
+
     if_first_use: function () {},
-	announce_bundle: function () {}
 
 });
 

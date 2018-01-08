@@ -1,1 +1,1 @@
-../js/libs/libsignaljs/dist/libsignal-protocol.js
+./libsignal/dist/libsignal-protocol.js

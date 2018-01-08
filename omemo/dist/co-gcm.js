@@ -119,11 +119,11 @@ gcm = {
         })
     },
     decrypt: function (key, cipherText, iv) {
-        consle.log("in decrypt")
-        console.log(key)
-        console.log(cipherText)
-        console.log(iv)
-        return this.restoreKey(key).then(res => {
+       // console.log("in decrypt")
+       // console.log(key)
+       // console.log(cipherText)
+       // console.log(iv)
+        return this.restoreKey(key).then(keyObj => {
             let enc = new TextDecoder()
             let out = ''
             return window.crypto.subtle.decrypt(
@@ -132,7 +132,7 @@ gcm = {
                     iv: iv,
                     tagLength: 128,
                 },
-                key,
+                keyObj,
                 cipherText
             )
                 .then((decrypt_out) =>  {
