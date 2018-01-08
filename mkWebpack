@@ -2,6 +2,3 @@ webpack js/strophe.omemo.object.js dist/co-strophe.omemo.object.js
 webpack js/gcm.js dist/co-gcm.js
 webpack js/codec.js dist/co-codec.js
 webpack js/libsignalstore.js dist/co-libsignalstore.js
-
-
-webpack js/rewrite.js dist/rewrite.js

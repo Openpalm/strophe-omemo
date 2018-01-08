@@ -27,10 +27,12 @@ let omemo_helpers = {
 Strophe.addConnectionPlugin('omemo', {
 	init: function (conn) {
 		this.connection = conn;
-		omemo_helpers.if_first_use(); //arm if first use. looks in window.Storage.
-        this._ns_main = 'eu.siacs.conversations.axolotl'
-        this._ns_bundles =  'eu.siacs.conversations.axolotl.bundles'
-        this._ns_devices = 'eu.siacs.conversations.axolotl.devices'
+
+        Strophe.addNamespace('OMEMO',         'eu.siacs.conversations.axolotl')
+        Strophe.addNamespace('OMEMO_BUNDLES', 'eu.siacs.conversations.axolotl.bundles')
+        Strophe.addNamespace('OMEMO_DEVICES', 'eu.siacs.conversations.axolotl.devices')
+
+		this.if_first_use(); //arm if first use. looks in window.Storage.
 
 	},
 	on_bundle: function (xml_stanza) {},
@@ -38,6 +40,8 @@ Strophe.addConnectionPlugin('omemo', {
 	on_device: function (xml_stanza) {},
 	fetch_bundle: function (device_id) {},
 	refresh_bundle: function () {},
+    if_first_use: function () {},
 	announce_bundle: function () {}
+
 });
 

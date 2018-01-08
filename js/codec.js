@@ -1,6 +1,5 @@
 "use strict";
 
-let base64 = require('./base64.js')
 var codec = {};
 
 codec = {

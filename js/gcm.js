@@ -8,7 +8,9 @@ function pprint(s) {
     console.log("gcm.js: " + s)
 }
 
-gcm.prototype = {
+// AES GCM
+
+gcm = {
     encrypt: function (text) {
         return window.crypto.subtle.generateKey(
             {
@@ -99,10 +101,5 @@ gcm.prototype = {
     }
 }
 
-var EAX = {}
-
-EAX.prototype = { 
-
-}
 
 module.exports = gcm

@@ -1,1 +1,1 @@
-/var/www/strophe-omemo/js/libsignalstore.js
+/var/www/development/js/libsignalstore.js
