@@ -211,7 +211,7 @@ createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
     return Promise.reject("no session exists for " + to)
   }
 
-  let tag = msgObj.ENFORCED.tag
+  let tag = msgObj.BASE64.tag
   let keyCipherText = msgObj.LSPLD
   let promises = []
 
@@ -237,12 +237,12 @@ createEncryptedStanza: function(to, msgObj, keyMessage = false ,ctxt = this) {
           xml.c('key', {prekey: record.get('preKeyFlag'), rid: rid}).t(record.payload).up()
         }
 
-        xml.c('iv').t(msgObj.ENFORCED.iv).up()
+        xml.c('iv').t(msgObj.BASE64.iv).up()
 
         //are we sending keying material or text messages?
         if (!keyMessage) {
           xml.up()
-          xml.c('payload').t(msgObj.ENFORCED.cipherText)
+          xml.c('payload').t(msgObj.BASE64.cipherText)
           xml.up().up()
           xml.c('store', {xmlns: 'urn:xmpp:hints'})
         } else {

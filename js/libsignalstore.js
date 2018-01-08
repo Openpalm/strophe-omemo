@@ -117,6 +117,15 @@ SignalProtocolStore.prototype = {
     return Promise.resolve();
   },
     //mycode
+     
+    loadSignedPreKeySignature: function(keyId) {
+    var res = this.get('25519KeysignedKey' + keyId);
+    if (res !== undefined) {
+        return Promise.resolve(res.signature)
+    }
+    return Promise.reject("failed to fetch signature");
+  },
+
     getPreKeyBundle: function(context = this) {
         let range = 101
         let id = 1

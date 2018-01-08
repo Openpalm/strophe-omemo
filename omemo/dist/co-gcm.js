@@ -119,6 +119,10 @@ gcm = {
         })
     },
     decrypt: function (key, cipherText, iv) {
+        consle.log("in decrypt")
+        console.log(key)
+        console.log(cipherText)
+        console.log(iv)
         return this.restoreKey(key).then(res => {
             let enc = new TextDecoder()
             let out = ''
