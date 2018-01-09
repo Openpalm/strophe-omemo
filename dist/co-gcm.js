@@ -91,7 +91,8 @@ gcm = {
             ["encrypt", "decrypt"] //can "encrypt", "decrypt",
         ).then((key) => {
             const data = codec.StringToUint8(text)
-            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16)) // this can be hijacked.
+            const temp_iv = window.crypto.getRandomValues(new Uint8Array(16)) 
+            console.log(temp_iv)
             const alg = {
                 name: "AES-GCM",
                 iv: temp_iv, //uint8 buffer
@@ -119,10 +120,10 @@ gcm = {
         })
     },
     decrypt: function (key, cipherText, iv) {
-        console.log("in decrypt")
-        console.log(key)
-        console.log(cipherText)
-        console.log(iv)
+       // console.log("in decrypt")
+       // console.log(key)
+       // console.log(cipherText)
+       // console.log(iv)
         return this.restoreKey(key).then(keyObj => {
             let enc = new TextDecoder()
             let out = ''
