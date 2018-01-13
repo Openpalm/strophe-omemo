@@ -461,7 +461,8 @@ $(document).ready(function () {
             var message = $msg({to: jid,
                                 "type": "chat"})
                 .c('body').t(body).up()
-                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"}).up()
+                .c('store', {xlmns: "urn:xmpp:hints"})
             xmpplore.connection.send(message);
 
             $(this).parent().find('.chat-messages').append(
