@@ -1,4 +1,4 @@
-var Gab = {
+var xmpplore = {
     connection: null,
 
 /////////////////////
@@ -13,7 +13,7 @@ var Gab = {
 
             $.each(body.childNodes, function () {
                 $('#console').append("<div class='" + type + "'>" +
-                                     Gab.pretty_xml(this) +
+                                     xmpplore.pretty_xml(this) +
                                      "</div>");
             });
 
@@ -66,7 +66,7 @@ var Gab = {
             // children
             $.each(xml.childNodes, function () {
                 if (this.nodeType === 1) {
-                    result.push(Gab.pretty_xml(this, level + 1));
+                    result.push(xmpplore.pretty_xml(this, level + 1));
                 } else if (this.nodeType === 3) {
                     result.push("<div class='xml_text xml_level" +
                                 (level + 1) + "'>");
@@ -132,7 +132,7 @@ var Gab = {
             var name = $(this).attr('name') || jid;
 
             // transform jid into an id
-            var jid_id = Gab.jid_to_id(jid);
+            var jid_id = xmpplore.jid_to_id(jid);
 
             var contact = $("<li id='" + jid_id + "'>" +
                             "<div class='roster-contact offline'>" +
@@ -142,12 +142,12 @@ var Gab = {
                             jid +
                             "</div></div></li>");
 
-            Gab.insert_contact(contact);
+            xmpplore.insert_contact(contact);
         });
 
         // set up presence handler and send initial presence
-        Gab.connection.addHandler(Gab.on_presence, null, "presence");
-        Gab.connection.send($pres());
+        xmpplore.connection.addHandler(xmpplore.on_presence, null, "presence");
+        xmpplore.connection.send($pres());
     },
 
     pending_subscriber: null,
@@ -155,12 +155,12 @@ var Gab = {
     on_presence: function (presence) {
         var ptype = $(presence).attr('type');
         var from = $(presence).attr('from');
-        var jid_id = Gab.jid_to_id(from);
+        var jid_id = xmpplore.jid_to_id(from);
 
         if (ptype === 'subscribe') {
             // populate pending_subscriber, the approve-jid span, and
             // open the dialog
-            Gab.pending_subscriber = from;
+            xmpplore.pending_subscriber = from;
             $('#approve-jid').text(Strophe.getBareJidFromJid(from));
             $('#approve_dialog').dialog('open');
         } else if (ptype !== 'error') {
@@ -181,11 +181,11 @@ var Gab = {
 
             var li = contact.parent();
             li.remove();
-            Gab.insert_contact(li);
+            xmpplore.insert_contact(li);
         }
 
         // reset addressing for user since their presence changed
-        var jid_id = Gab.jid_to_id(from);
+        var jid_id = xmpplore.jid_to_id(from);
         $('#chat-' + jid_id).data('jid', Strophe.getBareJidFromJid(from));
 
         return true;
@@ -196,7 +196,7 @@ var Gab = {
             var sub = $(this).attr('subscription');
             var jid = $(this).attr('jid');
             var name = $(this).attr('name') || jid;
-            var jid_id = Gab.jid_to_id(jid);
+            var jid_id = xmpplore.jid_to_id(jid);
 
             if (sub === 'remove') {
                 // contact is being removed
@@ -216,7 +216,7 @@ var Gab = {
                 if ($('#' + jid_id).length > 0) {
                     $('#' + jid_id).replaceWith(contact_html);
                 } else {
-                    Gab.insert_contact($(contact_html));
+                    xmpplore.insert_contact($(contact_html));
                 }
             }
         });
@@ -227,7 +227,7 @@ var Gab = {
     on_message: function (message) {
         var full_jid = $(message).attr('from');
         var jid = Strophe.getBareJidFromJid(full_jid);
-        var jid_id = Gab.jid_to_id(jid);
+        var jid_id = xmpplore.jid_to_id(jid);
 
         if ($('#chat-' + jid_id).length === 0) {
             $('#chat-area').tabs('add', '#chat-' + jid_id, jid);
@@ -248,7 +248,7 @@ var Gab = {
                 Strophe.getNodeFromJid(jid) +
                 " is typing...</div>");
 
-            Gab.scroll_chat(jid_id);
+            xmpplore.scroll_chat(jid_id);
         }
 
         var body = $(message).find("html > body");
@@ -291,7 +291,7 @@ var Gab = {
             $('#chat-' + jid_id + ' .chat-message:last .chat-text')
                 .append(body);
 
-            Gab.scroll_chat(jid_id);
+            xmpplore.scroll_chat(jid_id);
         }
 
         return true;
@@ -315,14 +315,14 @@ var Gab = {
 
     insert_contact: function (elem) {
         var jid = elem.find('.roster-jid').text();
-        var pres = Gab.presence_value(elem.find('.roster-contact'));
+        var pres = xmpplore.presence_value(elem.find('.roster-contact'));
 
         var contacts = $('#roster-area li');
 
         if (contacts.length > 0) {
             var inserted = false;
             contacts.each(function () {
-                var cmp_pres = Gab.presence_value(
+                var cmp_pres = xmpplore.presence_value(
                     $(this).find('.roster-contact'));
                 var cmp_jid = $(this).find('.roster-jid').text();
 
@@ -407,24 +407,24 @@ $(document).ready(function () {
         title: 'Subscription Request',
         buttons: {
             "Deny": function () {
-                Gab.connection.send($pres({
-                    to: Gab.pending_subscriber,
+                xmpplore.connection.send($pres({
+                    to: xmpplore.pending_subscriber,
                     "type": "unsubscribed"}));
-                Gab.pending_subscriber = null;
+                xmpplore.pending_subscriber = null;
 
                 $(this).dialog('close');
             },
 
             "Approve": function () {
-                Gab.connection.send($pres({
-                    to: Gab.pending_subscriber,
+                xmpplore.connection.send($pres({
+                    to: xmpplore.pending_subscriber,
                     "type": "subscribed"}));
 
-                Gab.connection.send($pres({
-                    to: Gab.pending_subscriber,
+                xmpplore.connection.send($pres({
+                    to: xmpplore.pending_subscriber,
                     "type": "subscribe"}));
 
-                Gab.pending_subscriber = null;
+                xmpplore.pending_subscriber = null;
 
                 $(this).dialog('close');
             }
@@ -436,7 +436,7 @@ $(document).ready(function () {
     $('.roster-contact').live('click', function () {
         var jid = $(this).find(".roster-jid").text();
         var name = $(this).find(".roster-name").text();
-        var jid_id = Gab.jid_to_id(jid);
+        var jid_id = xmpplore.jid_to_id(jid);
 
         if ($('#chat-' + jid_id).length === 0) {
             $('#chat-area').tabs('add', '#chat-' + jid_id, name);
@@ -462,16 +462,16 @@ $(document).ready(function () {
                                 "type": "chat"})
                 .c('body').t(body).up()
                 .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
-            Gab.connection.send(message);
+            xmpplore.connection.send(message);
 
             $(this).parent().find('.chat-messages').append(
                 "<div class='chat-message'>&lt;" +
                 "<span class='chat-name me'>" +
-                Strophe.getNodeFromJid(Gab.connection.jid) +
+                Strophe.getNodeFromJid(xmpplore.connection.jid) +
                 "</span>&gt;<span class='chat-text'>" +
                 body +
                 "</span></div>");
-            Gab.scroll_chat(Gab.jid_to_id(jid));
+            xmpplore.scroll_chat(xmpplore.jid_to_id(jid));
 
             $(this).val('');
             $(this).parent().data('composing', false);
@@ -480,7 +480,7 @@ $(document).ready(function () {
             if (!composing) {
                 var notify = $msg({to: jid, "type": "chat"})
                     .c('composing', {xmlns: "http://jabber.org/protocol/chatstates"});
-                Gab.connection.send(notify);
+                xmpplore.connection.send(notify);
 
                 $(this).parent().data('composing', true);
             }
@@ -488,8 +488,8 @@ $(document).ready(function () {
     });
 
     $('#disconnect').click(function () {
-        Gab.connection.disconnect();
-        Gab.connection = null;
+        xmpplore.connection.disconnect();
+        xmpplore.connection = null;
     });
 
     $('#chat_dialog').dialog({
@@ -500,7 +500,7 @@ $(document).ready(function () {
         buttons: {
             "Start": function () {
                 var jid = $('#chat-jid').val().toLowerCase();
-                var jid_id = Gab.jid_to_id(jid);
+                var jid_id = xmpplore.jid_to_id(jid);
 
                 $('#chat-area').tabs('add', '#chat-' + jid_id, jid);
                 $('#chat-' + jid_id).append(
@@ -531,9 +531,9 @@ $(document).ready(function () {
         var error = false;
         if (input.length > 0) {
             if (input[0] === '<') {
-                var xml = Gab.text_to_xml(input);
+                var xml = xmpplore.text_to_xml(input);
                 if (xml) {
-                    Gab.connection.send(Strophe.copyElement(xml));
+                    xmpplore.connection.send(Strophe.copyElement(xml));
                     $('#input').val('');
                 } else {
                     error = true;
@@ -541,7 +541,7 @@ $(document).ready(function () {
             } else if (input[0] === '$') {
                 try {
                     var builder = eval(input);
-                    Gab.connection.send(builder);
+                    xmpplore.connection.send(builder);
                     $('#input').val('');
                 } catch (e) {
                     console.log(e);
@@ -573,11 +573,11 @@ $(document).bind('connect', function (ev, data) {
 
 //////////////////////
     conn.xmlInput = function (body) {
-        Gab.show_traffic(body, 'incoming');
+        xmpplore.show_traffic(body, 'incoming');
     };
 
     conn.xmlOutput = function (body) {
-        Gab.show_traffic(body, 'outgoing');
+        xmpplore.show_traffic(body, 'outgoing');
     };
 //////////////////////
 
@@ -592,7 +592,7 @@ $(document).bind('connect', function (ev, data) {
     });
 
 
-    Gab.connection = conn;
+    xmpplore.connection = conn;
 });
 
 $(document).bind('connected', function () {
@@ -603,19 +603,19 @@ $(document).bind('connected', function () {
     $('#input').removeClass('disabled').removeAttr('disabled');
     ///////////////////
 
-    Gab.connection.sendIQ(iq, Gab.on_roster);
+    xmpplore.connection.sendIQ(iq, xmpplore.on_roster);
 
-    Gab.connection.addHandler(Gab.on_roster_changed,
+    xmpplore.connection.addHandler(xmpplore.on_roster_changed,
                               "jabber:iq:roster", "iq", "set");
 
-    Gab.connection.addHandler(Gab.on_message,
+    xmpplore.connection.addHandler(xmpplore.on_message,
                               null, "message", "chat");
 
 });
 
 $(document).bind('disconnected', function () {
-    Gab.connection = null;
-    Gab.pending_subscriber = null;
+    xmpplore.connection = null;
+    xmpplore.pending_subscriber = null;
 
     $('#roster-area ul').empty();
     $('#chat-area ul').empty();
@@ -635,8 +635,8 @@ $(document).bind('disconnected', function () {
 $(document).bind('contact_added', function (ev, data) {
     var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"})
         .c("item", data);
-    Gab.connection.sendIQ(iq);
+    xmpplore.connection.sendIQ(iq);
 
     var subscribe = $pres({to: data.jid, "type": "subscribe"});
-    Gab.connection.send(subscribe);
+    xmpplore.connection.send(subscribe);
 });
