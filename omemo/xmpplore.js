@@ -1,3 +1,4 @@
+localStorage.clear()
 var xmpplore = {
     connection: null,
 
@@ -586,18 +587,17 @@ $(document).bind('connect', function (ev, data) {
 
     conn.connect(data.jid, data.password, function (status) {
         if (status === Strophe.Status.CONNECTED) {
+            
             $(document).trigger('connected');
         } else if (status === Strophe.Status.DISCONNECTED) {
             $(document).trigger('disconnected');
         }
     });
 
-    xmpplore.jid = data.jid
-    xmpplore.connection = conn;
-    var jid = ''
-    jid, xmpplore.connection.omemo._jid = data.jid
+            xmpplore.jid = data.jid
+            xmpplore.connection = conn;
+            xmpplore.connection.omemo._jid = data.jid
 
-   xmpplore.connection.omemo.setup(xmpplore.jid) 
 });
 
 $(document).bind('connected', function () {
@@ -619,6 +619,7 @@ $(document).bind('connected', function () {
     var ns =  'eu.siacs.conversations.axolotl' 
 //    xmpplore.connection.omemo.connection.addHandler( xmpplore.connection.omemo.on_message, ns, "message", null);
 
+    xmpplore.connection.omemo.setup(xmpplore.jid) 
 
 });
 

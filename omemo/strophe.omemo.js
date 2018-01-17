@@ -3,29 +3,6 @@ let symCipher = require('./gcm.js')
 //let symCipher = require('./EAX.js')
 //let symCipher = require('./xChaCha20.js')
 
-let omemo_timing_helpers =  {
-    //testing, thesis.
-    //jsperf stuff
-
-}
-
-//let encrypted = gcm.encrypt("blah").then(e => { console.log(e)})
-
-let omemo_user = { // gets added to user roster
-    trusted: false,
-    bundle: null, //omemoBundle
-}
-
-let omemo_helpers = {
-    generate_preKeys: function () {
-        console.log("hello") },
-    refresh_preKeys: function () {},
-    refresh_signedKey: function () {},
-    construct_bundle_stanza: function () {},
-    onstruct_encrypted_stanza: function () {},
-    if_first_use: function () {}
-}
-
 Strophe.addConnectionPlugin('omemo', {
     init: function (conn) {
         this.connection = conn;
@@ -41,57 +18,57 @@ Strophe.addConnectionPlugin('omemo', {
 
         //Strophe.addHandler(func,ns,type,name(iq, message, etc), id)
 
-
-
         /* 
          * devicelist 
          *
          * will not work till pubsub is integrated 
          * temp solution is manual polling till uni work is done
          */
-        //        conn.addHandler(
-        //            this.on_devicelist,
-        //            Strophe.NS.OMEMO_DEVICELIST,
-        //            "headline",
-        //            "message", 
-        //            "update_01") 
-        //        /* 
-        //         * message 
-        //         *
-        //         * the ns @ <publish> has a :id attached to it, 
-        //         * matching won't work, so we match on the top NS @ <bundle>.
-        //         * 
-        //        */
+        conn.addHandler(
+            this.on_devicelist,
+            Strophe.NS.OMEMO_DEVICELIST,
+            null,
+            null, 
+            null) 
+        /* 
+         * message 
+         *
+         * the ns @ <publish> has a :id attached to it, 
+         * matching won't work, so we match on the top NS @ <bundle>.
+         * 
+         */
         this.connection.addHandler(
             this.on_message,
             Strophe.NS.OMEMO,
             "message", 
             null)
-        //
-        //        /* 
-        //         * bundle
-        //         *
-        //         * xmpp is a bit inconsistent with changing stanza parameters. 
-        //         * message is static.
-        //         * while bundle switches to result
-        //         * suppose they're different internal opertions on the server layer
-        //        */
-        //        conn.addHandler(
-        //            this.on_bundle,
-        //            //Strophe.NS.OMEMO, 
-        //            null,
-        //            "result",
-        //            "iq", 
-        //            "fetch1")
-        //
 
-            },
+        /* 
+         * bundle
+         *
+         * xmpp is a bit inconsistent with changing stanza parameters. 
+         * message is static.
+         * while bundle switches to result
+         * suppose they're different internal opertions on the server layer
+         */
+        conn.addHandler(
+            this.on_bundle,
+            Strophe.NS.OMEMO, 
+            null,
+            null,
+            "iq", 
+            "fetch1")
+        
+        this.publish = this.connection.pep.publish
+        this.subscribe = this.connection.pep.subscribe
+
+    },
     setup: function (jid) {
         if (!localStorage.getItem(jid)) {
             var id = this.new_id()
             console.log(id)
             localStorage.setItem(jid, id)
-       }
+        }
         this._jid = jid
         this._id = id
         try { 
@@ -115,8 +92,11 @@ Strophe.addConnectionPlugin('omemo', {
         } catch(e) { 
             throw new Error ("SignalProtocolStore not found")
         }
+
         return Promise.all([this.arm()]).then(e => {
             console.log("armed") 
+            this.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
+            this.publish_device()
         })
     },
     arm: function () {
@@ -152,7 +132,6 @@ Strophe.addConnectionPlugin('omemo', {
             ctxt.connection._signal_store.setLocalStore(ctxt._jid, ctxt._id)
             console.log("omemo is ready.")
         })
-        console.log(ctxt.connection._signal_store)
     },
     on_bundle: function (xml_stanza) {
 
@@ -177,27 +156,73 @@ Strophe.addConnectionPlugin('omemo', {
 
         console.log("omemo refreshing bundle")
     },
-    announce_bundle: function () {
-
+    publish_bundle: function () {
         console.log("omemo announcing bundle")
+        var ctxt= this
+        let store = ctxt._store
+        let sk_id = 1
+
+        let promises = [
+            ctxt._store.loadSignedPreKey(sk_id),
+            ctxt._store.getIdentityKeyPair(),
+            ctxt._store.loadSignedPreKeySignature(sk_id),
+            ctxt._store.getLocalRegistrationId()
+        ]
+        return Promise.all(promises).then(o => {
+            let sk = o[0]
+            let ikp = o[1]
+            let signature = o[2]
+            let rid = o[3]
+            let signature64 = codec.BufferToBase64(signature)
+            let sk64 = codec.BufferToBase64(sk.pubKey)
+            let ik64 = codec.BufferToBase64(ikp.pubKey)
+            let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
+                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+                .c('publish', {node: Strophe.NS.OMEMO_BUNDLES + ":" + rid })
+                .c('item')
+                .c('bundle', {xmlns: Strophe.NS.OMEMO })
+                .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+                .c('signedPreKeySignature').t(signature64).up()
+                .c('identityKey').t(ik64).up()
+                .c('prekeys')
+
+
+            let keys = ctxt._store.getPreKeyBundle(ctxt)
+            keys.forEach(function(key) {
+                res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
+            })
+
+            this.connection.send(res)
+        })
+
+    },
+    publish_device: function () {
+        console.log("publishing device")
+        var list = $build('list', {xmlns: Strophe.NS.OMEMO})
+        list.c('device', {id: this._id})
+        this.publish(Strophe.NS.OMEMO_DEVICELIST, [{
+            data: list.tree()
+        }], null)
     },
     genPreKeys: function(range) {
+        console.log("generating prekeys")
         let ctxt = this
         let kh = libsignal.KeyHelper
         let promises = []
-        for (let i = 1; i < range + 1; i++ ) {
+        for (let i = 3; i < range + 1; i++ ) {
             promises.push(kh.generatePreKey(i).then((k) =>  {
                 let key = {
                     pubKey: k.keyPair.pubKey, 
                     privKey: k.keyPair.privKey, 
                     keyId: k.keyId
                 }
-               ctxt.connection._signal_store.storePreKey(i,key)
+                ctxt.connection._signal_store.storePreKey(i,key)
             }))
         }
         return Promise.all(promises).then(console.log("preKeys phase complete"))
     },
     new_id: function () {
+        console.log("generating device id")
         let minDeviceId = 1
         let maxDeviceId = 2147483647
         let diff = (maxDeviceId - minDeviceId)
@@ -205,20 +230,7 @@ Strophe.addConnectionPlugin('omemo', {
         this._id = res
         return res
     },
-    publish_device: function () {
-        var ctxt = this
-        //initial add. all other additions happen on receiving device updates.
-        let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce1'})
-            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-            .c('publish', {node: Strophe.NS.OMEMO_DEVICES})
-            .c('item')
-            .c('list', {xmlns: Strophe.NS.OMEMO})
-            .c('device', {id: ctxt._id  }).up()
-        return res
-
-    },
-    publish_bundle: function() {
-    },
 
 });
+
 
