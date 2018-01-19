@@ -22,6 +22,7 @@ Strophe.addConnectionPlugin('omemo', {
 
     },
     setup: function (jid) {
+        let ctxt = this
         if (!localStorage.getItem(jid)) {
             var id = this.new_id()
             console.log(id)
@@ -54,13 +55,21 @@ Strophe.addConnectionPlugin('omemo', {
         return Promise.all([this.arm()]).then(e => {
             console.log("armed") 
             //bundle && device headline handler
-        this.connection.addHandler(
-            this.on_headline,
-            null,
-            "message",
-            "headline")
-            this.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
-            this.publish_device()
+            ctxt.connection.addHandler(
+                ctxt.on_headline,
+                null,
+                "message",
+                "headline")
+            ctxt.connection.addHandler(
+                ctxt.on_bundle,
+                null,
+                "iq",
+                "result",
+                "fetch1"
+            )
+
+            ctxt.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
+            ctxt.publish_device()
         })
     },
     arm: function () {
@@ -92,19 +101,67 @@ Strophe.addConnectionPlugin('omemo', {
             ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt.connection._signal_store.get('registrationId'));
         }).then( o => { 
             ctxt.connection._signal_store.setLocalStore(ctxt._jid, ctxt._id)
-//         this.connection.addHandler(
-//            this.on_headline,
-//             null,
-//            "message", 
-//            "headline")
-//
             console.log("omemo is ready.")
         })
     },
-    on_bundle: function (xml_stanza) {
-
+    on_bundle: function (stanza) {
         console.log("omemo bundle was received")
-        return true
+        /////////////////
+        let sk, sk_id, signature, ik, from_id, from , _key, pkey, pkey_id
+        let pkeys = [] 
+
+        $(stanza).find('items').each(function () {
+            from_id = parseInt($(this).attr('node').split(":")[1])
+            console.log(from_id)
+        })
+        $(stanza).find('iq').each(function () {
+            from = $(this).attr('from')
+            console.log(from)
+        })
+        $(stanza).find('signedPreKeyPublic').each(function () {
+            sk_id = parseInt($(this).attr('signedPreKeyId'))
+            sk = codec.Base64ToBuffer($(this).text())
+            console.log("signedKey")
+            console.log(sk)
+            console.log(sk_id)
+        })
+        $(stanza).find('signedPreKeySignature').each(function () {
+            signature = codec.Base64ToBuffer($(this).text())
+            console.log("signature")
+            console.log(signature)
+        })
+        console.log("trying to find prekeys")
+        $(stanza).find('preKeyPub').each(function () {
+            console.log("found pkey")
+            pkey = codec.Base64ToBuffer($(this).text())
+            pkey_id  = $(this).attr('keyId')
+            _key = {id: pkey_id, key: pkey}
+            console.log(key_)
+          //  pkeys.put(key)
+          //  console.log(pkeys)
+        })
+
+       console.log("trying to find id key")
+       ik =  $(stanza).find('identityKey')           // codec.Base64ToBuffer($(this).text())
+       console.log("identityKey")
+       console.log(ik)
+        ////////////////
+        let public_bundle =  {
+            registrationId: from_id,
+            identityKey: ik,
+            signedPreKey: {
+                keyId     : sk_id,
+                publicKey : sk,
+                signature : signature
+            },
+            //preKey: {
+            //    keyId     : keyId,
+            //    publicKey : preKey.pubKey
+            //}
+        }
+
+        let res = { jid: from, public_bundle:  public_bundle }
+        return true 
     },
     on_message: function (xml_stanza) {
 
@@ -117,29 +174,32 @@ Strophe.addConnectionPlugin('omemo', {
         return true
     },
     on_headline: function (stanza) {
-      let moo =   $(parsed).find('list')
-            
-        console.log(moo)
-            
-      //      .each(function () {
+        let moo =   $(parsed).find('list')
 
-      //  })
+        console.log(moo)
+
+        //      .each(function () {
+
+        //  })
 
         return true 
     },
     is_deviceHeadline: function (stanza)  {
-    
+
         let parsed = $.parseXML(XML)
 
         return false
     },
     is_bundleHeadline: function (stanza) {
-    
+
         return false
     },
-    fetch_bundle: function (device_id) {
-
-        console.log("omemo device list update was received")
+    fetch_bundle: function (to, device) {
+        let ctxt = this
+        let res = $iq({type: 'get', from: ctxt._jid, to: to, id: 'fetch1'})
+            .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+            .c('items', {node: Strophe.NS.OMEMO_BUNDLES + ":" + device}) 
+        this.connection.send(res)
     },
     refresh_bundle: function () {
 
