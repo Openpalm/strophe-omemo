@@ -151,6 +151,7 @@ let codec = __webpack_require__(0)
 let symCipher = __webpack_require__(7)
 let $ = __webpack_require__(8)
 
+
 //let symCipher = require('./EAX.js')
 //let symCipher = require('./xChaCha20.js')
 
@@ -165,49 +166,6 @@ Strophe.addConnectionPlugin('omemo', {
         Strophe.addNamespace('OMEMO_DEVICELIST', 
             'eu.siacs.conversations.axolotl.devicelist')
 
-        //Strophe.addHandler(func,ns,type,name(iq, message, etc), id)
-
-        /* 
-         * devicelist 
-         *
-         * will not work till pubsub is integrated 
-         * temp solution is manual polling till uni work is done
-         */
-        conn.addHandler(
-            this.on_devicelist,
-            null,
-            "message",
-            "headline")
-        /* 
-         * message 
-         *
-         * the ns @ <publish> has a :id attached to it, 
-         * matching won't work, so we match on the top NS @ <bundle>.
-         * 
-         */
-        this.connection.addHandler(
-            this.on_message,
-            Strophe.NS.OMEMO,
-            "message", 
-            null)
-        console.log(this.on_message)
-
-        /* 
-         * bundle
-         *
-         * xmpp is a bit inconsistent with changing stanza parameters. 
-         * message is static.
-         * while bundle switches to result
-         * suppose they're different internal opertions on the server layer
-         */
-        conn.addHandler(
-            this.on_bundle,
-            Strophe.NS.OMEMO, 
-            null,
-            null,
-            "iq", 
-            "fetch1")
-        
         this.publish = this.connection.pep.publish
         this.subscribe = this.connection.pep.subscribe
 
@@ -244,6 +202,12 @@ Strophe.addConnectionPlugin('omemo', {
 
         return Promise.all([this.arm()]).then(e => {
             console.log("armed") 
+            //bundle && device headline handler
+        this.connection.addHandler(
+            this.on_headline,
+            null,
+            "message",
+            "headline")
             this.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
             this.publish_device()
         })
@@ -272,10 +236,17 @@ Strophe.addConnectionPlugin('omemo', {
                         signature: skey.signature
                     }
                     ctxt.connection._signal_store.storeSignedPreKey(1, key)
+                    ctxt.publish_bundle()
                 })
             ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt.connection._signal_store.get('registrationId'));
         }).then( o => { 
             ctxt.connection._signal_store.setLocalStore(ctxt._jid, ctxt._id)
+//         this.connection.addHandler(
+//            this.on_headline,
+//             null,
+//            "message", 
+//            "headline")
+//
             console.log("omemo is ready.")
         })
     },
@@ -295,13 +266,20 @@ Strophe.addConnectionPlugin('omemo', {
         return true
     },
     on_headline: function (stanza) {
-        let parsed = $.parseXML(stanza)
-        return parsed
+      let moo =   $(parsed).find('list')
+            
+        console.log(moo)
+            
+      //      .each(function () {
+
+      //  })
+
+        return true 
     },
     is_deviceHeadline: function (stanza)  {
     
         let parsed = $.parseXML(XML)
-        $
+
         return false
     },
     is_bundleHeadline: function (stanza) {

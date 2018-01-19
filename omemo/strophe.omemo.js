@@ -2,6 +2,7 @@ let codec = require('./codec.js')
 let symCipher = require('./gcm.js')
 let $ = require('jquery')
 
+
 //let symCipher = require('./EAX.js')
 //let symCipher = require('./xChaCha20.js')
 
@@ -16,24 +17,6 @@ Strophe.addConnectionPlugin('omemo', {
         Strophe.addNamespace('OMEMO_DEVICELIST', 
             'eu.siacs.conversations.axolotl.devicelist')
 
-        //Strophe.addHandler(func,ns,type,name(iq, message, etc), id)
-
-        
-        /* 
-         * bundle
-         *
-         * xmpp is a bit inconsistent with changing stanza parameters. 
-         * message is static.
-         * while bundle switches to result
-         * suppose they're different internal opertions on the server layer
-         */
-       // this.connection.addHandler(
-       //     this.on_bundle,
-       //     Strophe.NS.OMEMO, 
-       //     null,
-       //     "iq", 
-       //     "fetch1")
-       // 
         this.publish = this.connection.pep.publish
         this.subscribe = this.connection.pep.subscribe
 
@@ -76,12 +59,6 @@ Strophe.addConnectionPlugin('omemo', {
             null,
             "message",
             "headline")
-            //message
-        this.connection.addHandler(
-            this.on_message,
-            "message", 
-            null)
-
             this.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
             this.publish_device()
         })
@@ -110,10 +87,17 @@ Strophe.addConnectionPlugin('omemo', {
                         signature: skey.signature
                     }
                     ctxt.connection._signal_store.storeSignedPreKey(1, key)
+                    ctxt.publish_bundle()
                 })
             ctxt._address = new libsignal.SignalProtocolAddress(ctxt._jid, ctxt.connection._signal_store.get('registrationId'));
         }).then( o => { 
             ctxt.connection._signal_store.setLocalStore(ctxt._jid, ctxt._id)
+//         this.connection.addHandler(
+//            this.on_headline,
+//             null,
+//            "message", 
+//            "headline")
+//
             console.log("omemo is ready.")
         })
     },
@@ -133,8 +117,14 @@ Strophe.addConnectionPlugin('omemo', {
         return true
     },
     on_headline: function (stanza) {
-        let parsed = $.parseXML(stanza)
-        console.log(parsed)
+      let moo =   $(parsed).find('list')
+            
+        console.log(moo)
+            
+      //      .each(function () {
+
+      //  })
+
         return true 
     },
     is_deviceHeadline: function (stanza)  {
