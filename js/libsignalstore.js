@@ -180,13 +180,13 @@ SignalProtocolStore.prototype = {
         return Promise.reject("failed to fetch signature");
     },
 
-    getPreKeyBundle: function(context = this) {
+    getPreKeyBundle: function() {
         let range = 101
         let id = 1
         let key = undefined
         let keys = []
         while (range) {
-            key = context._store.getPreKeyPub(id, context)
+            key = this.getPreKeyPub(id)
             if (key != undefined) {
                 keys.push(key)
             }
@@ -196,8 +196,8 @@ SignalProtocolStore.prototype = {
         return keys
     },
 
-    getPreKeyPub: function(keyId, context = this) {
-        let res = context._store.get('25519KeypreKey' + keyId);
+    getPreKeyPub: function(keyId) {
+        let res = this.get('25519KeypreKey' + keyId);
         if (res !== undefined) {
             let pubRecord =  {
                 keyId: res.keyId,
@@ -209,15 +209,15 @@ SignalProtocolStore.prototype = {
     },
 
 
-    getPublicBundle: function(context, keyId = 1) {
+    getPublicBundle: function(keyId = 1) {
         let promises = []
         let signedKeyId = 1
 
-        promises.push(context._store.loadSignedPreKey(signedKeyId))
-        promises.push(context._store.loadSignedPreKeySignature(signedKeyId))
-        promises.push(context._store.getIdentityKeyPair())
-        promises.push(context._store.loadPreKey(keyId))
-        promises.push(context._store.loadRegistrationId())
+        promises.push(this.loadSignedPreKey(signedKeyId))
+        promises.push(this.loadSignedPreKeySignature(signedKeyId))
+        promises.push(this.getIdentityKeyPair())
+        promises.push(this.loadPreKey(keyId))
+        promises.push(this.loadRegistrationId())
 
         return Promise.all(promises).then(function (res) {
             let sk = res[0]
@@ -249,21 +249,21 @@ SignalProtocolStore.prototype = {
         let key = undefined
         while (key == undefined) {
             id = Math.floor(Math.random() * range) + 1
-            key = context._store.getPreKey(id, context)
+            key = this.getPreKey(id, context)
             //omemo._store.removePreKey(id).then(console.log("PreKey " + id + " extracted/removed"))
         }
         context._store.usedPreKeyCounter++
         return key
     },
-    getPreKey: function(keyId, context) {
-        let res = context._store.get('25519KeypreKey' + keyId);
+    getPreKey: function(keyId) {
+        let res = this.get('25519KeypreKey' + keyId);
         if (res !== undefined) {
             return res
         }
         return undefined
     },
-    getPreKeyPub: function(keyId, context) {
-        let res = context._store.get('25519KeypreKey' + keyId);
+    getPreKeyPub: function(keyId) {
+        let res = this.get('25519KeypreKey' + keyId);
         if (res !== undefined) {
             let pubRecord =  {
                 keyId: res.keyId,

@@ -1,5 +1,7 @@
 let codec = require('./codec.js')
 let symCipher = require('./gcm.js')
+let $ = require('jquery')
+
 //let symCipher = require('./EAX.js')
 //let symCipher = require('./xChaCha20.js')
 
@@ -13,36 +15,10 @@ Strophe.addConnectionPlugin('omemo', {
             'eu.siacs.conversations.axolotl.bundles')
         Strophe.addNamespace('OMEMO_DEVICELIST', 
             'eu.siacs.conversations.axolotl.devicelist')
-        Strophe.addNamespace('OMEMO_DEVICELIST_NOTIFY', 
-            'eu.siacs.conversations.axolotl.devicelist+notify')
 
         //Strophe.addHandler(func,ns,type,name(iq, message, etc), id)
 
-        /* 
-         * devicelist 
-         *
-         * will not work till pubsub is integrated 
-         * temp solution is manual polling till uni work is done
-         */
-        conn.addHandler(
-            this.on_devicelist,
-            Strophe.NS.OMEMO_DEVICELIST,
-            null,
-            null, 
-            null) 
-        /* 
-         * message 
-         *
-         * the ns @ <publish> has a :id attached to it, 
-         * matching won't work, so we match on the top NS @ <bundle>.
-         * 
-         */
-        this.connection.addHandler(
-            this.on_message,
-            Strophe.NS.OMEMO,
-            "message", 
-            null)
-
+        
         /* 
          * bundle
          *
@@ -51,14 +27,13 @@ Strophe.addConnectionPlugin('omemo', {
          * while bundle switches to result
          * suppose they're different internal opertions on the server layer
          */
-        conn.addHandler(
-            this.on_bundle,
-            Strophe.NS.OMEMO, 
-            null,
-            null,
-            "iq", 
-            "fetch1")
-        
+       // this.connection.addHandler(
+       //     this.on_bundle,
+       //     Strophe.NS.OMEMO, 
+       //     null,
+       //     "iq", 
+       //     "fetch1")
+       // 
         this.publish = this.connection.pep.publish
         this.subscribe = this.connection.pep.subscribe
 
@@ -95,15 +70,24 @@ Strophe.addConnectionPlugin('omemo', {
 
         return Promise.all([this.arm()]).then(e => {
             console.log("armed") 
+            //bundle && device headline handler
+        this.connection.addHandler(
+            this.on_headline,
+            null,
+            "message",
+            "headline")
+            //message
+        this.connection.addHandler(
+            this.on_message,
+            "message", 
+            null)
+
             this.connection.pep.subscribe(Strophe.NS.OMEMO_DEVICELIST)
             this.publish_device()
         })
     },
     arm: function () {
         console.log("omemo first use")
-        if (this.connection._signal_store == null) {
-            throw new Error("no store set, terminating.")
-        }
         var ctxt = this
         let kh  = libsignal.KeyHelper
         let registrationId = ''
@@ -148,6 +132,21 @@ Strophe.addConnectionPlugin('omemo', {
         console.log("omemo device list update was received")
         return true
     },
+    on_headline: function (stanza) {
+        let parsed = $.parseXML(stanza)
+        console.log(parsed)
+        return true 
+    },
+    is_deviceHeadline: function (stanza)  {
+    
+        let parsed = $.parseXML(XML)
+
+        return false
+    },
+    is_bundleHeadline: function (stanza) {
+    
+        return false
+    },
     fetch_bundle: function (device_id) {
 
         console.log("omemo device list update was received")
@@ -158,27 +157,26 @@ Strophe.addConnectionPlugin('omemo', {
     },
     publish_bundle: function () {
         console.log("omemo announcing bundle")
-        var ctxt= this
-        let store = ctxt._store
+        let ctxt= this
         let sk_id = 1
 
         let promises = [
-            ctxt._store.loadSignedPreKey(sk_id),
-            ctxt._store.getIdentityKeyPair(),
-            ctxt._store.loadSignedPreKeySignature(sk_id),
-            ctxt._store.getLocalRegistrationId()
+            this.connection._signal_store.loadSignedPreKey(sk_id),
+            this.connection._signal_store.getIdentityKeyPair(),
+            this.connection._signal_store.loadSignedPreKeySignature(sk_id),
+            this.connection._signal_store.getLocalRegistrationId()
         ]
         return Promise.all(promises).then(o => {
             let sk = o[0]
             let ikp = o[1]
             let signature = o[2]
-            let rid = o[3]
+            let rid = o[10]
             let signature64 = codec.BufferToBase64(signature)
             let sk64 = codec.BufferToBase64(sk.pubKey)
             let ik64 = codec.BufferToBase64(ikp.pubKey)
             let res = $iq({type: 'set', from: ctxt._jid, id: 'anounce2'})
                 .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-                .c('publish', {node: Strophe.NS.OMEMO_BUNDLES + ":" + rid })
+                .c('publish', {node: Strophe.NS.OMEMO_BUNDLES + ":" + this._id})
                 .c('item')
                 .c('bundle', {xmlns: Strophe.NS.OMEMO })
                 .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
@@ -187,7 +185,7 @@ Strophe.addConnectionPlugin('omemo', {
                 .c('prekeys')
 
 
-            let keys = ctxt._store.getPreKeyBundle(ctxt)
+            let keys = this.connection._signal_store.getPreKeyBundle(ctxt)
             keys.forEach(function(key) {
                 res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
             })
@@ -206,7 +204,6 @@ Strophe.addConnectionPlugin('omemo', {
     },
     genPreKeys: function(range) {
         console.log("generating prekeys")
-        let ctxt = this
         let kh = libsignal.KeyHelper
         let promises = []
         for (let i = 3; i < range + 1; i++ ) {
@@ -216,7 +213,7 @@ Strophe.addConnectionPlugin('omemo', {
                     privKey: k.keyPair.privKey, 
                     keyId: k.keyId
                 }
-                ctxt.connection._signal_store.storePreKey(i,key)
+                this.connection._signal_store.storePreKey(i,key)
             }))
         }
         return Promise.all(promises).then(console.log("preKeys phase complete"))
