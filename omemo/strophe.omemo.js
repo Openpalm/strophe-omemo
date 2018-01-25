@@ -64,13 +64,6 @@ let omemo = {
                 null,
                 "message",
                 "headline")
-            omemo.connection.addHandler(
-                omemo.on_bundle,
-                null,
-                "iq",
-                "result",
-                "fetch1"
-            )
         })
     },
     on_success: function () { 
@@ -126,7 +119,6 @@ let omemo = {
             signature = codec.Base64ToBuffer($(this).text())
         })
         $(stanza).find('preKeyPub').each(function () {
-            console.log("found pkey")
             pkey = codec.Base64ToBuffer($(this).text())
             pkey_id  = $(this).attr('keyId')
             _key = {id: pkey_id, key: pkey}
@@ -145,10 +137,10 @@ let omemo = {
                 publicKey : sk,
                 signature : signature
             },
-            //preKey: {
-            //    keyId     : keyId,
-            //    publicKey : preKey.pubKey
-            //}
+            preKey: {
+                keyId     : keyId,
+                publicKey : preKey.pubKey
+            }
         }
 
         let res = { jid: from, public_bundle:  public_bundle }
@@ -291,16 +283,16 @@ let omemo = {
         return res
     },
     is_device: function (stanza)  {
-        
         return $(stanza).find("list").length != 0
     },
     is_bundle: function (stanza)  {
         return $(stanza).find("bundle").length != 0
     },
-
+    send: function (receiver_jid, clear_text) {
+    
+    },
+    recieve: function (stanza) {},
 
 }
 
 Strophe.addConnectionPlugin('omemo', omemo)
-
-
