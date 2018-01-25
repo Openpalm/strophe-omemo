@@ -49,14 +49,6 @@ let omemo = {
         } catch(e) { 
             throw new Error ("SignalProtocolStore not found")
         }
-        //   try { 
-        //       if (OmemoStore) {
-        //           omemo.connection._omemo_store = new OmemoStore(jid, id) //probably not needed
-        //       } 
-        //   } catch(e) { 
-        //       throw new Error ("SignalProtocolStore not found")
-        //   }
-
         Promise.all([omemo.arm()]).then(e => {
             console.log("armed") 
             omemo.connection.addHandler(
@@ -64,7 +56,7 @@ let omemo = {
                 null,
                 "message",
                 "headline")
-   omemo.connection.addHandler(
+            omemo.connection.addHandler(
                 omemo.on_headline,
                 null,
                 "iq",
@@ -117,7 +109,7 @@ let omemo = {
         $(stanza).find('items').each(function () {
             from_id = parseInt($(this).attr('node').split(":")[1])
         })
-       from = $(stanza).attr('from')
+        from = $(stanza).attr('from')
         $(stanza).find('signedPreKeyPublic').each(function () {
             sk_id = parseInt($(this).attr('signedPreKeyId'))
             sk = codec.Base64ToBuffer($(this).text())
@@ -168,7 +160,7 @@ let omemo = {
 
         from = $(stanza).attr("from")
         if (from == me) {
-        ids[my_id] = ''
+            ids[my_id] = ''
             $(stanza).find("device").each(function() {
                 var nid = $(this).attr('id')
                 ids[nid] = ''
@@ -192,8 +184,8 @@ let omemo = {
             return true
         }
         $(stanza).find("device").each(function() {
-             var tid = $(this).attr('id')
-             ids[tid] = ''
+            var tid = $(this).attr('id')
+            ids[tid] = ''
         })
         localStorage.setItem(from, JSON.stringify(ids))
         return true
@@ -301,10 +293,16 @@ let omemo = {
         return $(stanza).find("bundle").length != 0
     },
     send: function (receiver_jid, clear_text) {
-    
+        sym_cipher.encrypt(clear_text).then(gcm_out => {
+            console.log(res)
+            omemo.fetch_bundle(receiver_jid)
+            setTimeout(sendHelper(receiver_jid, gcm_out), 2000)
+        })
+    },
+    sendHelper: function (stanza) {
+        console.log("helper")
     },
     recieve: function (stanza) {},
-
 }
 
 Strophe.addConnectionPlugin('omemo', omemo)
