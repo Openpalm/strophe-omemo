@@ -213,13 +213,13 @@ let omemo = {
                 null,
                 "message",
                 "headline")
-            omemo.connection.addHandler(
-                omemo.on_bundle,
+   omemo.connection.addHandler(
+                omemo.on_headline,
                 null,
                 "iq",
-                "result",
-                "fetch1"
-            )
+                null,
+                "fetch1")
+
         })
     },
     on_success: function () { 
@@ -257,16 +257,16 @@ let omemo = {
 
     },
     on_bundle: function (stanza) {
-        console.log("onbundle")
-        let sk, sk_id, signature, ik, from_id, from , _key, pkey, pkey_id
+        let sk, sk_id, signature, ik, from_id, from, 
+            _key, pkey, pkey_id, record, res, address, 
+            c_key, public_bundle
+        let ctr = 0
         let pkeys = [] 
 
         $(stanza).find('items').each(function () {
             from_id = parseInt($(this).attr('node').split(":")[1])
         })
-        $(stanza).find('iq').each(function () {
-            from = $(this).attr('from')
-        })
+       from = $(stanza).attr('from')
         $(stanza).find('signedPreKeyPublic').each(function () {
             sk_id = parseInt($(this).attr('signedPreKeyId'))
             sk = codec.Base64ToBuffer($(this).text())
@@ -275,33 +275,36 @@ let omemo = {
             signature = codec.Base64ToBuffer($(this).text())
         })
         $(stanza).find('preKeyPub').each(function () {
-            console.log("found pkey")
             pkey = codec.Base64ToBuffer($(this).text())
             pkey_id  = $(this).attr('keyId')
             _key = {id: pkey_id, key: pkey}
-            pkeys.put(_key)
+            ctr = ctr + 1
+            pkeys.push(_key)
         })
-
-        console.log(pkeys)
-        ik =  $(stanza).find('identityKey')           // codec.Base64ToBuffer($(this).text())
-        console.log(ik)
-        ////////////////
-        let public_bundle =  {
+        $(stanza).find('identityKey').each(function() {
+            ik = codec.Base64ToBuffer($(this).text())
+        })          
+        c_key = Math.floor(Math.random() * ctr - 1) // consider using a better source of randomness
+        public_bundle =  {
             registrationId: from_id,
             identityKey: ik,
             signedPreKey: {
                 keyId     : sk_id,
                 publicKey : sk,
-                signature : signature
+                signature : signature,
             },
-            //preKey: {
-            //    keyId     : keyId,
-            //    publicKey : preKey.pubKey
-            //}
+            preKey: {
+                keyId     : pkeys[c_key].id,
+                publicKey : pkeys[c_key].key,
+            }
         }
-
-        let res = { jid: from, public_bundle:  public_bundle }
-        console.log(res)
+        res = { jid: from, public_bundle:  public_bundle }
+        //address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
+        record = JSON.parse(localStorage.getItem(res.jid))
+        for (let i in record) {
+            record[i] = res.public_bundle
+        }
+        localStorage.setItem(res.jid, JSON.stringify(record))
         return true 
     },
     on_device: function (stanza) {
@@ -440,19 +443,19 @@ let omemo = {
         return res
     },
     is_device: function (stanza)  {
-        
         return $(stanza).find("list").length != 0
     },
     is_bundle: function (stanza)  {
         return $(stanza).find("bundle").length != 0
     },
-
+    send: function (receiver_jid, clear_text) {
+    
+    },
+    recieve: function (stanza) {},
 
 }
 
 Strophe.addConnectionPlugin('omemo', omemo)
-
-
 
 
 /***/ }),

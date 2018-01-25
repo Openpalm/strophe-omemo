@@ -64,6 +64,13 @@ let omemo = {
                 null,
                 "message",
                 "headline")
+   omemo.connection.addHandler(
+                omemo.on_headline,
+                null,
+                "iq",
+                null,
+                "fetch1")
+
         })
     },
     on_success: function () { 
@@ -101,16 +108,16 @@ let omemo = {
 
     },
     on_bundle: function (stanza) {
-        console.log("onbundle")
-        let sk, sk_id, signature, ik, from_id, from , _key, pkey, pkey_id
+        let sk, sk_id, signature, ik, from_id, from, 
+            _key, pkey, pkey_id, record, res, address, 
+            c_key, public_bundle
+        let ctr = 0
         let pkeys = [] 
 
         $(stanza).find('items').each(function () {
             from_id = parseInt($(this).attr('node').split(":")[1])
         })
-        $(stanza).find('iq').each(function () {
-            from = $(this).attr('from')
-        })
+       from = $(stanza).attr('from')
         $(stanza).find('signedPreKeyPublic').each(function () {
             sk_id = parseInt($(this).attr('signedPreKeyId'))
             sk = codec.Base64ToBuffer($(this).text())
@@ -122,34 +129,39 @@ let omemo = {
             pkey = codec.Base64ToBuffer($(this).text())
             pkey_id  = $(this).attr('keyId')
             _key = {id: pkey_id, key: pkey}
-            pkeys.put(_key)
+            ctr = ctr + 1
+            pkeys.push(_key)
         })
-
-        console.log(pkeys)
-        ik =  $(stanza).find('identityKey')           // codec.Base64ToBuffer($(this).text())
-        console.log(ik)
-        ////////////////
-        let public_bundle =  {
+        $(stanza).find('identityKey').each(function() {
+            ik = codec.Base64ToBuffer($(this).text())
+        })          
+        c_key = Math.floor(Math.random() * ctr - 1) // consider using a better source of randomness
+        public_bundle =  {
             registrationId: from_id,
             identityKey: ik,
             signedPreKey: {
                 keyId     : sk_id,
                 publicKey : sk,
-                signature : signature
+                signature : signature,
             },
             preKey: {
-                keyId     : keyId,
-                publicKey : preKey.pubKey
+                keyId     : pkeys[c_key].id,
+                publicKey : pkeys[c_key].key,
             }
         }
-
-        let res = { jid: from, public_bundle:  public_bundle }
-        console.log(res)
+        res = { jid: from, public_bundle:  public_bundle }
+        //address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
+        record = JSON.parse(localStorage.getItem(res.jid))
+        for (let i in record) {
+            record[i] = res.public_bundle
+        }
+        localStorage.setItem(res.jid, JSON.stringify(record))
         return true 
     },
     on_device: function (stanza) {
         if (omemo._id == undefined || stanza == null) { throw "on_device: stanza null or id not set " }
-        let id, appendand, from, were_in = false
+        let id, appendand, from, 
+            were_in = false
         let me = omemo._jid
         let my_id = omemo._id
         let ids = {}
