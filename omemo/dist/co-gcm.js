@@ -92,7 +92,6 @@ gcm = {
         ).then((key) => {
             const data = codec.StringToUint8(text)
             const temp_iv = window.crypto.getRandomValues(new Uint8Array(16)) 
-            console.log(temp_iv)
             const alg = {
                 name: "AES-GCM",
                 iv: temp_iv, //uint8 buffer

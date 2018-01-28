@@ -68,7 +68,7 @@
 /***/ (function(module, exports) {
 
 
-localStorage.clear()
+//localStorage.clear()
 
 var xmpplore = {
     connection: null,
@@ -428,6 +428,7 @@ $(document).ready(function () {
             "Connect": function () {
                 $(document).trigger('connect', {
                     jid: $('#jid').val().toLowerCase(),
+                    id: $('#id').val(),
                     password: $('#password').val()
                 });
 
@@ -435,10 +436,6 @@ $(document).ready(function () {
                 $('#whoami').append(
                     $('#jid').val().toLowerCase()
                 )
-
-
-
-
 
                 $('#password').val('');
                 $(this).dialog('close');
@@ -667,7 +664,8 @@ $(document).bind('connect', function (ev, data) {
 
     xmpplore.connection = conn;
     xmpplore.jid = data.jid
-    xmpplore.connection.omemo.setup(data.jid)
+    console.log(data)
+    xmpplore.connection.omemo.setup(data.jid, data.id)
 });
 
 $(document).bind('connected', function () {
