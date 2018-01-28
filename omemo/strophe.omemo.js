@@ -208,7 +208,7 @@ let omemo = {
         $(stanza).find('device').each(function () {
             var tid = $(this).attr('id')
             ids[tid] = ids[tid] == true ? ids[tid] : false
-            console.log(' found ', from, tid, ' set to ', ids[tid])
+//            console.log(' found ', from, tid, ' set to ', ids[tid])
         })
         localStorage.setItem(from, JSON.stringify(ids))
         return true
