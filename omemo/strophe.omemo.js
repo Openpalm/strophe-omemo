@@ -1,3 +1,5 @@
+/*eslint semi: "never"*/
+
 let codec = require('./codec.js')
 let sym_cipher = require('./gcm.js')
 //let $ = require('jquery')
@@ -146,7 +148,8 @@ let omemo = {
         }
         res = {jid: from, public_bundle: public_bundle}
         let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
-        console.log(address.toString())
+        //attempt to fetch session here, if no session, create new.
+
         let myBuilder = new libsignal.SessionBuilder(omemo.connection._signal_store, address)
         let cipher = ''
         let session = myBuilder.processPreKey(public_bundle)
@@ -166,18 +169,23 @@ let omemo = {
         if (omemo._id == undefined || stanza == null) {
             throw 'on_device: stanza null or id not set '
         }
-        let id, appendand, from,
+        let ids, id, appendand, from,
             were_in = false
         let me = omemo._jid
         let my_id = omemo._id
-        let ids = {}
 
         from = $(stanza).attr('from')
+        ids = JSON.parse(localStorage.getItem(from))
+        if (ids == null) {
+            ids = {}
+        }
         if (from == me) {
             ids[my_id] = ''
             $(stanza).find('device').each(function () {
                 var nid = $(this).attr('id')
-                ids[nid] = ''
+                if (ids[nid] == undefined) {
+                    ids[nid] = false
+                }
                 if (nid == my_id) {
                     were_in = true
                 }
@@ -199,7 +207,8 @@ let omemo = {
         }
         $(stanza).find('device').each(function () {
             var tid = $(this).attr('id')
-            ids[tid] = ''
+            ids[tid] = ids[tid] == true ? ids[tid] : false
+            console.log(' found ', from, tid, ' set to ', ids[tid])
         })
         localStorage.setItem(from, JSON.stringify(ids))
         return true
