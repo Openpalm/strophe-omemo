@@ -114,10 +114,10 @@ codec = {
     return Object.prototype.toString.call(obj).slice(8, -1);
   },
   StringToBase64: function (string) {
-    return Base64.encode(string)
+    return btoa(string)
   },
   Base64ToString: function (base64string) {
-    return Base64.decode(base64string)
+    return atob(base64string)
   },
   enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
@@ -1973,7 +1973,7 @@ module.exports = g;
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/*eslint semi: "never"*/
+/*eslint semi: "never", "esversion":6  */
 
 let codec = __webpack_require__(0)
 let sym_cipher = __webpack_require__(8)
@@ -2082,7 +2082,7 @@ let omemo = {
         })
         $(stanza).find('preKeyPub').each(function () {
             pkey = codec.Base64ToBuffer($(this).text())
-            pkey_id = parseInt($(this).attr('keyId'))
+            pkey_id = parseInt($(this).attr('keyId')) //nasty little feature without proper error reporting on libsig's part
             _key = {id: pkey_id, key: pkey}
             ctr = ctr + 1
             pkeys.push(_key)
@@ -2147,6 +2147,16 @@ let omemo = {
                 omemo.connection._signal_store.loadSession(address.toString()).then(o => {
                     localStorage.setItem(res.jid, JSON.stringify(record))
                 localStorage.setItem(address.toString() + 'session', o)
+
+                //check if ready
+                let ids = localStorage.getItem(from)
+                let ready = true
+                for (let i in ids) {
+                    ready = ready && ids[i]
+                }
+                if (ready) {
+                    localStorage.setItem(from + 'sessionStatus', true)
+                }
             })
             })
             session.catch( function onerror(error){
@@ -2328,11 +2338,42 @@ let omemo = {
                 , 3000)
             return "establishing sessions"
         }
-        let ids = localStorage.getItem(receiver_jid)
-        for (let i in ids) {
-            ready = ready && ids[i]
+        let xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
+        xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
+        xml.c('header', {sid: omemo._id})
+
+        let msg_promises = []
+        let gcm_promise = []
+
+        gcm_promise.push(sym_cipher.encrypt(data))
+
+        sym_cipher.encrypt(data).then(gcm_out => {
+
+            let tag = gcm_out.BASE64.tag
+            let key_str = gcm_out.LSPLD
+
+            let ids = JSON.parse(localStorage.getItem(receiver_jid))
+
+            for (let i in ids) {
+
+            let addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
+            let ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
+
+            msg_promises.push(ciph.encrypt(key_str + tag))
+
+            Promise.all(msg_promises).then(payloads => {
+                for (let i in payloads) {
+                let preKey = 3 == parseInt(payloads[i].type)
+                let payload = btoa(JSON.stringify(payloads[i]))
+                console.log(payload, preKey)
+                xml.c('key', {prekey: preKey, rid: i }).t(payload).up()
+            }
+                xml.c('payload').t(gcm_out.BASE64.cipherText)
+               // xml.c('store', {xmlns: 'urn:xmpp:hints'})
+        })
         }
-        return "message sent"
+    })
+        console.log(xml.tree())
     },
 };
 

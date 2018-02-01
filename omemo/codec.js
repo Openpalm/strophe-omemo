@@ -44,10 +44,10 @@ codec = {
     return Object.prototype.toString.call(obj).slice(8, -1);
   },
   StringToBase64: function (string) {
-    return Base64.encode(string)
+    return btoa(string)
   },
   Base64ToString: function (base64string) {
-    return Base64.decode(base64string)
+    return atob(base64string)
   },
   enforceBase64ForSending: function (omemoEncrypted) {
     //omemoEnrypted = OMMSG
