@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>XMPPLORE</title>
+        <!-- <link rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/cupertino/jquery-ui.css'> -->
+        <link rel='stylesheet' href='./css/jquery-ui.css'>
+        <script src='./js/jquery-1.2.3.js'></script>
+        <script src='./js/jquery-ui-1.7.2.js'></script>
+
+
+        <!--
+
+            <script src='dist/co-xmpplore.js'></script>
+
+            <link rel='stylesheet' href='./css/jquery-ui.css'>
+            <script src='./js/jquery-1.2.3.js'></script>
+
+            <script src='./js/jquery-ui.js'></script> 
+	    
+	    
+	   
+	    <script src='./omemostore.js'></script>
+            <script src='./strophe.js'></script>
+            <script src='./strophe-plugins/strophe.pubsub.js'></script>
+            <script src='./strophe-plugins/strophe.disco.js'></script>
+            <script src='./strophe-plugins/strophe.CAPS.js'></script>
+            <script src='./strophe-plugins/strophe.pep.js'></script>
+            <script src='./dist/co-strophe.omemo.js'></script>
+	    
+	    
+            <script src='./signal-protocol/dist/libsignal.js'></script>
+	    -->
+
+
+            <script src='./libsignaljs/dist/libsignal-protocol.js'></script>
+            <script src='./libsignalstore.js'></script>
+
+            <link rel='stylesheet' href='./css/xmmplore.css'>
+            <script src='xmpplore.js'></script>
+    </head>
+    <body>
+
+        <script>
+
+let store
+var KeyHelper = libsignal.KeyHelper
+var id = KeyHelper.generateRegistrationId()
+
+
+    KeyHelper.generateIdentityKeyPair().then(function(identityKeyPair) {
+        let keyId =  1
+            store = new SignalProtocolStore()
+            store.put('identityKey', identityKeyPair)
+            KeyHelper.generatePreKey(keyId).then(function(preKey) {
+                store.storePreKey(preKey.keyId, preKey.keyPair);
+                KeyHelper.generateSignedPreKey(identityKeyPair, keyId).then(function(signedPreKey) {
+                    store.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair);
+                        let recipientId = "test@localhost.com"
+                        let deviceId = id 
+                        var address = new libsignal.SignalProtocolAddress(recipientId, deviceId);
+
+                    // Instantiate a SessionBuilder for a remote recipientId + deviceId tuple.
+                    var sessionBuilder = new libsignal.SessionBuilder(store, address);
+
+                    // Process a prekey fetched from the server. Returns a promise that resolves
+                    // once a session is created and saved in the store, or rejects if the
+                    // identityKey differs from a previously seen identity for this address.
+                    var promise = sessionBuilder.processPreKey({
+                        registrationId: id,
+                        identityKey: identityKeyPair.pubKey,
+                        signedPreKey: {
+                            keyId     : signedPreKey.keyId,
+                            publicKey : signedPreKey.keyPair.pubKey,
+                            signature : signedPreKey.signature
+                        },
+                        preKey: {
+                            keyId     : preKey.keyId,
+                            publicKey : preKey.keyPair.pubKey
+                        }
+                    });
+
+                    promise.then(function onsuccess() {
+                        // encrypt messages
+                        var plaintext = "Hello world";
+                        var sessionCipher = new libsignal.SessionCipher(store, address);
+                        sessionCipher.encrypt(plaintext, 'utf8').then(function(ciphertext) {
+                            console.log(ciphertext)
+                        });
+                    });
+
+                    promise.catch(function onerror(error) {
+                        // handle identity key conflict
+                    });
+                });
+
+            });
+    })
+
+
+
+
+        </script>
+    </body>
+</html>

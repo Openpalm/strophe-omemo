@@ -1,0 +1,78 @@
+{
+  "name": "signal-protocol",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elsehow/signal-protocol.git"
+  },
+  "description": "the signal ratcheting forward secrecy protocol, for node and browsers",
+  "author": {
+    "name": "elsehow"
+  },
+  "contributors": [
+    {
+      "name": "liliakai"
+    }
+  ],
+  "version": "0.1.3",
+  "main": "src/main.js",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "bytebuffer": "^5.0.1",
+    "chai": "^4.1.0",
+    "long": "^3.2.0",
+    "node-webcrypto-ossl": "^1.0.30",
+    "protobufjs": "^5.0.1",
+    "tiny-worker": "^2.1.1",
+    "webworkify": "^1.4.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.0",
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-jscs": "^3.0.1",
+    "grunt-mocha-test": "^0.13.2",
+    "grunt-preen": "^1.0.0 ",
+    "grunt-saucelabs": "^9.0.0",
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "build": "grunt build",
+    "test": "grunt test",
+    "lint": "grunt jshint"
+  },
+  "gitHead": "221be558728f4e1ff35627d68033911dd928b9fa",
+  "bugs": {
+    "url": "https://github.com/elsehow/signal-protocol/issues"
+  },
+  "homepage": "https://github.com/elsehow/signal-protocol#readme",
+  "_id": "signal-protocol@0.1.3",
+  "_npmVersion": "5.4.2",
+  "_nodeVersion": "8.2.1",
+  "_npmUser": {
+    "name": "elsehow",
+    "email": "ffff@berkeley.edu"
+  },
+  "dist": {
+    "integrity": "sha512-GT+8ktKhFh2/GySaP5GW7xogopQazUKM44hyVwjeUvQQHtS3L658V+m0HAvzRZJgrDcK1T5nacAIwerSgwVbLQ==",
+    "shasum": "fc1fb26f5e9a732427ce972e899f97997b26145d",
+    "tarball": "https://registry.npmjs.org/signal-protocol/-/signal-protocol-0.1.3.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "elsehow",
+      "email": "ffff@berkeley.edu"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/signal-protocol-0.1.3.tgz_1511228381629_0.5288892092648894"
+  },
+  "directories": {},
+  "_shasum": "fc1fb26f5e9a732427ce972e899f97997b26145d",
+  "_resolved": "https://registry.npmjs.org/signal-protocol/-/signal-protocol-0.1.3.tgz",
+  "_from": "signal-protocol@*"
+}

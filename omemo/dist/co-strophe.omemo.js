@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,6 +69,8 @@
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(Buffer) {
+
+var Base64 = __webpack_require__(7)
 
 var codec = {};
 
@@ -141,356 +143,10 @@ codec = {
 
 module.exports = codec
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1).Buffer))
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*eslint semi: "never"*/
-
-let codec = __webpack_require__(0)
-let sym_cipher = __webpack_require__(7)
-//let $ = require('jquery')
-
-//let symCipher = require('./EAX.js')
-//let symCipher = require('./xChaCha20.js')
-
-let record = {
-    jid: null,
-    devices: null
-}
-
-//let users = {}
-
-let omemo = {
-    init: function (conn) {
-        omemo.connection = conn;
-
-        Strophe.addNamespace('OMEMO',
-            'eu.siacs.conversations.axolotl')
-        Strophe.addNamespace('OMEMO_BUNDLES',
-            'eu.siacs.conversations.axolotl.bundles')
-        Strophe.addNamespace('OMEMO_DEVICELIST',
-            'eu.siacs.conversations.axolotl.devicelist')
-
-        omemo.publish = omemo.connection.pep.publish
-        //        subscribe @ app.connected in the main application logic file xmpplore.js
-        //        this.subscribe(Strophe.NS.OMEMO_DEVICELIST)
-
-    },
-    setup: function (jid, id) {
-        let identifier = jid + '.' + id
-//    if (!localStorage.getItem(identifier)) {
-////        var id = omemo.gen_id()
-////        console.log(id)
-//    }
-        omemo._jid = jid
-        omemo._id = id
-        try {
-            if (libsignal) {
-            }
-        } catch (e) {
-            throw new Error('Libsignal-Protocol not found')
-        }
-        try {
-            if (SignalProtocolStore) {
-                omemo.connection._signal_store = new SignalProtocolStore(jid, id)
-            }
-        } catch (e) {
-            throw new Error('SignalProtocolStore not found')
-        }
-        Promise.all([omemo.arm()]).then(e => {
-            console.log('armed')
-            omemo.connection.addHandler(
-                omemo.on_headline,
-                null,
-                'message',
-                'headline')
-            omemo.connection.addHandler(
-                omemo.on_headline,
-                null,
-                'iq',
-                null,
-                'fetch1')
-        })
-    },
-    on_success: function () {
-        omemo.publish_bundle()
-        omemo.publish_device()
-        return false
-    },
-    arm: function () {
-        let kh = libsignal.KeyHelper
-        let registrationId
-        if (omemo._id != null) {
-            registrationId = omemo._id
-        } else {
-            throw 'device id is null'
-        }
-        Promise.all([
-            kh.generateIdentityKeyPair(),
-            omemo.gen_prekeys(100)
-        ]).then(function (result) {
-            let identity = result[0];
-            omemo.connection._signal_store.put('registrationId', registrationId)
-            omemo.connection._signal_store.put('identityKey', result[0])
-            omemo.connection._signal_store.getIdentityKeyPair().then((ikey) =>
-                kh.generateSignedPreKey(ikey, 1)).then((skey) => {
-                let key = {
-                    pubKey: skey.keyPair.pubKey,
-                    privKey: skey.keyPair.privKey,
-                    keyId: skey.keyId,
-                    signature: skey.signature
-                }
-                omemo.connection._signal_store.storeSignedPreKey(1, key)
-            })
-            omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo.connection._signal_store.get('registrationId'));
-        }).then(o => {
-            omemo.connection._signal_store.setLocalStore(omemo._jid, omemo._id)
-
-        })
-
-
-    },
-    on_bundle: function (stanza) {
-        let sk, sk_id, signature, ik, from_id, from,
-            _key, pkey, pkey_id, record, res,
-            c_key, public_bundle
-        let ctr = 0
-        let pkeys = []
-
-        $(stanza).find('items').each(function () {
-            from_id = parseInt($(this).attr('node').split(':')[1])
-        })
-        from = $(stanza).attr('from')
-        $(stanza).find('signedPreKeyPublic').each(function () {
-            sk_id = parseInt($(this).attr('signedPreKeyId'))
-            sk = codec.Base64ToBuffer($(this).text())
-        })
-        $(stanza).find('signedPreKeySignature').each(function () {
-            signature = codec.Base64ToBuffer($(this).text())
-        })
-        $(stanza).find('preKeyPub').each(function () {
-            pkey = codec.Base64ToBuffer($(this).text())
-            pkey_id = $(this).attr('keyId')
-            _key = {id: pkey_id, key: pkey}
-            ctr = ctr + 1
-            pkeys.push(_key)
-        })
-        $(stanza).find('identityKey').each(function () {
-            ik = codec.Base64ToBuffer($(this).text())
-        })
-        c_key = Math.floor(Math.random() * ctr - 1) // consider using a better source of randomness
-        public_bundle = {
-            registrationId: from_id,
-            identityKey: ik,
-            signedPreKey: {
-                keyId: sk_id,
-                signature: signature,
-                publicKey: sk,
-            },
-            preKey: {
-                keyId: pkeys[c_key].id,
-                publicKey: pkeys[c_key].key,
-            }
-        }
-        res = {jid: from, public_bundle: public_bundle}
-        let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
-        //attempt to fetch session here, if no session, create new.
-
-        let myBuilder = new libsignal.SessionBuilder(omemo.connection._signal_store, address)
-        let cipher = ''
-        let session = myBuilder.processPreKey(public_bundle)
-        session.then( function onsuccess(){
-            console.log('session successfully established')
-            record = JSON.parse(localStorage.getItem(res.jid))
-            record[from_id] = true
-            localStorage.setItem(res.jid, JSON.stringify(record))
-        })
-        session.catch( function onerror(error ){
-            console.log('there was an error establishing the session')
-            return Promise.reject()
-        })
-        return true
-    },
-    on_device: function (stanza) {
-        if (omemo._id == undefined || stanza == null) {
-            throw 'on_device: stanza null or id not set '
-        }
-        let ids, id, appendand, from,
-            were_in = false
-        let me = omemo._jid
-        let my_id = omemo._id
-
-        from = $(stanza).attr('from')
-        ids = JSON.parse(localStorage.getItem(from))
-        if (ids == null) {
-            ids = {}
-        }
-        if (from == me) {
-            ids[my_id] = ''
-            $(stanza).find('device').each(function () {
-                var nid = $(this).attr('id')
-                if (ids[nid] == undefined) {
-                    ids[nid] = false
-                }
-                if (nid == my_id) {
-                    were_in = true
-                }
-            })
-            if (were_in) {
-                return true
-            }
-            var res = $iq({type: 'set', from: omemo._jid, id: 'anounce1'})
-                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-                .c('publish', {node: Strophe.NS.OMEMO_DEVICELIST})
-                .c('item')
-                .c('list', {xmlns: Strophe.NS.OMEMO})
-
-            for (var i in ids) {
-                res.c('device', {id: i}).up()
-            }
-            omemo.connection.send(res)
-            return true
-        }
-        $(stanza).find('device').each(function () {
-            var tid = $(this).attr('id')
-            ids[tid] = ids[tid] == true ? ids[tid] : false
-            console.log(' found ', from, tid, ' set to ', ids[tid])
-        })
-        localStorage.setItem(from, JSON.stringify(ids))
-        return true
-    },
-    on_message: function (stanza) {
-        console.log('onemessage')
-        return true
-    },
-
-    on_headline: function (stanza) {
-        if (omemo.is_device(stanza)) {
-            omemo.on_device(stanza)
-            return true
-        }
-        else if (omemo.is_bundle(stanza)) {
-            omemo.on_bundle(stanza)
-            return true
-        }
-        return true
-    },
-    fetch_bundle: function (to) {
-        let res = ''
-        let ids = JSON.parse(localStorage.getItem(to))
-        for (let i in ids) {
-            res = $iq({type: 'get', from: omemo._jid, to: to, id: 'fetch1'})
-                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-                .c('items', {node: Strophe.NS.OMEMO_BUNDLES + ':' + i})
-            omemo.connection.send(res);
-        }
-    },
-    refresh_bundle: function () {
-
-    },
-    publish_bundle: function () {
-        let sk_id = 1
-
-        let promises = [
-            omemo.connection._signal_store.loadSignedPreKey(sk_id),
-            omemo.connection._signal_store.getIdentityKeyPair(),
-            omemo.connection._signal_store.loadSignedPreKeySignature(sk_id),
-            omemo.connection._signal_store.getLocalRegistrationId()
-        ]
-        return Promise.all(promises).then(o => {
-            let sk = o[0]
-            let ikp = o[1]
-            let signature = o[2]
-            let rid = o[10]
-            let signature64 = codec.BufferToBase64(signature)
-            let sk64 = codec.BufferToBase64(sk.pubKey)
-            let ik64 = codec.BufferToBase64(ikp.pubKey)
-            let res = $iq({type: 'set', from: omemo._jid, id: 'anounce2'})
-                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
-                .c('publish', {node: Strophe.NS.OMEMO_BUNDLES + ':' + omemo._id})
-                .c('item')
-                .c('bundle', {xmlns: Strophe.NS.OMEMO})
-                .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
-                .c('signedPreKeySignature').t(signature64).up()
-                .c('identityKey').t(ik64).up()
-                .c('prekeys')
-
-
-            let keys = omemo.connection._signal_store.getPreKeyBundle(omemo)
-            keys.forEach(function (key) {
-                res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
-            })
-
-            omemo.connection.send(res)
-        })
-
-    },
-    publish_device: function () {
-        var list = $build('list', {xmlns: Strophe.NS.OMEMO})
-        list.c('device', {id: omemo._id})
-        omemo.connection.pep.publish(Strophe.NS.OMEMO_DEVICELIST, [{
-            data: list.tree()
-        }], null)
-    },
-    gen_prekeys: function (range) {
-        let kh = libsignal.KeyHelper
-        let promises = []
-        for (let i = 1; i < range + 1; i++) {
-            promises.push(kh.generatePreKey(i).then((k) => {
-                let key = {
-                    pubKey: k.keyPair.pubKey,
-                    privKey: k.keyPair.privKey,
-                    keyId: k.keyId
-                }
-                omemo.connection._signal_store.storePreKey(i, key)
-            }))
-        }
-        return Promise.all(promises)
-    },
-    gen_id: function () {
-        let minDeviceId = 1
-        let maxDeviceId = 2147483647
-        let diff = (maxDeviceId - minDeviceId)
-        let res = Math.floor(Math.random() * diff + minDeviceId)
-        omemo._id = res
-        return res
-    },
-    is_device: function (stanza) {
-        return $(stanza).find('list').length != 0
-    },
-    is_bundle: function (stanza) {
-        return $(stanza).find('bundle').length != 0
-    },
-    send: function (receiver_jid, clear_text) {
-        let ids = localStorage.get(receiver_jid)
-        let ready = true
-        for (let i in ids) {
-            ready = ready && ids[i]
-        }
-        setTimeout(omemo.send_helper(receiver_jid, clear_text, ready), 10)
-    },
-    send_helper: function (receiver_jid, clear_text, state) {
-        if (!state) {
-            omemo.send(receiver_jid, clear_text)
-        } else {
-            console.log("all  ready we send now")
-            sym_cipher.encrypt(clear_text).then(gcm_out => {
-                omemo.fetch_bundle(receiver_jid)
-            })
-        }
-    },
-    recieve: function (stanza) {
-    },
-};
-
-Strophe.addConnectionPlugin('omemo', omemo)
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2284,10 +1940,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 3 */
+/* 2 */
 /***/ (function(module, exports) {
 
 var g;
@@ -2311,6 +1967,388 @@ try {
 // easier to handle this case. if(!global) { ...}
 
 module.exports = g;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*eslint semi: "never"*/
+
+let codec = __webpack_require__(0)
+let sym_cipher = __webpack_require__(8)
+
+//let symCipher = require('./EAX.js')
+//let symCipher = require('./xChaCha20.js')
+
+let omemo = {
+    init: function (conn) {
+        omemo.connection = conn;
+
+        Strophe.addNamespace('OMEMO',
+            'eu.siacs.conversations.axolotl')
+        Strophe.addNamespace('OMEMO_BUNDLES',
+            'eu.siacs.conversations.axolotl.bundles')
+        Strophe.addNamespace('OMEMO_DEVICELIST',
+            'eu.siacs.conversations.axolotl.devicelist')
+
+        omemo.publish = omemo.connection.pep.publish
+    },
+    setup: function (jid, id) {
+        let identifier = jid + '.' + id
+        omemo._jid = jid
+        omemo._id = parseInt(id)
+        try {
+            if (libsignal) {
+            }
+        } catch (e) {
+            throw new Error('Libsignal-Protocol not found')
+        }
+        try {
+            if (SignalProtocolStore) {
+                omemo.connection._signal_store = new SignalProtocolStore(jid, id)
+            }
+        } catch (e) {
+            throw new Error('SignalProtocolStore not found')
+        }
+        Promise.all([omemo.arm()]).then(e => {
+            console.log('armed')
+        omemo.connection.addHandler(
+            omemo.on_headline,
+            null,
+            'message',
+            'headline')
+        omemo.connection.addHandler(
+            omemo.on_headline,
+            null,
+            'iq',
+            null,
+            'fetch1')
+    })
+    },
+    on_success: function () {
+        omemo.publish_bundle()
+        omemo.publish_device()
+        return false
+    },
+    arm: function () {
+        let kh = libsignal.KeyHelper
+        let registrationId
+        if (omemo._id != null) {
+            registrationId = omemo._id
+        } else {
+            throw new Error("device id is null")
+        }
+        Promise.all([
+            kh.generateIdentityKeyPair(),
+            omemo.gen_prekeys(100)
+        ]).then(function (result) {
+            let identity = result[0];
+            omemo.connection._signal_store.put('registrationId', registrationId)
+            omemo.connection._signal_store.put('identityKey', result[0])
+            omemo.connection._signal_store.getIdentityKeyPair().then((ikey) =>
+            kh.generateSignedPreKey(ikey, 1)).then((skey) => {
+                let key = {
+                    pubKey: skey.keyPair.pubKey,
+                    privKey: skey.keyPair.privKey,
+                    keyId: skey.keyId,
+                    signature: skey.signature
+                }
+                omemo.connection._signal_store.storeSignedPreKey(1, key)
+        })
+            omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo.connection._signal_store.get('registrationId'));
+        }).then(o => {
+            omemo.connection._signal_store.setLocalStore(omemo._jid, omemo._id)
+    })
+    },
+    on_bundle: function (stanza) {
+        //debug compares the public_bundle's public keys with our own. does not initiate
+        let sk, sk_id, signature, ik, from_id, from,
+            _key, pkey, pkey_id, record, res,
+            c_key, public_bundle
+        let ctr = 0
+        let pkeys = []
+
+        $(stanza).find('items').each(function () {
+            from_id = parseInt($(this).attr('node').split(':')[1])
+        })
+        from = $(stanza).attr('from')
+        $(stanza).find('signedPreKeyPublic').each(function () {
+            sk_id = parseInt($(this).attr('signedPreKeyId'))
+            sk = codec.Base64ToBuffer($(this).text())
+        })
+        $(stanza).find('signedPreKeySignature').each(function () {
+            signature = codec.Base64ToBuffer($(this).text())
+        })
+        $(stanza).find('preKeyPub').each(function () {
+            pkey = codec.Base64ToBuffer($(this).text())
+            pkey_id = parseInt($(this).attr('keyId'))
+            _key = {id: pkey_id, key: pkey}
+            ctr = ctr + 1
+            pkeys.push(_key)
+        })
+        $(stanza).find('identityKey').each(function () {
+            ik = codec.Base64ToBuffer($(this).text())
+        })
+        c_key = Math.floor(Math.random() * ctr - 1) // consider using a better source of randomness
+        public_bundle = {
+            registrationId: from_id,
+            identityKey: ik,
+            signedPreKey: {
+                keyId: sk_id,
+                signature: signature,
+                publicKey: sk,
+            },
+            preKey: {
+                keyId: pkeys[c_key].id,
+                publicKey: pkeys[c_key].key,
+            }
+        }
+        if (omemo.debug) {
+            //self test
+            console.log('self test')
+
+            let id = omemo._signal_store['registrationId']
+            let ik = omemo._signal_store.get('identityKey').pubKey
+            let sk = omemo._signal_store.get('25519KeysignedKey1').pubKey
+            let sig = omemo._signal_store.get('25519KeysignedKey1').signature
+
+            let id1 = public_bundle.registrationId
+            let ik1 = public_bundle.identityKey
+            let sk1 = public_bundle.signedPreKey.publicKey
+            let sig1= public_bundle.signedPreKey.signature
+
+            let test1 = equal(sig, sig1)
+            let test2 = equal(ik,ik1)
+            let test3 = equal(sk,sk1)
+
+            let result =  test1 && test2 && test3
+            console.log(result)
+            if (result) {
+                console.log('alls good')
+            } else {
+                console.log('alls not good')
+            }
+            return
+        }
+        res = {jid: from, public_bundle: public_bundle}
+        console.log(res)
+        let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
+
+        let their_identifier = address.toString()
+        omemo.connection._signal_store.loadSession(their_identifier).then(e => {
+            if (!e) {
+            let myBuilder = new libsignal.SessionBuilder(omemo.connection._signal_store, address)
+            let cipher = ''
+            let session = myBuilder.processPreKey(public_bundle).then( function onsuccess(){
+                console.log('session successfully established')
+                record = JSON.parse(localStorage.getItem(res.jid))
+                record[from_id] = true
+                omemo.connection._signal_store.loadSession(address.toString()).then(o => {
+                    localStorage.setItem(res.jid, JSON.stringify(record))
+                localStorage.setItem(address.toString() + 'session', o)
+            })
+            })
+            session.catch( function onerror(error){
+                console.log('there was an error establishing the session')
+                return Promise.reject()
+            })
+        }
+    })
+        return true
+    },
+    on_device: function (stanza) {
+        if (omemo._id == undefined || stanza == null) {
+            throw new Error("stanza null or id not set ")
+        }
+        let ids, id, appendand, from,
+            were_in = false
+        let me = omemo._jid
+        let my_id = omemo._id
+
+        from = $(stanza).attr('from')
+        ids = JSON.parse(localStorage.getItem(from))
+        if (ids == null) {
+            ids = {}
+        }
+        if (from == me) {
+            ids[my_id] = ''
+            $(stanza).find('device').each(function () {
+                var nid = $(this).attr('id')
+                if (ids[nid] == undefined) {
+                    ids[nid] = false
+                }
+                if (nid == my_id) {
+                    were_in = true
+                }
+            })
+            if (were_in) {
+                return true
+            }
+            var res = $iq({type: 'set', from: omemo._jid, id: 'anounce1'})
+                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+                .c('publish', {node: Strophe.NS.OMEMO_DEVICELIST})
+                .c('item')
+                .c('list', {xmlns: Strophe.NS.OMEMO})
+
+            for (var i in ids) {
+                res.c('device', {id: i}).up()
+            }
+            omemo.connection.send(res)
+            return true
+        }
+        $(stanza).find('device').each(function () {
+            var tid = $(this).attr('id')
+            ids[tid] = ids[tid] == true ? ids[tid] : false
+        })
+        localStorage.setItem(from, JSON.stringify(ids))
+        return true
+    },
+    on_message: function (stanza) {
+        console.log('on_message')
+        return true
+    },
+
+    on_headline: function (stanza) {
+        if (omemo.is_device(stanza)) {
+            omemo.on_device(stanza)
+            return true
+        }
+        else if (omemo.is_bundle(stanza)) {
+            omemo.on_bundle(stanza)
+            return true
+        }
+        return true
+    },
+    fetch_bundles: function (to, debug) {
+        if (debug) {
+            omemo.debug = true
+        }
+        let ids = JSON.parse(localStorage.getItem(to))
+        if (!ids) { throw new Error("no devices to fetch for " + to) }
+        let ready = true
+        for (let i in ids) {
+            ready = ready && ids[i]
+        }
+        if (ready) {
+            localStorage.setItem(to + 'sessionStatus', true)
+            return true
+        }
+
+        for (let i in ids) {
+            res = $iq({type: 'get', from: omemo._jid, to: to, id: 'fetch1'})
+                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+                .c('items', {node: Strophe.NS.OMEMO_BUNDLES + ':' + i})
+            omemo.connection.send(res);
+        }
+    },
+    refresh_bundle: function () {
+
+    },
+    publish_bundle: function () {
+        let sk_id = 1
+
+        let promises = [
+            omemo.connection._signal_store.loadSignedPreKey(sk_id),
+            omemo.connection._signal_store.getIdentityKeyPair(),
+            omemo.connection._signal_store.loadSignedPreKeySignature(sk_id),
+            omemo.connection._signal_store.getLocalRegistrationId()
+        ]
+        return Promise.all(promises).then(o => {
+            let sk = o[0]
+            let ikp = o[1]
+            let signature = o[2]
+            let rid = o[10]
+            let signature64 = codec.BufferToBase64(signature)
+            let sk64 = codec.BufferToBase64(sk.pubKey)
+            let ik64 = codec.BufferToBase64(ikp.pubKey)
+            let res = $iq({type: 'set', from: omemo._jid, id: 'anounce2'})
+                .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
+                .c('publish', {node: Strophe.NS.OMEMO_BUNDLES + ':' + omemo._id})
+                .c('item')
+                .c('bundle', {xmlns: Strophe.NS.OMEMO})
+                .c('signedPreKeyPublic', {signedPreKeyId: sk_id}).t(sk64).up()
+                .c('signedPreKeySignature').t(signature64).up()
+                .c('identityKey').t(ik64).up()
+                .c('prekeys')
+
+
+            let keys = omemo.connection._signal_store.getPreKeyBundle(omemo)
+            keys.forEach(function (key) {
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
+        })
+
+        omemo.connection.send(res)
+    })
+    },
+    publish_device: function () {
+        var list = $build('list', {xmlns: Strophe.NS.OMEMO})
+        list.c('device', {id: omemo._id})
+        omemo.connection.pep.publish(Strophe.NS.OMEMO_DEVICELIST, [{
+            data: list.tree()
+        }], null)
+    },
+    gen_prekeys: function (range) {
+        let kh = libsignal.KeyHelper
+        let promises = []
+        for (let i = 1; i < range + 1; i++) {
+            promises.push(kh.generatePreKey(i).then((k) => {
+                let key = {
+                    pubKey: k.keyPair.pubKey,
+                    privKey: k.keyPair.privKey,
+                    keyId: k.keyId
+                }
+                omemo.connection._signal_store.storePreKey(i, key)
+        }))
+        }
+        return Promise.all(promises)
+    },
+    gen_id: function () {
+        let minDeviceId = 1
+        let maxDeviceId = 2147483647
+        let diff = (maxDeviceId - minDeviceId)
+        let res = Math.floor(Math.random() * diff + minDeviceId)
+        omemo._id = res
+        return res
+    },
+    is_device: function (stanza) {
+        return $(stanza).find('list').length != 0
+    },
+    is_bundle: function (stanza) {
+        return $(stanza).find('bundle').length != 0
+    },
+    send: function (receiver_jid, data) {
+        let ready = localStorage.getItem(receiver_jid + 'sessionStatus')
+        if (!ready) {
+            omemo.fetch_bundles(receiver_jid)
+            setTimeout(function()
+                {
+                    omemo.send(receiver_jid, data)
+                }
+                , 3000)
+            return "establishing sessions"
+        }
+        let ids = localStorage.getItem(receiver_jid)
+        for (let i in ids) {
+            ready = ready && ids[i]
+        }
+        return "message sent"
+    },
+};
+
+Strophe.addConnectionPlugin('omemo', omemo)
+
+
+function equal (buf1, buf2) {
+    if (buf1.byteLength != buf2.byteLength) return false;
+    var dv1 = new Int8Array(buf1);
+    var dv2 = new Int8Array(buf2);
+    for (var i = 0 ; i != buf1.byteLength ; i++)
+    {
+        if (dv1[i] != dv2[i]) return false;
+    }
+    return true;
+}
 
 
 /***/ }),
@@ -2539,6 +2577,234 @@ module.exports = Array.isArray || function (arr) {
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
+/* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+ * $Id: base64.js,v 2.15 2014/04/05 12:58:57 dankogai Exp dankogai $
+ *
+ *  Licensed under the BSD 3-Clause License.
+ *    http://opensource.org/licenses/BSD-3-Clause
+ *
+ *  References:
+ *    http://en.wikipedia.org/wiki/Base64
+ */
+
+(function(global) {
+    'use strict';
+    // existing version for noConflict()
+    var _Base64 = global.Base64;
+    var version = "2.3.2";
+    // if node.js, we use Buffer
+    var buffer;
+    if (typeof module !== 'undefined' && module.exports) {
+        try {
+            buffer = __webpack_require__(1).Buffer;
+        } catch (err) {}
+    }
+    // constants
+    var b64chars
+        = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    var b64tab = function(bin) {
+        var t = {};
+        for (var i = 0, l = bin.length; i < l; i++) t[bin.charAt(i)] = i;
+        return t;
+    }(b64chars);
+    var fromCharCode = String.fromCharCode;
+    // encoder stuff
+    var cb_utob = function(c) {
+        if (c.length < 2) {
+            var cc = c.charCodeAt(0);
+            return cc < 0x80 ? c
+                : cc < 0x800 ? (fromCharCode(0xc0 | (cc >>> 6))
+                                + fromCharCode(0x80 | (cc & 0x3f)))
+                : (fromCharCode(0xe0 | ((cc >>> 12) & 0x0f))
+                   + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                   + fromCharCode(0x80 | ( cc         & 0x3f)));
+        } else {
+            var cc = 0x10000
+                + (c.charCodeAt(0) - 0xD800) * 0x400
+                + (c.charCodeAt(1) - 0xDC00);
+            return (fromCharCode(0xf0 | ((cc >>> 18) & 0x07))
+                    + fromCharCode(0x80 | ((cc >>> 12) & 0x3f))
+                    + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                    + fromCharCode(0x80 | ( cc         & 0x3f)));
+        }
+    };
+    var re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+    var utob = function(u) {
+        return u.replace(re_utob, cb_utob);
+    };
+    var cb_encode = function(ccc) {
+        var padlen = [0, 2, 1][ccc.length % 3],
+        ord = ccc.charCodeAt(0) << 16
+            | ((ccc.length > 1 ? ccc.charCodeAt(1) : 0) << 8)
+            | ((ccc.length > 2 ? ccc.charCodeAt(2) : 0)),
+        chars = [
+            b64chars.charAt( ord >>> 18),
+            b64chars.charAt((ord >>> 12) & 63),
+            padlen >= 2 ? '=' : b64chars.charAt((ord >>> 6) & 63),
+            padlen >= 1 ? '=' : b64chars.charAt(ord & 63)
+        ];
+        return chars.join('');
+    };
+    var btoa = global.btoa ? function(b) {
+        return global.btoa(b);
+    } : function(b) {
+        return b.replace(/[\s\S]{1,3}/g, cb_encode);
+    };
+    var _encode = buffer ?
+        buffer.from && buffer.from !== Uint8Array.from ? function (u) {
+            return (u.constructor === buffer.constructor ? u : buffer.from(u))
+                .toString('base64')
+        }
+        :  function (u) {
+            return (u.constructor === buffer.constructor ? u : new  buffer(u))
+                .toString('base64')
+        }
+        : function (u) { return btoa(utob(u)) }
+    ;
+    var encode = function(u, urisafe) {
+        return !urisafe
+            ? _encode(String(u))
+            : _encode(String(u)).replace(/[+\/]/g, function(m0) {
+                return m0 == '+' ? '-' : '_';
+            }).replace(/=/g, '');
+    };
+    var encodeURI = function(u) { return encode(u, true) };
+    // decoder stuff
+    var re_btou = new RegExp([
+        '[\xC0-\xDF][\x80-\xBF]',
+        '[\xE0-\xEF][\x80-\xBF]{2}',
+        '[\xF0-\xF7][\x80-\xBF]{3}'
+    ].join('|'), 'g');
+    var cb_btou = function(cccc) {
+        switch(cccc.length) {
+        case 4:
+            var cp = ((0x07 & cccc.charCodeAt(0)) << 18)
+                |    ((0x3f & cccc.charCodeAt(1)) << 12)
+                |    ((0x3f & cccc.charCodeAt(2)) <<  6)
+                |     (0x3f & cccc.charCodeAt(3)),
+            offset = cp - 0x10000;
+            return (fromCharCode((offset  >>> 10) + 0xD800)
+                    + fromCharCode((offset & 0x3FF) + 0xDC00));
+        case 3:
+            return fromCharCode(
+                ((0x0f & cccc.charCodeAt(0)) << 12)
+                    | ((0x3f & cccc.charCodeAt(1)) << 6)
+                    |  (0x3f & cccc.charCodeAt(2))
+            );
+        default:
+            return  fromCharCode(
+                ((0x1f & cccc.charCodeAt(0)) << 6)
+                    |  (0x3f & cccc.charCodeAt(1))
+            );
+        }
+    };
+    var btou = function(b) {
+        return b.replace(re_btou, cb_btou);
+    };
+    var cb_decode = function(cccc) {
+        var len = cccc.length,
+        padlen = len % 4,
+        n = (len > 0 ? b64tab[cccc.charAt(0)] << 18 : 0)
+            | (len > 1 ? b64tab[cccc.charAt(1)] << 12 : 0)
+            | (len > 2 ? b64tab[cccc.charAt(2)] <<  6 : 0)
+            | (len > 3 ? b64tab[cccc.charAt(3)]       : 0),
+        chars = [
+            fromCharCode( n >>> 16),
+            fromCharCode((n >>>  8) & 0xff),
+            fromCharCode( n         & 0xff)
+        ];
+        chars.length -= [0, 0, 2, 1][padlen];
+        return chars.join('');
+    };
+    var atob = global.atob ? function(a) {
+        return global.atob(a);
+    } : function(a){
+        return a.replace(/[\s\S]{1,4}/g, cb_decode);
+    };
+    var _decode = buffer ?
+        buffer.from && buffer.from !== Uint8Array.from ? function(a) {
+            return (a.constructor === buffer.constructor
+                    ? a : buffer.from(a, 'base64')).toString();
+        }
+        : function(a) {
+            return (a.constructor === buffer.constructor
+                    ? a : new buffer(a, 'base64')).toString();
+        }
+        : function(a) { return btou(atob(a)) };
+    var decode = function(a){
+        return _decode(
+            String(a).replace(/[-_]/g, function(m0) { return m0 == '-' ? '+' : '/' })
+                .replace(/[^A-Za-z0-9\+\/]/g, '')
+        );
+    };
+    var noConflict = function() {
+        var Base64 = global.Base64;
+        global.Base64 = _Base64;
+        return Base64;
+    };
+    // export Base64
+    global.Base64 = {
+        VERSION: version,
+        atob: atob,
+        btoa: btoa,
+        fromBase64: decode,
+        toBase64: encode,
+        utob: utob,
+        encode: encode,
+        encodeURI: encodeURI,
+        btou: btou,
+        decode: decode,
+        noConflict: noConflict
+    };
+    // if ES5 is available, make Base64.extendString() available
+    if (typeof Object.defineProperty === 'function') {
+        var noEnum = function(v){
+            return {value:v,enumerable:false,writable:true,configurable:true};
+        };
+        global.Base64.extendString = function () {
+            Object.defineProperty(
+                String.prototype, 'fromBase64', noEnum(function () {
+                    return decode(this)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64', noEnum(function (urisafe) {
+                    return encode(this, urisafe)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64URI', noEnum(function () {
+                    return encode(this, true)
+                }));
+        };
+    }
+    //
+    // export Base64 to the namespace
+    //
+    if (global['Meteor']) { // Meteor.js
+        Base64 = global.Base64;
+    }
+    // module.exports and AMD are mutually exclusive.
+    // module.exports has precedence.
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports.Base64 = global.Base64;
+    }
+    else if (true) {		
+        // AMD. Register as an anonymous module.	
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function(){ return global.Base64 }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    }
+    // that's it!
+})(   typeof self   !== 'undefined' ? self
+    : typeof window !== 'undefined' ? window
+    : typeof global !== 'undefined' ? global
+    : this
+);
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
@@ -2583,7 +2849,7 @@ gcm = {
                     //OMMSG: omemo msg
                     //LSPLD: Libsignal payload
                     let enforced64 = codec.enforceBase64ForSending(gcm_out)
-                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, ORIGSTR: text, BASE64: enforced64}
+                    let out = {OMMSG: gcm_out, LSPLD: libsignalPayload, TAG: gcm_out.tag, ORIGSTR: text, BASE64: enforced64}
                     return Promise.resolve(out)
                 })
             })

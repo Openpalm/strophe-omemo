@@ -2,17 +2,9 @@
 
 let codec = require('./codec.js')
 let sym_cipher = require('./gcm.js')
-//let $ = require('jquery')
 
 //let symCipher = require('./EAX.js')
 //let symCipher = require('./xChaCha20.js')
-
-let record = {
-    jid: null,
-    devices: null
-}
-
-//let users = {}
 
 let omemo = {
     init: function (conn) {
@@ -26,18 +18,11 @@ let omemo = {
             'eu.siacs.conversations.axolotl.devicelist')
 
         omemo.publish = omemo.connection.pep.publish
-        //        subscribe @ app.connected in the main application logic file xmpplore.js
-        //        this.subscribe(Strophe.NS.OMEMO_DEVICELIST)
-
     },
     setup: function (jid, id) {
         let identifier = jid + '.' + id
-//    if (!localStorage.getItem(identifier)) {
-////        var id = omemo.gen_id()
-////        console.log(id)
-//    }
         omemo._jid = jid
-        omemo._id = id
+        omemo._id = parseInt(id)
         try {
             if (libsignal) {
             }
@@ -53,18 +38,18 @@ let omemo = {
         }
         Promise.all([omemo.arm()]).then(e => {
             console.log('armed')
-            omemo.connection.addHandler(
-                omemo.on_headline,
-                null,
-                'message',
-                'headline')
-            omemo.connection.addHandler(
-                omemo.on_headline,
-                null,
-                'iq',
-                null,
-                'fetch1')
-        })
+        omemo.connection.addHandler(
+            omemo.on_headline,
+            null,
+            'message',
+            'headline')
+        omemo.connection.addHandler(
+            omemo.on_headline,
+            null,
+            'iq',
+            null,
+            'fetch1')
+    })
     },
     on_success: function () {
         omemo.publish_bundle()
@@ -77,7 +62,7 @@ let omemo = {
         if (omemo._id != null) {
             registrationId = omemo._id
         } else {
-            throw 'device id is null'
+            throw new Error("device id is null")
         }
         Promise.all([
             kh.generateIdentityKeyPair(),
@@ -87,7 +72,7 @@ let omemo = {
             omemo.connection._signal_store.put('registrationId', registrationId)
             omemo.connection._signal_store.put('identityKey', result[0])
             omemo.connection._signal_store.getIdentityKeyPair().then((ikey) =>
-                kh.generateSignedPreKey(ikey, 1)).then((skey) => {
+            kh.generateSignedPreKey(ikey, 1)).then((skey) => {
                 let key = {
                     pubKey: skey.keyPair.pubKey,
                     privKey: skey.keyPair.privKey,
@@ -95,16 +80,14 @@ let omemo = {
                     signature: skey.signature
                 }
                 omemo.connection._signal_store.storeSignedPreKey(1, key)
-            })
+        })
             omemo._address = new libsignal.SignalProtocolAddress(omemo._jid, omemo.connection._signal_store.get('registrationId'));
         }).then(o => {
             omemo.connection._signal_store.setLocalStore(omemo._jid, omemo._id)
-
-        })
-
-
+    })
     },
     on_bundle: function (stanza) {
+        //debug compares the public_bundle's public keys with our own. does not initiate
         let sk, sk_id, signature, ik, from_id, from,
             _key, pkey, pkey_id, record, res,
             c_key, public_bundle
@@ -124,7 +107,7 @@ let omemo = {
         })
         $(stanza).find('preKeyPub').each(function () {
             pkey = codec.Base64ToBuffer($(this).text())
-            pkey_id = $(this).attr('keyId')
+            pkey_id = parseInt($(this).attr('keyId'))
             _key = {id: pkey_id, key: pkey}
             ctr = ctr + 1
             pkeys.push(_key)
@@ -146,28 +129,62 @@ let omemo = {
                 publicKey: pkeys[c_key].key,
             }
         }
-        res = {jid: from, public_bundle: public_bundle}
-        let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
-        //attempt to fetch session here, if no session, create new.
+        if (omemo.debug) {
+            //self test
+            console.log('self test')
 
-        let myBuilder = new libsignal.SessionBuilder(omemo.connection._signal_store, address)
-        let cipher = ''
-        let session = myBuilder.processPreKey(public_bundle)
-        session.then( function onsuccess(){
-            console.log('session successfully established')
-            record = JSON.parse(localStorage.getItem(res.jid))
-            record[from_id] = true
-            localStorage.setItem(res.jid, JSON.stringify(record))
-        })
-        session.catch( function onerror(error ){
-            console.log('there was an error establishing the session')
-            return Promise.reject()
-        })
+            let id = omemo._signal_store['registrationId']
+            let ik = omemo._signal_store.get('identityKey').pubKey
+            let sk = omemo._signal_store.get('25519KeysignedKey1').pubKey
+            let sig = omemo._signal_store.get('25519KeysignedKey1').signature
+
+            let id1 = public_bundle.registrationId
+            let ik1 = public_bundle.identityKey
+            let sk1 = public_bundle.signedPreKey.publicKey
+            let sig1= public_bundle.signedPreKey.signature
+
+            let test1 = equal(sig, sig1)
+            let test2 = equal(ik,ik1)
+            let test3 = equal(sk,sk1)
+
+            let result =  test1 && test2 && test3
+            console.log(result)
+            if (result) {
+                console.log('alls good')
+            } else {
+                console.log('alls not good')
+            }
+            return
+        }
+        res = {jid: from, public_bundle: public_bundle}
+        console.log(res)
+        let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
+
+        let their_identifier = address.toString()
+        omemo.connection._signal_store.loadSession(their_identifier).then(e => {
+            if (!e) {
+            let myBuilder = new libsignal.SessionBuilder(omemo.connection._signal_store, address)
+            let cipher = ''
+            let session = myBuilder.processPreKey(public_bundle).then( function onsuccess(){
+                console.log('session successfully established')
+                record = JSON.parse(localStorage.getItem(res.jid))
+                record[from_id] = true
+                omemo.connection._signal_store.loadSession(address.toString()).then(o => {
+                    localStorage.setItem(res.jid, JSON.stringify(record))
+                localStorage.setItem(address.toString() + 'session', o)
+            })
+            })
+            session.catch( function onerror(error){
+                console.log('there was an error establishing the session')
+                return Promise.reject()
+            })
+        }
+    })
         return true
     },
     on_device: function (stanza) {
         if (omemo._id == undefined || stanza == null) {
-            throw 'on_device: stanza null or id not set '
+            throw new Error("stanza null or id not set ")
         }
         let ids, id, appendand, from,
             were_in = false
@@ -208,13 +225,12 @@ let omemo = {
         $(stanza).find('device').each(function () {
             var tid = $(this).attr('id')
             ids[tid] = ids[tid] == true ? ids[tid] : false
-//            console.log(' found ', from, tid, ' set to ', ids[tid])
         })
         localStorage.setItem(from, JSON.stringify(ids))
         return true
     },
     on_message: function (stanza) {
-        console.log('onemessage')
+        console.log('on_message')
         return true
     },
 
@@ -229,9 +245,21 @@ let omemo = {
         }
         return true
     },
-    fetch_bundle: function (to) {
-        let res = ''
+    fetch_bundles: function (to, debug) {
+        if (debug) {
+            omemo.debug = true
+        }
         let ids = JSON.parse(localStorage.getItem(to))
+        if (!ids) { throw new Error("no devices to fetch for " + to) }
+        let ready = true
+        for (let i in ids) {
+            ready = ready && ids[i]
+        }
+        if (ready) {
+            localStorage.setItem(to + 'sessionStatus', true)
+            return true
+        }
+
         for (let i in ids) {
             res = $iq({type: 'get', from: omemo._jid, to: to, id: 'fetch1'})
                 .c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
@@ -272,12 +300,11 @@ let omemo = {
 
             let keys = omemo.connection._signal_store.getPreKeyBundle(omemo)
             keys.forEach(function (key) {
-                res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
-            })
-
-            omemo.connection.send(res)
+            res = res.c('preKeyPub', {'keyId': key.keyId}).t(codec.BufferToBase64(key.pubKey)).up()
         })
 
+        omemo.connection.send(res)
+    })
     },
     publish_device: function () {
         var list = $build('list', {xmlns: Strophe.NS.OMEMO})
@@ -297,7 +324,7 @@ let omemo = {
                     keyId: k.keyId
                 }
                 omemo.connection._signal_store.storePreKey(i, key)
-            }))
+        }))
         }
         return Promise.all(promises)
     },
@@ -315,26 +342,35 @@ let omemo = {
     is_bundle: function (stanza) {
         return $(stanza).find('bundle').length != 0
     },
-    send: function (receiver_jid, clear_text) {
-        let ids = localStorage.get(receiver_jid)
-        let ready = true
+    send: function (receiver_jid, data) {
+        let ready = localStorage.getItem(receiver_jid + 'sessionStatus')
+        if (!ready) {
+            omemo.fetch_bundles(receiver_jid)
+            setTimeout(function()
+                {
+                    omemo.send(receiver_jid, data)
+                }
+                , 3000)
+            return "establishing sessions"
+        }
+        let ids = localStorage.getItem(receiver_jid)
         for (let i in ids) {
             ready = ready && ids[i]
         }
-        setTimeout(omemo.send_helper(receiver_jid, clear_text, ready), 10)
-    },
-    send_helper: function (receiver_jid, clear_text, state) {
-        if (!state) {
-            omemo.send(receiver_jid, clear_text)
-        } else {
-            console.log("all  ready we send now")
-            sym_cipher.encrypt(clear_text).then(gcm_out => {
-                omemo.fetch_bundle(receiver_jid)
-            })
-        }
-    },
-    recieve: function (stanza) {
+        return "message sent"
     },
 };
 
 Strophe.addConnectionPlugin('omemo', omemo)
+
+
+function equal (buf1, buf2) {
+    if (buf1.byteLength != buf2.byteLength) return false;
+    var dv1 = new Int8Array(buf1);
+    var dv2 = new Int8Array(buf2);
+    for (var i = 0 ; i != buf1.byteLength ; i++)
+    {
+        if (dv1[i] != dv2[i]) return false;
+    }
+    return true;
+}

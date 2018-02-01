@@ -1,1 +1,0 @@
-./libsignal/dist/libsignal-protocol.js

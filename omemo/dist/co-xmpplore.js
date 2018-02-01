@@ -428,7 +428,7 @@ $(document).ready(function () {
             "Connect": function () {
                 $(document).trigger('connect', {
                     jid: $('#jid').val().toLowerCase(),
-                    id: $('#id').val(),
+                    id: parseInt($('#id').val()),
                     password: $('#password').val()
                 });
 

@@ -1,0 +1,8 @@
+# Fetch the latest registry of available tools.
+~/playground/emsdk-portable/emsdk update
+
+# Download and install the latest SDK tools.
+~/playground/emsdk-portable/emsdk install latest
+~/playground/emsdk-portable/emsdk activate latest
+source ~/playground/emsdk-portable/emsdk_env.sh
+grunt build

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="116" />
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="124" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="99" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="107" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="732e135c-ae83-498f-8508-8145bb376321" name="Default" comment="" />
@@ -21,28 +21,20 @@
       <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="648">
-              <caret line="210" column="1" lean-forward="false" selection-start-line="210" selection-start-column="1" selection-end-line="210" selection-end-column="1" />
-              <folding />
+            <state relative-caret-position="576">
+              <caret line="355" column="26" lean-forward="false" selection-start-line="355" selection-start-column="26" selection-end-line="355" selection-end-column="26" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="strophe.omemo.object.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <file leaf-file-name="libsignalstore.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/libsignalstore.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2682">
-              <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="strophe.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/strophe.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="113310">
-              <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+            <state relative-caret-position="360">
+              <caret line="30" column="5" lean-forward="false" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -51,8 +43,18 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="720">
-              <caret line="40" column="9" lean-forward="false" selection-start-line="40" selection-start-column="9" selection-end-line="40" selection-end-column="9" />
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="576">
+              <caret line="38" column="37" lean-forward="false" selection-start-line="38" selection-start-column="37" selection-end-line="38" selection-end-column="37" />
               <folding />
             </state>
           </provider>
@@ -61,18 +63,18 @@
       <file leaf-file-name="xmpplore.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/xmpplore.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9792">
-              <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+            <state relative-caret-position="360">
+              <caret line="347" column="8" lean-forward="false" selection-start-line="347" selection-start-column="8" selection-end-line="347" selection-end-column="8" />
               <folding>
-                <marker date="1516986704257" expanded="true" signature="943:947" ph="&lt;" />
-                <marker date="1516986704257" expanded="true" signature="1953:1957" ph="&gt;" />
-                <marker date="1516986704257" expanded="true" signature="2039:2043" ph="&gt;" />
-                <marker date="1516986704257" expanded="true" signature="2662:2666" ph="&lt;" />
-                <marker date="1516986704257" expanded="true" signature="2851:2855" ph="&gt;" />
-                <marker date="1516986704257" expanded="true" signature="9240:9244" ph="&lt;" />
-                <marker date="1516986704257" expanded="true" signature="9342:9346" ph="&gt;" />
-                <marker date="1516986704257" expanded="true" signature="14579:14583" ph="&lt;" />
-                <marker date="1516986704257" expanded="true" signature="14725:14729" ph="&gt;" />
+                <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+                <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+                <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+                <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+                <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+                <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+                <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+                <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+                <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
               </folding>
             </state>
           </provider>
@@ -83,9 +85,16 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/../js/omemostore.js" />
+        <option value="$PROJECT_DIR$/gcm.js" />
         <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/xmpplore.js" />
+        <option value="$PROJECT_DIR$/test.html" />
+        <option value="$PROJECT_DIR$/../test/index.html" />
+        <option value="$PROJECT_DIR$/codec.js" />
+        <option value="$PROJECT_DIR$/libsignalstore.js" />
+        <option value="$PROJECT_DIR$/libsignaljs/dist/libsignal-protocol.js" />
         <option value="$PROJECT_DIR$/../js/strophe.omemo.object.js" />
+        <option value="$PROJECT_DIR$/xmpplore.js" />
         <option value="$PROJECT_DIR$/strophe.omemo.js" />
       </list>
     </option>
@@ -97,7 +106,15 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="NodeModulesDirectoryManager">
-    <handled-path value="$PROJECT_DIR$/libsignal/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emscripten/tools/eliminator/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emscripten/tools/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emsdk-portable/emscripten/1.30.0/tools/eliminator/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emsdk-portable/emscripten/1.30.0/tools/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emsdk-portable/emscripten/1.37.28/tools/eliminator/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emsdk-portable/emscripten/1.37.28/tools/node_modules" />
+    <handled-path value="$PROJECT_DIR$/files/emsdk-portable/node/4.1.1_64bit/lib/node_modules" />
+    <handled-path value="$PROJECT_DIR$/libsig/libsignal/node_modules" />
+    <handled-path value="$PROJECT_DIR$/libsig/signal-protocol/node_modules" />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="292" />
@@ -108,14 +125,14 @@
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
       <flattenPackages />
-      <showMembers />
+      <showMembers ProjectPane="false" />
       <showModules />
       <showLibraryContents />
       <hideEmptyPackages />
       <abbreviatePackageNames />
       <autoscrollToSource />
       <autoscrollFromSource />
-      <sortByType />
+      <sortByType ProjectPane="true" />
       <manualOrder />
       <foldersAlwaysOnTop value="true" />
     </navigator>
@@ -172,26 +189,30 @@
       <workItem from="1516979889611" duration="12738000" />
       <workItem from="1517143658307" duration="3977000" />
       <workItem from="1517161019367" duration="5427000" />
+      <workItem from="1517215018101" duration="22527000" />
+      <workItem from="1517324283075" duration="4711000" />
+      <workItem from="1517332495283" duration="3697000" />
+      <workItem from="1517412515387" duration="19729000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="22142000" />
+    <option name="totallyTimeSpent" value="72806000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="292" y="112" width="1857" height="1212" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18867925" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18867925" sideWeight="0.5" order="0" side_tool="true" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3299539" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18341014" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -200,6 +221,25 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3299539" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18341014" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18867925" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -212,18 +252,34 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+    <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="504">
+          <caret line="28" column="62" lean-forward="false" selection-start-line="28" selection-start-column="62" selection-end-line="28" selection-end-column="62" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gcm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="26" column="42" lean-forward="false" selection-start-line="26" selection-start-column="42" selection-end-line="26" selection-end-column="42" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2682">
-          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
+        <state relative-caret-position="3852">
+          <caret line="214" column="32" lean-forward="false" selection-start-line="214" selection-start-column="32" selection-end-line="214" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/omemostore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2394">
+          <caret line="133" column="0" lean-forward="false" selection-start-line="133" selection-start-column="0" selection-end-line="133" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -238,127 +294,409 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/xmpplore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9792">
-          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+        <state relative-caret-position="11736">
+          <caret line="652" column="0" lean-forward="false" selection-start-line="652" selection-start-column="0" selection-end-line="652" selection-end-column="0" />
           <folding>
-            <marker date="1516986704257" expanded="true" signature="943:947" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="1953:1957" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2039:2043" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2662:2666" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="2851:2855" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="9240:9244" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="9342:9346" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="14579:14583" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="14725:14729" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="40" column="9" lean-forward="false" selection-start-line="40" selection-start-column="9" selection-end-line="40" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2682">
-          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/strophe.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="113490">
-          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="40" column="9" lean-forward="false" selection-start-line="40" selection-start-column="9" selection-end-line="40" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/xmpplore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9792">
-          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+        <state relative-caret-position="6714">
+          <caret line="373" column="25" lean-forward="false" selection-start-line="373" selection-start-column="25" selection-end-line="373" selection-end-column="25" />
           <folding>
-            <marker date="1516986704257" expanded="true" signature="943:947" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="1953:1957" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2039:2043" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2662:2666" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="2851:2855" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="9240:9244" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="9342:9346" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="14579:14583" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="14725:14729" ph="&gt;" />
+            <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/strophe.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="113310">
-          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="40" column="9" lean-forward="false" selection-start-line="40" selection-start-column="9" selection-end-line="40" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/xmpplore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9792">
-          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
-          <folding>
-            <marker date="1516986704257" expanded="true" signature="943:947" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="1953:1957" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2039:2043" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="2662:2666" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="2851:2855" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="9240:9244" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="9342:9346" ph="&gt;" />
-            <marker date="1516986704257" expanded="true" signature="14579:14583" ph="&lt;" />
-            <marker date="1516986704257" expanded="true" signature="14725:14729" ph="&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2682">
-          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+    <entry file="file://$PROJECT_DIR$/libsignal/test/SessionCipherTest.js" />
+    <entry file="file://$PROJECT_DIR$/gcm.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="648">
-          <caret line="210" column="1" lean-forward="false" selection-start-line="210" selection-start-column="1" selection-end-line="210" selection-end-column="1" />
+          <caret line="36" column="24" lean-forward="false" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="24" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codec.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="972">
+          <caret line="54" column="2" lean-forward="false" selection-start-line="54" selection-start-column="2" selection-end-line="54" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3852">
+          <caret line="214" column="32" lean-forward="false" selection-start-line="214" selection-start-column="32" selection-end-line="214" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/omemostore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2394">
+          <caret line="133" column="0" lean-forward="false" selection-start-line="133" selection-start-column="0" selection-end-line="133" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113490">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11736">
+          <caret line="652" column="0" lean-forward="false" selection-start-line="652" selection-start-column="0" selection-end-line="652" selection-end-column="0" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1620">
+          <caret line="90" column="31" lean-forward="false" selection-start-line="90" selection-start-column="31" selection-end-line="90" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gcm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="36" column="24" lean-forward="false" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6462">
+          <caret line="359" column="39" lean-forward="false" selection-start-line="359" selection-start-column="39" selection-end-line="359" selection-end-column="39" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codec.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="972">
+          <caret line="54" column="2" lean-forward="false" selection-start-line="54" selection-start-column="2" selection-end-line="54" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3852">
+          <caret line="214" column="32" lean-forward="false" selection-start-line="214" selection-start-column="32" selection-end-line="214" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/omemostore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2394">
+          <caret line="133" column="0" lean-forward="false" selection-start-line="133" selection-start-column="0" selection-end-line="133" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113490">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html" />
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11736">
+          <caret line="652" column="0" lean-forward="false" selection-start-line="652" selection-start-column="0" selection-end-line="652" selection-end-column="0" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html" />
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2682">
+          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113490">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9792">
+          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2682">
+          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113490">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9792">
+          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html" />
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2682">
+          <caret line="149" column="53" lean-forward="false" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113490">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html" />
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9792">
+          <caret line="544" column="34" lean-forward="false" selection-start-line="544" selection-start-column="34" selection-end-line="544" selection-end-column="34" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignal/test/SessionCipherTest.js" />
+    <entry file="file://$PROJECT_DIR$/gcm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="26" column="42" lean-forward="false" selection-start-line="26" selection-start-column="42" selection-end-line="26" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/omemostore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="90" column="5" lean-forward="false" selection-start-line="90" selection-start-column="5" selection-end-line="90" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="6305" column="4" lean-forward="false" selection-start-line="6305" selection-start-column="4" selection-end-line="6305" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codec.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="25" column="40" lean-forward="false" selection-start-line="25" selection-start-column="40" selection-end-line="25" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="30" column="5" lean-forward="false" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="140" column="55" lean-forward="true" selection-start-line="140" selection-start-column="55" selection-end-line="140" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../test/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="918">
+          <caret line="383" column="2" lean-forward="false" selection-start-line="383" selection-start-column="2" selection-end-line="383" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignaljs/dist/libsignal-protocol.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="29679" column="79" lean-forward="false" selection-start-line="29679" selection-start-column="79" selection-end-line="29679" selection-end-column="79" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="38" column="37" lean-forward="false" selection-start-line="38" selection-start-column="37" selection-end-line="38" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xmpplore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="347" column="8" lean-forward="false" selection-start-line="347" selection-start-column="8" selection-end-line="347" selection-end-column="8" />
+          <folding>
+            <marker date="1517499019385" expanded="true" signature="943:947" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="1953:1957" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2039:2043" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="2662:2666" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="2851:2855" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="9240:9244" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="9342:9346" ph="&gt;" />
+            <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
+            <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="355" column="26" lean-forward="false" selection-start-line="355" selection-start-column="26" selection-end-line="355" selection-end-column="26" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

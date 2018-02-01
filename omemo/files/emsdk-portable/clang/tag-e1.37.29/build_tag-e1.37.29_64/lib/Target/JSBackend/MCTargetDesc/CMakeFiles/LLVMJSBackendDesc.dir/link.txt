@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../../libLLVMJSBackendDesc.a  CMakeFiles/LLVMJSBackendDesc.dir/JSBackendMCTargetDesc.cpp.o
+/usr/bin/ranlib ../../../libLLVMJSBackendDesc.a

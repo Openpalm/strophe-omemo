@@ -1,6 +1,7 @@
-ln -s ../js/gcm.js .
-ln -s ../js/libsignalstore.js .
-ln -s ../js/omemostore.js .
-ln -s ../js/codec.js .
-ln -s ./libsignal/dist/libsignal-protocol.js .
+cp  ../js/gcm.js .
+cp  ../js/base64.js .
+cp  ../js/libsignalstore.js .
+cp  ../js/omemostore.js .
+cp  ../js/codec.js .
+# -s ./libsignal/dist/libsignal-protocol.js .
 
