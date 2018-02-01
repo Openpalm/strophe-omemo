@@ -1,5 +1,0 @@
-export PATH="/var/www/development/omemo/files/emsdk-portable:/var/www/development/omemo/files/emsdk-portable/clang/e1.37.28_64bit:/var/www/development/omemo/files/emsdk-portable/node/4.1.1_64bit/bin:/var/www/development/omemo/files/emsdk-portable/emscripten/1.37.28:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-export EMSDK="/var/www/development/omemo/files/emsdk-portable"
-export EM_CONFIG="/root/.emscripten"
-export BINARYEN_ROOT="/var/www/development/omemo/files/emsdk-portable/clang/e1.37.28_64bit/binaryen"
-export EMSCRIPTEN="/var/www/development/omemo/files/emsdk-portable/emscripten/1.37.28"

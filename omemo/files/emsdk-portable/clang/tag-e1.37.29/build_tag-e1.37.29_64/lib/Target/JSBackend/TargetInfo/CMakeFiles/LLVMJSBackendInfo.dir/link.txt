@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../libLLVMJSBackendInfo.a  CMakeFiles/LLVMJSBackendInfo.dir/JSBackendTargetInfo.cpp.o
-/usr/bin/ranlib ../../../libLLVMJSBackendInfo.a
