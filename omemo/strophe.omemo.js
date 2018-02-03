@@ -353,6 +353,8 @@ let omemo = {
         return $(stanza).find('bundle').length != 0
     },
     send: function (receiver_jid, data) {
+
+        console.log('called send')
         let ready = localStorage.getItem(receiver_jid + 'sessionStatus')
         if (!ready) {
             omemo.fetch_bundles(receiver_jid)
@@ -362,44 +364,53 @@ let omemo = {
                 }
                 , 3000)
             return "establishing sessions"
-        }
-        let xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
-        xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
-        xml.c('header', {sid: omemo._id})
+        } else {
 
-        let msg_promises = []
-        let gcm_promise = []
+            let xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
+            xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
+            xml.c('header', {sid: omemo._id})
 
-        gcm_promise.push(sym_cipher.encrypt(data))
+            let msg_promises = []
+            let gcm_promise = []
 
-        sym_cipher.encrypt(data).then(gcm_out => {
+            gcm_promise.push(sym_cipher.encrypt(data))
 
-            let key_str = gcm_out.LSPLD
-            let tag = gcm_out.BASE64.tag
-            let iv = gcm_out.BASE64.iv
+            sym_cipher.encrypt(data).then(gcm_out => {
 
-            let ids = JSON.parse(localStorage.getItem(receiver_jid))
+                let key_str = gcm_out.LSPLD
+                let tag = gcm_out.BASE64.tag
+                let iv = gcm_out.BASE64.iv
 
-            for (let i in ids) {
+                let ids = JSON.parse(localStorage.getItem(receiver_jid))
 
-            let addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
-            let ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
+                for (let i in ids) {
 
-            msg_promises.push(ciph.encrypt(key_str + tag))
+                let addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
+                let ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
 
-            Promise.all(msg_promises).then(payloads => {
-                for (let i in payloads) {
-                let preKey = 3 == parseInt(payloads[i].type)
-                let payload = btoa(JSON.stringify(payloads[i]))
-                console.log(payload, preKey)
-                xml.c('key', {prekey: preKey, rid: i }).t(payload).up()
+                msg_promises.push(ciph.encrypt(key_str + tag))
             }
-                xml.c('payload').t(gcm_out.BASE64.cipherText)
-               // xml.c('store', {xmlns: 'urn:xmpp:hints'})
+            Promise.all(msg_promises).then(payloads => {
+                let payload, preKey
+                for (let i in payloads) {
+                console.log(i, payloads.length)
+                payload = btoa(JSON.stringify(payloads[i]))
+                preKey = 3 == parseInt(payloads[i].type)
+                if (i == msg_promises.length-1) {
+                    xml.c('key', {prekey: preKey, rid: i }).t(payload).up().up()
+
+                } else {
+                    xml.c('key', {prekey: preKey, rid: i }).t(payload).up()
+                }
+            }
+            xml.c('payload').t(gcm_out.BASE64.cipherText).up().up()
+            xml.c('store', {xmlns: 'urn:xmpp:hints'})
         })
+        })
+            omemo.connection.send(xml)
+            console.log(xml.tree())
         }
-    })
-        console.log(xml.tree())
+
     },
 };
 
