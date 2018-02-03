@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="99" />
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="107" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="108" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="116" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="732e135c-ae83-498f-8508-8145bb376321" name="Default" comment="" />
@@ -51,8 +51,8 @@
       <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="486">
-              <caret line="392" column="58" lean-forward="false" selection-start-line="392" selection-start-column="58" selection-end-line="392" selection-end-column="58" />
+            <state relative-caret-position="18">
+              <caret line="341" column="10" lean-forward="false" selection-start-line="341" selection-start-column="10" selection-end-line="341" selection-end-column="10" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -126,6 +126,16 @@
                 <marker date="1517499019385" expanded="true" signature="14589:14593" ph="&lt;" />
                 <marker date="1517499019385" expanded="true" signature="14735:14739" ph="&gt;" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="strophe.omemo.object.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="450">
+              <caret line="395" column="22" lean-forward="false" selection-start-line="395" selection-start-column="22" selection-end-line="395" selection-end-column="22" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -236,12 +246,12 @@
       <workItem from="1517324283075" duration="4711000" />
       <workItem from="1517332495283" duration="3697000" />
       <workItem from="1517412515387" duration="22558000" />
-      <workItem from="1517505745074" duration="12331000" />
+      <workItem from="1517505745074" duration="14622000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="87966000" />
+    <option name="totallyTimeSpent" value="90257000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="-4" width="1855" height="1204" extended-state="6" />
@@ -639,22 +649,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="30" column="5" lean-forward="false" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="576">
@@ -705,18 +699,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="30" column="5" lean-forward="false" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="612">
-          <caret line="242" column="0" lean-forward="false" selection-start-line="242" selection-start-column="0" selection-end-line="242" selection-end-column="0" />
+        <state relative-caret-position="450">
+          <caret line="395" column="22" lean-forward="false" selection-start-line="395" selection-start-column="22" selection-end-line="395" selection-end-column="22" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="486">
-          <caret line="392" column="58" lean-forward="false" selection-start-line="392" selection-start-column="58" selection-end-line="392" selection-end-column="58" />
+        <state relative-caret-position="18">
+          <caret line="341" column="10" lean-forward="false" selection-start-line="341" selection-start-column="10" selection-end-line="341" selection-end-column="10" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

@@ -38,17 +38,26 @@ let omemo = {
         }
         Promise.all([omemo.arm()]).then(e => {
             console.log('armed')
+        //ondevice
         omemo.connection.addHandler(
             omemo.on_headline,
             null,
             'message',
             'headline')
+        //onbundle
         omemo.connection.addHandler(
             omemo.on_headline,
             null,
             'iq',
             null,
             'fetch1')
+        //onmessage
+         omemo.connection.addHandler(
+            omemo.on_message,
+            null,
+            'message',
+            null,
+             "send1")
     })
     },
     on_success: function () {
@@ -239,10 +248,6 @@ let omemo = {
         localStorage.setItem(from, JSON.stringify(ids))
         return true
     },
-    on_message: function (stanza) {
-        console.log('on_message')
-        return true
-    },
 
     on_headline: function (stanza) {
         if (omemo.is_device(stanza)) {
@@ -393,7 +398,8 @@ let omemo = {
                 payload = btoa(JSON.stringify(payloads[i]))
                 preKey = 3 == parseInt(payloads[i].type)
                 if (i == msg_promises.length-1) {
-                    xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up().up()
+                    xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up()
+                    xml.c('iv').t(iv).up().up()
 
                 } else {
                     xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up()
@@ -406,6 +412,15 @@ let omemo = {
             omemo.connection.send(xml)
             console.log(xml.tree())
         }
+    },
+    //receive
+    on_message: function (stanza) {
+       let jid
+             $(stanza).find('message').each(function () {
+                 jid = $(this).attr('from')
+                 console.log("received message from ", jid, stanza, this)
+        })
+        return true
     },
 };
 
