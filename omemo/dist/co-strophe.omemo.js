@@ -2327,10 +2327,17 @@ let omemo = {
     is_bundle: function (stanza) {
         return $(stanza).find('bundle').length != 0
     },
-    send: function (receiver_jid, data) {
-
-        console.log('called send')
-        let ready = localStorage.getItem(receiver_jid + 'sessionStatus')
+    send: function (receiver_jid, data, offline) {
+        //14 variables and two parameters. can be done with fewer?
+        let key_str, tag , iv, payload, preKey, xml, ready, addr, ciph
+        let msg_promises = []
+        let gcm_promise = []
+        let ids = []
+        let rec_ids = []
+        ///
+        let allow_offline = true // || offline parameter, protocol tweak
+        ///
+        ready = localStorage.getItem(receiver_jid + 'sessionStatus')
         if (!ready) {
             omemo.fetch_bundles(receiver_jid)
             setTimeout(function()
@@ -2340,42 +2347,31 @@ let omemo = {
                 , 3000)
             return "establishing sessions"
         } else {
-
-            let xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
+            console.log("sessions found, sending message")
+            xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
             xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
             xml.c('header', {sid: omemo._id})
-
-            let msg_promises = []
-            let gcm_promise = []
-
             gcm_promise.push(sym_cipher.encrypt(data))
-
             sym_cipher.encrypt(data).then(gcm_out => {
-
-                let key_str = gcm_out.LSPLD
-                let tag = gcm_out.BASE64.tag
-                let iv = gcm_out.BASE64.iv
-
-                let ids = JSON.parse(localStorage.getItem(receiver_jid))
-
+                key_str = gcm_out.LSPLD
+                tag     = gcm_out.BASE64.tag
+                iv      = gcm_out.BASE64.iv
+                ids = JSON.parse(localStorage.getItem(receiver_jid))
                 for (let i in ids) {
-
-                let addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
-                let ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
-
+                rec_ids.push(i)
+                addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
+                ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
                 msg_promises.push(ciph.encrypt(key_str + tag))
             }
             Promise.all(msg_promises).then(payloads => {
-                let payload, preKey
                 for (let i in payloads) {
-                console.log(i, payloads.length)
                 payload = btoa(JSON.stringify(payloads[i]))
                 preKey = 3 == parseInt(payloads[i].type)
                 if (i == msg_promises.length-1) {
-                    xml.c('key', {prekey: preKey, rid: i }).t(payload).up().up()
+                    xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up().up()
 
                 } else {
-                    xml.c('key', {prekey: preKey, rid: i }).t(payload).up()
+                    xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up()
                 }
             }
             xml.c('payload').t(gcm_out.BASE64.cipherText).up().up()
@@ -2385,7 +2381,6 @@ let omemo = {
             omemo.connection.send(xml)
             console.log(xml.tree())
         }
-
     },
 };
 
