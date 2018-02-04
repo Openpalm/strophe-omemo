@@ -48,7 +48,7 @@ gcm = {
 
         })
     },
-    decrypt: function (key, cipherText, iv) {
+    decrypt: function (key, cipherText, iv, tag) {
        // console.log("in decrypt")
        // console.log(key)
        // console.log(cipherText)
@@ -98,6 +98,12 @@ gcm = {
     },
 
     getKeyAndTag: function(string) {
+        return {
+            key: string.slice(0, 43), //256bit key
+            tag: string.slice(43, string.length) //rest is tag
+        }
+    },
+    get_key_and_tag: function(string) {
         return {
             key: string.slice(0, 43), //256bit key
             tag: string.slice(43, string.length) //rest is tag

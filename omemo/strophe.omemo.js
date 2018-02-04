@@ -52,12 +52,12 @@ let omemo = {
             null,
             'fetch1')
         //onmessage
-         omemo.connection.addHandler(
+        omemo.connection.addHandler(
             omemo.on_message,
             null,
             'message',
             null,
-             "send1")
+            "send1")
     })
     },
     on_success: function () {
@@ -382,10 +382,10 @@ let omemo = {
             xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
             xml.c('header', {sid: omemo._id})
             gcm_promise.push(sym_cipher.encrypt(data))
-            sym_cipher.encrypt(data).then(gcm_out => {
-                key_str = gcm_out.LSPLD
-                tag     = gcm_out.BASE64.tag
-                iv      = gcm_out.BASE64.iv
+            sym_cipher.encrypt(data).then(sym_out => {
+                key_str = sym_out.LSPLD
+                tag     = sym_out.BASE64.tag
+                iv      = sym_out.BASE64.iv
                 ids = JSON.parse(localStorage.getItem(receiver_jid))
                 for (let i in ids) {
                 rec_ids.push(i)
@@ -405,7 +405,7 @@ let omemo = {
                     xml.c('key', {prekey: preKey, rid: rec_ids[i] }).t(payload).up()
                 }
             }
-            xml.c('payload').t(gcm_out.BASE64.cipherText).up().up()
+            xml.c('payload').t(sym_out.BASE64.cipherText).up().up()
             xml.c('store', {xmlns: 'urn:xmpp:hints'})
         })
         })
@@ -415,11 +415,46 @@ let omemo = {
     },
     //receive
     on_message: function (stanza) {
-       let jid
-             $(stanza).find('message').each(function () {
-                 jid = $(this).attr('from')
-                 console.log("received message from ", jid, stanza, this)
+        let from_jid, rid, libsignal_payload, address, ciph
+        let aes_data, sym_iv, sym_tag, sym_payload, sym_key
+
+        from_jid = $(stanza).attr('from').split('/')[0]
+
+        $(stanza).find('header').each(function () {
+            from_id = $(this).attr('sid')
         })
+        sym_payload = $(stanza).find('payload').each(function () {
+            sym_payload = atob($(this).text())
+        })
+        $(stanza).find('iv').each(function () {
+            sym_iv = atob($(this).text())
+        })
+
+        $(stanza).find('key').each(function (){
+            rid = parseInt($(this).attr('rid'))
+            if (rid == omemo._id) {
+                libsignal_payload = JSON.parse(atob($(this).text()))
+            }
+        })
+        address  = new libsignal.SignalProtocolAddress(from_jid, from_id)
+        ciph = new libsignal.SessionCipher(omemo.connection._signal_store, address)
+        try {
+            ciph.decryptPreKeyWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+                aes_data = sym_cipher.get_key_and_tag(o)
+                sym_key = aes_data.key
+                sym_tag = aes_data.tag
+                sym_cipher.decrypt(sym_payload, aes_data.key).then(f => {
+                console.log("received message from ", from_jid, "they said: ", f)
+        })
+        })
+        } catch (e) {
+             ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+                aes_data = sym_cipher.get_key_and_tag(o)
+                sym_cipher.decrypt(sym_payload, aes_data.key).then(f => {
+                console.log("received message from ", from_jid, "they said: ", f)
+        })
+        })
+        }
         return true
     },
 };
