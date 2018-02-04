@@ -2398,12 +2398,10 @@ let omemo = {
         $(stanza).find('header').each(function () {
             from_id = $(this).attr('sid')
         })
-        sym_payload = $(stanza).find('payload').each(function () {
+        $(stanza).find('payload').each(function () {
             sym_payload = atob($(this).text())
         })
-        $(stanza).find('iv').each(function () {
-            sym_iv = atob($(this).text())
-        })
+        sym_iv = codec.Base64ToBuffer((stanza).find('iv').text())
 
         $(stanza).find('key').each(function (){
             rid = parseInt($(this).attr('rid'))
@@ -2415,17 +2413,23 @@ let omemo = {
         ciph = new libsignal.SessionCipher(omemo.connection._signal_store, address)
         try {
             ciph.decryptPreKeyWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+                o = codec.BufferToString(o)
                 aes_data = sym_cipher.get_key_and_tag(o)
+                console.log(aes_data)
                 sym_key = aes_data.key
                 sym_tag = aes_data.tag
-                sym_cipher.decrypt(sym_payload, aes_data.key).then(f => {
+                sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
                 console.log("received message from ", from_jid, "they said: ", f)
         })
         })
         } catch (e) {
-             ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+                 ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+                o = codec.BufferToString(o)
                 aes_data = sym_cipher.get_key_and_tag(o)
-                sym_cipher.decrypt(sym_payload, aes_data.key).then(f => {
+                console.log(aes_data)
+                sym_key = aes_data.key
+                sym_tag = aes_data.tag
+                sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
                 console.log("received message from ", from_jid, "they said: ", f)
         })
         })
@@ -2954,7 +2958,7 @@ gcm = {
 
         })
     },
-    decrypt: function (key, cipherText, iv, tag) {
+    decrypt: function (key, cipherText, iv) {
        // console.log("in decrypt")
        // console.log(key)
        // console.log(cipherText)

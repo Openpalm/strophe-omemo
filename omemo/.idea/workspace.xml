@@ -48,11 +48,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="630">
-              <caret line="445" column="46" lean-forward="false" selection-start-line="445" selection-start-column="46" selection-end-line="445" selection-end-column="46" />
+            <state relative-caret-position="666">
+              <caret line="450" column="29" lean-forward="false" selection-start-line="450" selection-start-column="29" selection-end-line="450" selection-end-column="29" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -60,11 +60,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gcm.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="gcm.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gcm.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="64" column="22" lean-forward="false" selection-start-line="64" selection-start-column="22" selection-end-line="64" selection-end-column="22" />
+            <state relative-caret-position="792">
+              <caret line="85" column="18" lean-forward="false" selection-start-line="85" selection-start-column="18" selection-end-line="85" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -154,8 +154,8 @@
         <option value="$PROJECT_DIR$/../js/strophe.omemo.object.js" />
         <option value="$PROJECT_DIR$/xmpplore.js" />
         <option value="$PROJECT_DIR$/codec.js" />
-        <option value="$PROJECT_DIR$/strophe.omemo.js" />
         <option value="$PROJECT_DIR$/gcm.js" />
+        <option value="$PROJECT_DIR$/strophe.omemo.js" />
       </list>
     </option>
   </component>
@@ -246,12 +246,12 @@
       <workItem from="1517324283075" duration="4711000" />
       <workItem from="1517332495283" duration="3697000" />
       <workItem from="1517412515387" duration="22558000" />
-      <workItem from="1517505745074" duration="25428000" />
+      <workItem from="1517505745074" duration="28709000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="101063000" />
+    <option name="totallyTimeSpent" value="104344000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="-4" width="1855" height="1204" extended-state="6" />
@@ -715,21 +715,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+    <entry file="file://$PROJECT_DIR$/gcm.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="445" column="46" lean-forward="false" selection-start-line="445" selection-start-column="46" selection-end-line="445" selection-end-column="46" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state relative-caret-position="792">
+          <caret line="85" column="18" lean-forward="false" selection-start-line="85" selection-start-column="18" selection-end-line="85" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gcm.js">
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="64" column="22" lean-forward="false" selection-start-line="64" selection-start-column="22" selection-end-line="64" selection-end-column="22" />
-          <folding />
+        <state relative-caret-position="666">
+          <caret line="450" column="29" lean-forward="false" selection-start-line="450" selection-start-column="29" selection-end-line="450" selection-end-column="29" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

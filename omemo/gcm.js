@@ -48,7 +48,7 @@ gcm = {
 
         })
     },
-    decrypt: function (key, cipherText, iv, tag) {
+    decrypt: function (key, cipherText, iv) {
        // console.log("in decrypt")
        // console.log(key)
        // console.log(cipherText)
