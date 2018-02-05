@@ -102,7 +102,6 @@ SignalProtocolStore.prototype = {
     removeSignedPreKey: function(keyId) {
         return Promise.resolve(this.remove('25519KeysignedKey' + keyId));
     },
-
     loadSession: function(identifier) {
         return Promise.resolve(this.get('session' + identifier));
     },

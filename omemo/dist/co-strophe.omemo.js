@@ -2141,7 +2141,6 @@ let omemo = {
             return
         }
         res = {jid: from, public_bundle: public_bundle}
-        console.log(res)
         let address = new libsignal.SignalProtocolAddress(res.jid, res.public_bundle.registrationId)
 
         let their_identifier = address.toString()
@@ -2342,6 +2341,7 @@ let omemo = {
         ///
         let allow_offline = true // || offline parameter, protocol tweak
         ///
+
         ready = localStorage.getItem(receiver_jid + 'sessionStatus')
         if (!ready) {
             omemo.fetch_bundles(receiver_jid)
@@ -2352,7 +2352,6 @@ let omemo = {
                 , 3000)
             return "establishing sessions"
         } else {
-            console.log("sessions found, sending message")
             xml = $msg({to: receiver_jid, from: omemo._jid, id: 'send1'})
             xml.c('encrypted', {xmlns: Strophe.NS.OMEMO })
             xml.c('header', {sid: omemo._id})
@@ -2364,7 +2363,7 @@ let omemo = {
                 ids = JSON.parse(localStorage.getItem(receiver_jid))
                 for (let i in ids) {
                 rec_ids.push(i)
-                addr = new libsignal.SignalProtocolAddress(receiver_jid, i);
+                addr = new libsignal.SignalProtocolAddress(receiver_jid, i)
                 ciph = new libsignal.SessionCipher(omemo.connection._signal_store, addr)
                 msg_promises.push(ciph.encrypt(key_str + tag))
             }
@@ -2385,7 +2384,6 @@ let omemo = {
         })
         })
             omemo.connection.send(xml)
-            console.log(xml.tree())
         }
     },
     //receive
@@ -2399,9 +2397,9 @@ let omemo = {
             from_id = $(this).attr('sid')
         })
         $(stanza).find('payload').each(function () {
-            sym_payload = atob($(this).text())
+            sym_payload = codec.Base64ToBuffer($(this).text())
         })
-        sym_iv = codec.Base64ToBuffer((stanza).find('iv').text())
+        sym_iv = codec.Base64ToBuffer($(stanza).find('iv').text())
 
         $(stanza).find('key').each(function (){
             rid = parseInt($(this).attr('rid'))
@@ -2411,31 +2409,39 @@ let omemo = {
         })
         address  = new libsignal.SignalProtocolAddress(from_jid, from_id)
         ciph = new libsignal.SessionCipher(omemo.connection._signal_store, address)
-        try {
+        if (libsignal_payload.type == 3) {
             ciph.decryptPreKeyWhisperMessage(libsignal_payload.body, 'binary').then(o => {
                 o = codec.BufferToString(o)
                 aes_data = sym_cipher.get_key_and_tag(o)
-                console.log(aes_data)
                 sym_key = aes_data.key
                 sym_tag = aes_data.tag
                 sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
-                console.log("received message from ", from_jid, "they said: ", f)
+
+            //    $(document).trigger('_handle_decrypted', [{data: {from: from_jid, plain_text: f}}])
+            $(document).trigger('_handle_decrypted', [from_jid, f])
+
+                localStorage.setItem(from_jid + 'sessionStatus', true)
+                //rest here might not be needed
+                ids = JSON.parse(localStorage.getItem(from_jid))
+                ids[from_id] = true
+                localStorage.setItem(from_jid, JSON.stringify(ids))
         })
         })
-        } catch (e) {
-                 ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+        } else  {
+                ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
                 o = codec.BufferToString(o)
                 aes_data = sym_cipher.get_key_and_tag(o)
-                console.log(aes_data)
                 sym_key = aes_data.key
                 sym_tag = aes_data.tag
                 sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
-                console.log("received message from ", from_jid, "they said: ", f)
+
+                    $(document).trigger('_handle_decrypted', [from_jid, f])
         })
         })
         }
         return true
     },
+
 };
 
 Strophe.addConnectionPlugin('omemo', omemo)

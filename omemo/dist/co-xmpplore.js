@@ -191,9 +191,8 @@ var xmpplore = {
 
 ////////////////////
     jid_to_id: function (jid) {
-        return Strophe.getBareJidFromJid(jid)
-            .replace(/@/g, "-")
-            .replace(/\./g, "-");
+        let res =  Strophe.getBareJidFromJid(jid).replace(/@/g, "-").replace(/\./g, "-");
+        return res
     },
 
     on_roster: function (iq) {
@@ -294,7 +293,10 @@ var xmpplore = {
         return true;
     },
 
+
+
     on_message: function (message) {
+        console.log(message)
         var full_jid = $(message).attr('from');
         var jid = Strophe.getBareJidFromJid(full_jid);
         var jid_id = xmpplore.jid_to_id(jid);
@@ -311,15 +313,15 @@ var xmpplore = {
         $('#chat-area').tabs('select', '#chat-' + jid_id);
         $('#chat-' + jid_id + ' input').focus();
 
-        var composing = $(message).find('composing');
-        if (composing.length > 0) {
-            $('#chat-' + jid_id + ' .chat-messages').append(
-                "<div class='chat-event'>" +
-                Strophe.getNodeFromJid(jid) +
-                " is typing...</div>");
+//        var composing = $(message).find('composing');
+//        if (composing.length > 0) {
+//            $('#chat-' + jid_id + ' .chat-messages').append(
+//                "<div class='chat-event'>" +
+//                Strophe.getNodeFromJid(jid) +
+//                " is typing...</div>");
 
-            xmpplore.scroll_chat(jid_id);
-        }
+//            xmpplore.scroll_chat(jid_id);
+//        }
 
         var body = $(message).find("html > body");
 
@@ -525,11 +527,12 @@ $(document).ready(function () {
 
             var body = $(this).val();
 
-            var message = $msg({to: jid,
-                                "type": "chat"})
-                .c('body').t(body).up()
-                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
-            xmpplore.connection.send(message);
+            //var message = $msg({to: jid,
+            //                    "type": "chat"})
+            //    .c('body').t(body).up()
+            //    .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+            let omemo_friendly_jid = jid.split('/')[0]
+            xmpplore.connection.omemo.send(omemo_friendly_jid, body);
 
             $(this).parent().find('.chat-messages').append(
                 "<div class='chat-message'>&lt;" +
@@ -720,6 +723,20 @@ $(document).bind('contact_added', function (ev, data) {
     var subscribe = $pres({to: data.jid, "type": "subscribe"});
     xmpplore.connection.send(subscribe);
 });
+
+$(document).bind('_handle_decrypted', function (arr) {
+    //utilizing xmpplore's own on_message to handle this, saves work.
+    let jid, body
+    data = arr.handler.arguments
+    jid = data[1]
+    body = data[2]
+
+    var message = $msg({from: jid,
+        "type": "chat"})
+        .c('body').t(body).up()
+        .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+    xmpplore.on_message(message.tree())
+})
 
 
 /***/ })
