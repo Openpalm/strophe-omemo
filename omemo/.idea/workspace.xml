@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="108" />
-    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="116" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="109" />
+    <bookmark url="file://$PROJECT_DIR$/strophe.omemo.js" line="117" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="732e135c-ae83-498f-8508-8145bb376321" name="Default" comment="" />
@@ -18,11 +18,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="strophe.omemo.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="163" column="16" lean-forward="false" selection-start-line="163" selection-start-column="16" selection-end-line="163" selection-end-column="16" />
+            <state relative-caret-position="288">
+              <caret line="16" column="47" lean-forward="false" selection-start-line="16" selection-start-column="47" selection-end-line="16" selection-end-column="47" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -33,7 +33,7 @@
       <file leaf-file-name="gcm.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gcm.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1530">
+            <state relative-caret-position="981">
               <caret line="85" column="18" lean-forward="false" selection-start-line="85" selection-start-column="18" selection-end-line="85" selection-end-column="18" />
               <folding />
             </state>
@@ -53,8 +53,8 @@
       <file leaf-file-name="libsignalstore.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/libsignalstore.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2052">
-              <caret line="114" column="35" lean-forward="false" selection-start-line="114" selection-start-column="35" selection-end-line="114" selection-end-column="35" />
+            <state relative-caret-position="432">
+              <caret line="86" column="32" lean-forward="false" selection-start-line="86" selection-start-column="32" selection-end-line="86" selection-end-column="32" />
               <folding />
             </state>
           </provider>
@@ -80,11 +80,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="xmpplore.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="xmpplore.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/xmpplore.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="747">
-              <caret line="660" column="31" lean-forward="false" selection-start-line="660" selection-start-column="31" selection-end-line="660" selection-end-column="31" />
+            <state relative-caret-position="639">
+              <caret line="654" column="39" lean-forward="false" selection-start-line="654" selection-start-column="39" selection-end-line="654" selection-end-column="39" />
               <folding>
                 <marker date="1517849471893" expanded="true" signature="943:947" ph="&lt;" />
                 <marker date="1517849471893" expanded="true" signature="1953:1957" ph="&gt;" />
@@ -124,10 +124,10 @@
         <option value="$PROJECT_DIR$/libsignaljs/dist/libsignal-protocol.js" />
         <option value="$PROJECT_DIR$/codec.js" />
         <option value="$PROJECT_DIR$/gcm.js" />
-        <option value="$PROJECT_DIR$/libsignalstore.js" />
         <option value="$PROJECT_DIR$/../js/strophe.omemo.object.js" />
-        <option value="$PROJECT_DIR$/strophe.omemo.js" />
         <option value="$PROJECT_DIR$/xmpplore.js" />
+        <option value="$PROJECT_DIR$/libsignalstore.js" />
+        <option value="$PROJECT_DIR$/strophe.omemo.js" />
       </list>
     </option>
   </component>
@@ -220,18 +220,18 @@
       <workItem from="1517412515387" duration="22558000" />
       <workItem from="1517505745074" duration="28709000" />
       <workItem from="1517771988584" duration="11260000" />
-      <workItem from="1517848328316" duration="1167000" />
+      <workItem from="1517848328316" duration="10974000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="116771000" />
+    <option name="totallyTimeSpent" value="126578000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="218" y="-4" width="1857" height="1212" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18867925" sideWeight="0.5" order="0" side_tool="true" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18867925" sideWeight="0.5" order="0" side_tool="true" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -656,22 +656,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gcm.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1530">
-          <caret line="85" column="18" lean-forward="false" selection-start-line="85" selection-start-column="18" selection-end-line="85" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2052">
-          <caret line="114" column="35" lean-forward="false" selection-start-line="114" selection-start-column="35" selection-end-line="114" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../js/strophe.omemo.object.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8100">
@@ -682,20 +666,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="163" column="16" lean-forward="false" selection-start-line="163" selection-start-column="16" selection-end-line="163" selection-end-column="16" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/xmpplore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="747">
-          <caret line="660" column="31" lean-forward="false" selection-start-line="660" selection-start-column="31" selection-end-line="660" selection-end-column="31" />
+        <state relative-caret-position="639">
+          <caret line="654" column="39" lean-forward="false" selection-start-line="654" selection-start-column="39" selection-end-line="654" selection-end-column="39" />
           <folding>
             <marker date="1517849471893" expanded="true" signature="943:947" ph="&lt;" />
             <marker date="1517849471893" expanded="true" signature="1953:1957" ph="&gt;" />
@@ -706,6 +680,32 @@
             <marker date="1517849471893" expanded="true" signature="9386:9390" ph="&gt;" />
             <marker date="1517849471893" expanded="true" signature="14719:14723" ph="&lt;" />
             <marker date="1517849471893" expanded="true" signature="14865:14869" ph="&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libsignalstore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="86" column="32" lean-forward="false" selection-start-line="86" selection-start-column="32" selection-end-line="86" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gcm.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="981">
+          <caret line="85" column="18" lean-forward="false" selection-start-line="85" selection-start-column="18" selection-end-line="85" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/strophe.omemo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="16" column="47" lean-forward="false" selection-start-line="16" selection-start-column="47" selection-end-line="16" selection-end-column="47" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>

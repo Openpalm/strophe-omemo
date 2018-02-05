@@ -1,6 +1,7 @@
 function SignalProtocolStore() {
     this.store = {};
     this.localStore = window.localStorage;
+    this.prekey_count = 0
 }
 
 SignalProtocolStore.prototype = {
@@ -82,9 +83,11 @@ SignalProtocolStore.prototype = {
         return Promise.resolve(res);
     },
     storePreKey: function(keyId, keyPair) {
+        this.prekey_count = this.prekey_count + 1
         return Promise.resolve(this.put('25519KeypreKey' + keyId, keyPair));
     },
     removePreKey: function(keyId) {
+        this.prekey_count = this.prekey_count - 1
         return Promise.resolve(this.remove('25519KeypreKey' + keyId));
     },
 

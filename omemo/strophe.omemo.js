@@ -23,6 +23,7 @@ let omemo = {
         let identifier = jid + '.' + id
         omemo._jid = jid
         omemo._id = parseInt(id)
+        omemo._identifier = omemo._jid + '.' + omemo._id // gotta make localStorage entries more unique due to test collisions.
         try {
             if (libsignal) {
             }
@@ -177,9 +178,7 @@ let omemo = {
                 console.log('session successfully established')
                 record = JSON.parse(localStorage.getItem(res.jid))
                 record[from_id] = true
-                omemo.connection._signal_store.loadSession(address.toString()).then(o => {
-                    localStorage.setItem(res.jid, JSON.stringify(record))
-                localStorage.setItem(address.toString() + 'session', o)
+                localStorage.setItem(res.jid, JSON.stringify(record))
 
                 //check if ready
                 let ids = localStorage.getItem(from)
@@ -191,11 +190,14 @@ let omemo = {
                     localStorage.setItem(from + 'sessionStatus', true)
                 }
             })
-            })
             session.catch( function onerror(error){
                 console.log('there was an error establishing the session')
                 return Promise.reject()
             })
+        } else {
+            record = JSON.parse(localStorage.getItem(res.jid))
+            record[from_id] = true
+            localStorage.setItem(res.jid, JSON.stringify(record))
         }
     })
         return true
@@ -245,6 +247,7 @@ let omemo = {
             ids[tid] = ids[tid] == true ? ids[tid] : false
         })
         localStorage.setItem(from, JSON.stringify(ids))
+        omemo.process_ready(from) //double the work ?
         return true
     },
 
@@ -270,7 +273,7 @@ let omemo = {
             ready = ready && ids[i]
         }
         if (ready) {
-            localStorage.setItem(to + 'sessionStatus', true)
+            localStorage.setItem(to + 'sessionStatus', true) // should probably always join on the ids flag
             return true
         }
 
@@ -366,7 +369,6 @@ let omemo = {
         ///
         let allow_offline = true // || offline parameter, protocol tweak
         ///
-
         ready = localStorage.getItem(receiver_jid + 'sessionStatus')
         if (!ready) {
             omemo.fetch_bundles(receiver_jid)
@@ -442,31 +444,58 @@ let omemo = {
                 sym_tag = aes_data.tag
                 sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
 
-            //    $(document).trigger('_handle_decrypted', [{data: {from: from_jid, plain_text: f}}])
-            $(document).trigger('_handle_decrypted', [from_jid, f])
-
-                localStorage.setItem(from_jid + 'sessionStatus', true)
-                //rest here might not be needed
-                ids = JSON.parse(localStorage.getItem(from_jid))
-                ids[from_id] = true
-                localStorage.setItem(from_jid, JSON.stringify(ids))
+                //    $(document).trigger('_handle_decrypted', [{data: {from: from_jid, plain_text: f}}])
+                $(document).trigger('_handle_decrypted', [from_jid, f])
+            record = JSON.parse(localStorage.getItem(from_jid))
+            record[from_id] = true
+            localStorage.setItem(from_jid, JSON.stringify(record))
+            omemo.publish_bundle()
         })
         })
         } else  {
-                ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
+            ciph.decryptWhisperMessage(libsignal_payload.body, 'binary').then(o => {
                 o = codec.BufferToString(o)
                 aes_data = sym_cipher.get_key_and_tag(o)
                 sym_key = aes_data.key
                 sym_tag = aes_data.tag
                 sym_cipher.decrypt(sym_key, sym_payload ,sym_iv).then(f => {
 
-                    $(document).trigger('_handle_decrypted', [from_jid, f])
+                $(document).trigger('_handle_decrypted', [from_jid, f])
         })
         })
         }
         return true
     },
-
+    // future refinement: fetch bundles by checking the receiver_jid localStorage entry,
+    // let fetch bundle fetch on an array of non true flags. if result of this function is [], then dont.
+    // missing error handelling on unknown receiver_jid
+    sessions_all_ready: function () {
+        let ready = true
+        ids = JSON.parse(localStorage.getItem(receiver_jid))
+        for (let i in ids) {
+            ready = ready && ids[i]
+        }
+        return ready
+    },
+    get_bundles_to_fetch: function () {
+        let left = []
+        let ready = true
+        ids = JSON.parse(localStorage.getItem(receiver_jid))
+        for (let i in ids) {
+            if (ids[i] == false) {
+               left.push(i)
+            }
+        }
+        return left
+    },
+    process_ready: function (for_jid) {
+      let ready = true
+      let ids = JSON.parse(localStorage.getItem(receiver_jid))
+                for (let i in ids) {
+            ready = ready && ids[i]
+        }
+        localStorage.setItem(for_jid + 'sessionStatus', ready)
+    },
 };
 
 Strophe.addConnectionPlugin('omemo', omemo)
