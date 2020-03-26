@@ -1,4 +1,4 @@
-# strophe-omemo
+# strophe-omemo (UNMAINTAINED. DO NOT USE)
 
 ## dec && nov 2017 
 promises
